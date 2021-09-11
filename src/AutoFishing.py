@@ -9,7 +9,6 @@ import numpy
 import win32api
 from src.config import Config
 from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtWidgets import QMessageBox
 
 
 class AutoFishing(QObject):
@@ -18,7 +17,8 @@ class AutoFishing(QObject):
     mSignalUpdateFishingNum = pyqtSignal(int)
     mSignalUpdateFishNum = pyqtSignal(int)
     mSignalUpdateFishDetectionImage = pyqtSignal()
-    mSignalMessage = pyqtSignal(str)
+    mSignalMessage = pyqtSignal(str, bool)
+    mSignalUpdateStatus = pyqtSignal(str)
 
     def __init__(self):
         QObject.__init__(self, parent=None)  # Kế thừa QObject
@@ -31,8 +31,8 @@ class AutoFishing(QObject):
         self.mFishingRegion = [0, 0, 0, 0]
         self.mAdbDevice = None
         self.mFishDetectionRunning = True
-        self.mCheckMouseRunning = True
-        self.mAutoFishRunning = True
+        self.mCheckMouseRunning = False
+        self.mAutoFishRunning = False
         self.mCheckFish = False
         self.mEmulatorWindow = None
         self.mEmulatorBox = None
@@ -44,12 +44,11 @@ class AutoFishing(QObject):
         self.mCheckMouseRunning = False
         self.mAutoFishRunning = False
 
-    @staticmethod
-    def MsgBox(mText: str):
-        msgBox = QMessageBox()
-        msgBox.setText(mText)
-        msgBox.setWindowTitle("Thông báo")
-        msgBox.exec()
+    def MsgEmit(self, mText: str, mReturn: bool):
+        self.mSignalMessage.emit(mText, mReturn)
+
+    def StatusEmit(self, mText: str):
+        self.mSignalUpdateStatus.emit(mText)
 
     @staticmethod
     def CheckLeftMouseClick():
@@ -80,7 +79,7 @@ class AutoFishing(QObject):
     def TakeFishingRod(self):
         self.AdbClick(self.mConfig.GetFishingRodPosition()[0],
                       self.mConfig.GetFishingRodPosition()[1])
-        print("Đã lấy cần câu trong ba lô")
+        self.StatusEmit("Đã lấy cần câu trong ba lô")
 
     def FixClick(self):
         mCheck = 0
@@ -96,13 +95,12 @@ class AutoFishing(QObject):
             if mFixedRodButtonPos is not None:
                 self.AdbClick(self.mConfig.GetFishingRodPosition()[0],
                               self.mConfig.GetFishingRodPosition()[1])
-                print("Đã bấm nút sửa cần")
+                self.StatusEmit("Đã bấm nút sửa cần")
                 return True
 
             mCheck += 1
             time.sleep(1)
-
-        print("Không tìm được nút sửa cần")
+        self.StatusEmit("Không tìm được nút sửa cần")
         return False
 
     def FixConfirm(self):
@@ -120,13 +118,12 @@ class AutoFishing(QObject):
             if mFixedRodConfirmButtonPos is not None:
                 self.AdbClick(self.mConfig.GetConfirm()[0],
                               self.mConfig.GetConfirm()[1])
-                print("Đã xác nhận sửa cần")
+                self.StatusEmit("Đã xác nhận sửa cần")
                 return True
 
             mCheck += 1
             time.sleep(1)
-
-        print("Không tìm thấy xác nhận sửa cần")
+        self.StatusEmit("Không tìm thấy xác nhận sửa cần")
         return False
 
     def ClickOk(self):
@@ -144,17 +141,19 @@ class AutoFishing(QObject):
             if mFixedRodDoneButtonPos is not None:
                 self.AdbClick(self.mConfig.GetOKButton()[0],
                               self.mConfig.GetOKButton()[1])
-                print("Đã bấm nút OK sau khi sửa cần")
+                self.StatusEmit("Đã bấm nút OK sau khi sửa cần")
                 return True
 
             mCheck += 1
             time.sleep(1)
 
-        print("Không tìm thấy nút OK sau khi sửa cần")
+        self.StatusEmit("Không tìm thấy nút OK sau khi sửa cần")
         return False
 
     def CheckRod(self):
         time.sleep(3)
+        if self.mAutoFishRunning is False:
+            return False
         mCheck = 0
         while mCheck < 3:
             mPullRodButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}pull_rod.png',
@@ -171,20 +170,46 @@ class AutoFishing(QObject):
 
             mCheck += 1
             time.sleep(1)
+            if self.mAutoFishRunning is False:
+                return False
 
-        print("Không thể thả cần câu. Tiến hành kiểm tra túi đồ")
+        self.StatusEmit("Không thể thả cần câu\nTiến hành kiểm tra túi đồ")
         self.OpenBackPack()
+        if self.mAutoFishRunning is False:
+            return False
         time.sleep(3)
+        if self.mAutoFishRunning is False:
+            return False
         self.OpenTools()
+        if self.mAutoFishRunning is False:
+            return False
         time.sleep(2)
+        if self.mAutoFishRunning is False:
+            return False
         self.FixClick()
+        if self.mAutoFishRunning is False:
+            return False
         time.sleep(2)
+        if self.mAutoFishRunning is False:
+            return False
         self.FixConfirm()
+        if self.mAutoFishRunning is False:
+            return False
         time.sleep(2)
+        if self.mAutoFishRunning is False:
+            return False
         self.ClickOk()
+        if self.mAutoFishRunning is False:
+            return False
         time.sleep(2)
+        if self.mAutoFishRunning is False:
+            return False
         self.CloseBackPack()
+        if self.mAutoFishRunning is False:
+            return False
         time.sleep(2)
+        if self.mAutoFishRunning is False:
+            return False
         mCheck = 0
         while mCheck < 3:
             mCastFishingRodButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}cast_fishing_rod.png',
@@ -199,6 +224,8 @@ class AutoFishing(QObject):
                 return False
             mCheck += 1
             time.sleep(0.5)
+            if self.mAutoFishRunning is False:
+                return False
         self.AdbClick(self.mConfig.GetPreservation()[0],
                       self.mConfig.GetPreservation()[1])
         self.mRodFixedCheck += 1
@@ -217,11 +244,13 @@ class AutoFishing(QObject):
             if mCastFishingRodButtonPos is not None:
                 self.AdbClick(self.mConfig.GetCastingRod()[0],
                               self.mConfig.GetCastingRod()[1])
-                print("Thả cần câu")
+                self.StatusEmit("Thả cần câu")
                 return True
             mCheck += 1
             time.sleep(0.01)
-        print("Không tìm thấy nút thả cần câu")
+            if self.mAutoFishRunning is False:
+                return False
+        self.StatusEmit("Không tìm thấy nút thả cần câu")
         return False
 
     def FishDetection(self, mPrevFrame, mCurrFrame):
@@ -305,12 +334,12 @@ class AutoFishing(QObject):
         return mScreenShotMatGray
 
     def CheckMark(self):
-        time.sleep(1)
+        time.sleep(0.1)
         mStaticFrame = None
         if self.mConfig.GetFishDetection() is True:
             mStaticFrame = self.ScreenshotFishingRegion()
             self.mFishImage = cv2.resize(mStaticFrame, (200, 200), interpolation=cv2.INTER_AREA)
-        print("Đang đợi dấu chấm than")
+        self.StatusEmit("Đang đợi dấu chấm than")
         time1 = time.time()
         time2 = time.time()
         mCheck = False
@@ -325,7 +354,7 @@ class AutoFishing(QObject):
             break
 
         if mCheck is False:
-            print("Lỗi hệ thống. Không xác định được màu nền tại vị trí dấu chấm than")
+            self.StatusEmit("Lỗi hệ thống\nKhông xác định được màu nền tại vị trí dấu chấm than")
             return False
 
         time1 = time.time()
@@ -341,7 +370,7 @@ class AutoFishing(QObject):
                 if mSkipFrame == 10:
                     mStopDetect = True
                     if mSizeFish < int(self.mConfig.GetFishSize()):
-                        print("Kích thước cá =", int(mSizeFish), ".Bỏ qua")
+                        self.StatusEmit(f'Kích thước cá ={int(mSizeFish)}. Bỏ qua')
                         return True
             try:
                 mPixelCurrent = pyautogui.pixel(self.mMark[0], self.mMark[1])
@@ -355,13 +384,15 @@ class AutoFishing(QObject):
             mDiffRgb = (mDiffR + mDiffG + mDiffB) // 3
 
             if mDiffRgb > self.mConfig.GetDifferentColor():
-                print("Phát hiện dấu chấm than. Độ lệch màu = ", mDiffRgb)
+                self.StatusEmit(f'Phát hiện dấu chấm than\nĐộ lệch màu = {mDiffRgb}')
                 return True
 
             time2 = time.time()
             time.sleep(0.01)
+            if self.mAutoFishRunning is False:
+                return False
 
-        print("Không phát hiện dấu chấm than")
+        self.StatusEmit("Không phát hiện dấu chấm than")
         return False
 
     def PullFishingRod(self):
@@ -371,19 +402,21 @@ class AutoFishing(QObject):
                             clicks=2,
                             interval=0.1,
                             button='left')
-            print("Đang kéo cần câu")
+            self.StatusEmit("Đang kéo cần câu")
             return True
         else:
-            print("Đang kéo cần câu")
+            self.StatusEmit("Đang kéo cần câu")
             time1 = time.time()
             self.AdbClick(self.mConfig.GetPullingRod()[0],
                           self.mConfig.GetPullingRod()[1])
             time2 = time.time()
-            print("Độ trễ giật cần ", round(time2 - time1, 2), " giây")
+            self.StatusEmit(f'Độ trễ giật cần {round(time2 - time1, 2)} giây')
             return True
 
     def FishPreservation(self):
         time.sleep(2)
+        if self.mAutoFishRunning is False:
+            return False
         time1 = time.time()
         time2 = time.time()
         mCheckPullRodButton = 0
@@ -403,13 +436,13 @@ class AutoFishing(QObject):
                                                          grayscale=True,
                                                          confidence=self.mConfig.GetConfidence())
             if mCastFishingButtonPos is not None:
-                print("Câu thất bại")
+                self.StatusEmit("Câu thất bại")
                 self.mRodFixedCheck = 0
                 return True
             if mPullRodButtonPos is None:
                 mCheckPullRodButton += 1
                 if mCheckPullRodButton > 2:
-                    print("Câu thành công")
+                    self.StatusEmit("Câu thành công")
                     self.mFishNum += 1
                     self.AdbClick(self.mConfig.GetPreservation()[0],
                                   self.mConfig.GetPreservation()[1])
@@ -418,16 +451,18 @@ class AutoFishing(QObject):
 
             time.sleep(0.2)
             time2 = time.time()
+            if self.mAutoFishRunning is False:
+                return False
 
         self.mRodFixedCheck = 0
-        print("Kiểm tra kết quả bị lỗi")
+        self.StatusEmit("Kiểm tra kết quả bị lỗi")
         return False
 
     def SetPixelPos(self):
         self.mMark = [0, 0]
         time.sleep(0.1)
         mMousePos = pyautogui.position()
-        print("\nDi chuyển chuột đến đầu của dấu chấm than và Click")
+        self.StatusEmit("Di chuyển chuột đến đầu của dấu chấm than và Click")
         self.mCheckMouseRunning = True
         while self.mCheckMouseRunning is True:
             mMousePos = pyautogui.position()
@@ -437,14 +472,14 @@ class AutoFishing(QObject):
             time.sleep(0.01)
         self.mMark[0] = int(mMousePos.x)
         self.mMark[1] = int(mMousePos.y)
-        print("Vị trí dấu chấm than đã cài đặt: ", mMousePos)
+        self.StatusEmit(f'Vị trí dấu chấm than đã cài đặt:\n{mMousePos}')
 
     def SetFishingBobberPos(self):
         self.mFishingRegion = [0, 0, 0, 0]
         time.sleep(0.1)
         mScreenSize = pyautogui.size()
         mMousePos = pyautogui.position()
-        print("\nDi chuyển chuột đến phao câu và Click")
+        self.StatusEmit("Di chuyển chuột đến phao câu và Click")
         self.mCheckMouseRunning = True
         while self.mCheckMouseRunning is True:
             mMousePos = pyautogui.position()
@@ -470,7 +505,7 @@ class AutoFishing(QObject):
         if self.mFishingRegion[1] + self.mFishingRegion[3] >= mScreenSize.height:
             self.mFishingRegion[1] = 2 * mMousePos.y - mScreenSize.height
             self.mFishingRegion[3] = 2 * (mMousePos.y - self.mFishingRegion[1])
-        print("Vị trí phao câu đã cài đặt: ", mMousePos)
+        self.StatusEmit(f'Vị trí phao câu đã cài đặt:\n{mMousePos}')
         time.sleep(2)
 
     def CheckRegionEmulator(self):
@@ -478,53 +513,53 @@ class AutoFishing(QObject):
         self.mEmulatorBox = None
         self.mEmulatorWindow = None
         mEmulatorWindows = []
-        print("\nKích thước màn hình = ", mScreenSize)
+        self.StatusEmit(f'Kích thước màn hình =\n{mScreenSize}')
         try:
             mEmulatorWindows = pyautogui.getWindowsWithTitle(self.mConfig.GetWindowName())
         except:
-            self.MsgBox(f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}')
+            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}', False)
             return False
         if len(mEmulatorWindows) > 0:
             self.mEmulatorWindow = mEmulatorWindows[0]
         else:
-            self.MsgBox(f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}')
+            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}', False)
             return False
         self.mEmulatorBox = self.mEmulatorWindow.box
-        print("\nĐã tìm thấy cửa sổ giả lập ", self.mEmulatorBox)
+        self.StatusEmit(f'Đã tìm thấy cửa sổ giả lập\n{self.mEmulatorBox}')
         time.sleep(1)
         if self.mEmulatorBox.width < 1280 or self.mEmulatorBox.height < 720:
-            self.MsgBox("Cửa sổ giả lập bị ẩn hoặc độ phân giải không phù hợp")
+            self.MsgEmit("Cửa sổ giả lập bị ẩn hoặc độ phân giải không phù hợp", False)
             return False
         if self.mEmulatorBox.top < 0:
             self.mEmulatorWindow.activate()
             self.mEmulatorWindow.move(0, abs(self.mEmulatorBox.top))
-            print("Cửa sổ giả lập bị khuất về bên trên, tự động di chuyển")
+            self.StatusEmit("Cửa sổ giả lập bị khuất về bên trên\nTự động di chuyển")
         if self.mEmulatorBox.left < 0:
             self.mEmulatorWindow.activate()
             self.mEmulatorWindow.move(abs(self.mEmulatorBox.left), 0)
-            print("Cửa sổ giả lập bị khuất về bên trái, tự động di chuyển")
+            self.StatusEmit("Cửa sổ giả lập bị khuất về bên trái\nTự động di chuyển")
         if self.mEmulatorBox.top + self.mEmulatorBox.height > mScreenSize.height:
             self.mEmulatorWindow.activate()
             self.mEmulatorWindow.move(0, 0 - self.mEmulatorBox.top)
-            print("Cửa sổ giả lập bị khuất về bên dưới, tự động di chuyển")
+            self.StatusEmit("Cửa sổ giả lập bị khuất về bên dưới\nTự động di chuyển")
         if self.mEmulatorBox.left + self.mEmulatorBox.width > mScreenSize.width:
             self.mEmulatorWindow.activate()
             self.mEmulatorWindow.move(0 - self.mEmulatorBox.left, 0)
-            print("Cửa sổ giả lập bị khuất về bên phải, tự động di chuyển")
+            self.StatusEmit("Cửa sổ giả lập bị khuất về bên phải\nTự động di chuyển")
         time.sleep(0.1)
         self.mEmulatorBox = self.mEmulatorWindow.box
-        self.MsgBox("Kết nối giả lập thành công")
+        self.MsgEmit("Kết nối giả lập thành công", True)
         time.sleep(0.1)
         return True
 
     def StartAdbServer(self):
-        print("\nĐang khởi tạo adb-server\n")
+        self.StatusEmit("Đang khởi tạo adb-server")
         try:
             os.system(f'{self.mConfig.GetCurrentPath()}\\adb\\adb.exe devices')
         except:
-            print('\nKhởi tạo adb-server thất bại')
+            self.StatusEmit('Khởi tạo adb-server thất bại')
             return False
-        print('\nKhởi tạo adb-server thành công')
+        self.StatusEmit('Khởi tạo adb-server thành công')
         time.sleep(3)
         return True
 
@@ -537,38 +572,40 @@ class AutoFishing(QObject):
         except:
             mCheckStartServer = self.StartAdbServer()
             if mCheckStartServer is False:
-                self.MsgBox('Không tìm thấy adb-server')
+                self.MsgEmit('Không tìm thấy adb-server', False)
                 return False
             else:
                 mAdbClient = AdbClient(self.mConfig.GetAdbHost(),
                                        self.mConfig.GetAdbPort())
                 mDevices = mAdbClient.devices()
         if mDevices is None:
-            self.MsgBox('Không tìm thấy phần mềm giả lập')
+            self.MsgEmit('Không tìm thấy phần mềm giả lập', False)
             return False
 
         if len(mDevices) == 0:
-            self.MsgBox('Không tìm thấy phần mềm giả lập')
+            self.MsgEmit('Không tìm thấy phần mềm giả lập', False)
             return False
         elif len(mDevices) == 1:
-            print("Đã tìm thấy phần mềm giả lập")
+            self.StatusEmit("Đã tìm thấy phần mềm giả lập")
             self.mAdbDevice = mDevices[0]
         else:
-            print("Đã tìm thấy nhiều thiết bị android:")
+            self.StatusEmit("Đã tìm thấy nhiều thiết bị android:")
+            mAndroidDevices = ""
             for i in range(len(mDevices)):
-                print("Mã số ", i, "   :   ", mDevices[i].client)
+                mAndroidDevices += f'Mã số {i} : {mDevices[i].client}\n'
+            self.StatusEmit(mAndroidDevices)
             m_device_index = int(input("Hãy nhập thiết bị bạn sử dụng theo mã số tương ứng và bấm Enter:"))
             self.mAdbDevice = mDevices[m_device_index]
 
         if self.mAdbDevice is None:
-            self.MsgBox('Không tìm thấy phần mềm giả lập')
+            self.MsgEmit('Không tìm thấy phần mềm giả lập', False)
             return False
 
-        print("Kết nối giả lập thành công")
+        self.StatusEmit("Kết nối giả lập thành công")
         return True
 
     def AdbDisconnect(self):
-        print("\nĐang đóng adb-server")
+        self.StatusEmit("Đang đóng adb-server")
         os.system(f'{self.mConfig.GetCurrentPath()}\\adb\\adb.exe kill-server')
         time.sleep(3)
 
@@ -584,61 +621,80 @@ class AutoFishing(QObject):
             f'input swipe {str(mCoordinateX)} {str(mCoordinateY)} {str(mCoordinateX)} {str(mCoordinateY)} {str(mTime)}')
 
     def StartAuto(self):
-        print(self.mEmulatorBox)
         if self.mEmulatorBox is None:
-            print(1)
-            self.MsgBox("")
+            self.MsgEmit("Chưa kết nối phần mềm giả lập", True)
             time.sleep(0.1)
-
             return
 
         if self.mMark[0] == 0:
-            self.MsgBox('Chưa xác định vị trí dấu chấm than')
+            self.MsgEmit('Chưa xác định vị trí dấu chấm than', False)
             return False
-        print(2)
 
         if self.mConfig.GetFishDetection() is True:
             if self.mFishingRegion[0] == 0:
-                self.MsgBox('Chưa xác định vùng câu')
+                self.MsgEmit('Chưa xác định vùng câu', False)
                 return False
-        print(3)
 
         time.sleep(0.1)
-        self.mCurrentTime = time.time()
         self.mAutoFishRunning = True
         while self.mAutoFishRunning is True:
             t1 = time.time()
             time.sleep(2)
+            if self.mAutoFishRunning is False:
+                break
             self.mFishingNum += 1
-            print("____________________________")
-            print('Lượt câu thứ ', self.mFishingNum)
-            print("Số vật phẩm câu được = ", self.mFishNum)
-
             self.mSignalUpdateFishingNum.emit(self.mFishingNum)
 
             self.CastFishingRod()
+            if self.mAutoFishRunning is False:
+                break
             mOutPutCheckRod = self.CheckRod()
+            if self.mAutoFishRunning is False:
+                break
             if mOutPutCheckRod is True:
                 mCheckMarkRgb = self.CheckMark()
+                if self.mAutoFishRunning is False:
+                    break
                 if mCheckMarkRgb is True:
                     mPullingRod = self.PullFishingRod()
+                    if self.mAutoFishRunning is False:
+                        break
                     if mPullingRod is True:
                         self.FishPreservation()
+                        if self.mAutoFishRunning is False:
+                            break
                         t2 = time.time()
-                        print("Thời gian câu = ", int(t2 - t1), " giây")
+                        self.StatusEmit(f'Thời gian câu = {int(t2 - t1)} giây')
 
             else:
-                print("\nKhông thể thả cần câu lần ", self.mRodFixedCheck)
-                print("Sau 3 lần không thể thả cần câu sẽ tiến hành lấy lại cần câu trong ba lô")
+                self.StatusEmit(f'Không thể thả cần câu lần {self.mRodFixedCheck}')
+                time.sleep(1)
+                self.StatusEmit("Sau 3 lần không thể thả cần câu sẽ tiến hành lấy lại cần câu trong ba lô")
                 if self.mRodFixedCheck == 3:
+                    if self.mAutoFishRunning is False:
+                        break
                     time.sleep(1)
+                    if self.mAutoFishRunning is False:
+                        break
                     self.OpenBackPack()
+                    if self.mAutoFishRunning is False:
+                        break
                     time.sleep(3)
+                    if self.mAutoFishRunning is False:
+                        break
                     self.OpenTools()
+                    if self.mAutoFishRunning is False:
+                        break
                     time.sleep(1)
+                    if self.mAutoFishRunning is False:
+                        break
                     self.TakeFishingRod()
+                    if self.mAutoFishRunning is False:
+                        break
                 if self.mRodFixedCheck > 3:
-                    self.MsgBox('Lỗi không tìm được nút thả cần. Kiểm tra lại giả lập game')
+                    self.MsgEmit('Lỗi không tìm được nút thả cần. Kiểm tra lại giả lập game', False)
                     self.mRodFixedCheck = 0
+                    self.mAutoFishRunning = False
             self.mSignalUpdateFishNum.emit(self.mFishNum)
             gc.collect()
+        return False

@@ -1,7 +1,7 @@
 import time
 import threading
 
-from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox, QWidget
+from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from PyQt5.QtCore import QObject, Qt, QTimer
 from PyQt5 import QtGui
 
@@ -19,6 +19,10 @@ class MainWindow(QObject):
 
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
+        self.mAutoFishingThread = threading.Thread(target=None)
+        self.mAuthor = 'AutoFishing app for game \"Play Together\" by nth' \
+                       '\nFacebook: https://www.facebook.com/nth.autogame'
+        self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
 
         self.mTimer = QTimer()
 
@@ -26,6 +30,9 @@ class MainWindow(QObject):
 
     def __del__(self):
         self.mTimer.destroyed()
+        self.mAutoFishing.mAutoFishRunning = False
+        self.mAutoFishing.mCheckMouseRunning = False
+        self.mAutoFishing.mFishDetectionRunning = False
 
     def Show(self):
         self.main_win.show()
@@ -51,7 +58,7 @@ class MainWindow(QObject):
         self.uic.cbShowFish.setChecked(self.mConfig.GetShowFishShadow())
 
         self.uic.lblShowFish.setPixmap(
-            QtGui.QPixmap(f'{self.mConfig.GetDataPath()}iconapp.ico').scaled(200,200))
+            QtGui.QPixmap(f'{self.mConfig.GetDataPath()}iconapp.ico').scaled(200, 200))
 
         # Connect btn
         self.uic.btnConnectEmulator.clicked.connect(self.OnClickConnectEmulator)
@@ -66,10 +73,20 @@ class MainWindow(QObject):
         self.mAutoFishing.mSignalUpdateFishingNum.connect(self.SlotShowFishingNum)
         self.mAutoFishing.mSignalUpdateFishNum.connect(self.SlotShowNumFish)
         self.mAutoFishing.mSignalUpdateFishDetectionImage.connect(self.SlotShowFishImage)
+        self.mAutoFishing.mSignalMessage.connect(self.SlotShowMsgBox)
+        self.mAutoFishing.mSignalUpdateStatus.connect(self.SlotShowStatus)
+
+        # Connect timer to slot
         self.mTimer.timeout.connect(self.SlotShowTime)
+        self.mTimer.timeout.connect(self.SlotCheckThread)
+        self.mTimer.start(300)
 
         # Hide btnStopFishing
-        self.uic.btnStopFishing.hide()
+        # self.uic.btnStopFishing.hide()
+        self.uic.btnStopFishing.setDisabled(True)
+
+        # Show Author
+        self.SlotShowStatus(self.mAuthor)
 
     def OnClickConnectEmulator(self):
         self.mConfig.SetWindowName(self.uic.listEmulator.currentText())
@@ -77,37 +94,35 @@ class MainWindow(QObject):
         self.mAutoFishing.CheckRegionEmulator()
 
     def OnClickStart(self):
-        self.uic.btnConnectEmulator.hide()
-        self.uic.btnStartFishing.hide()
-        self.uic.btnStopFishing.show()
+        self.uic.btnConnectEmulator.setDisabled(True)
+        self.uic.btnStartFishing.setDisabled(True)
+        self.uic.btnGetMarkPosition.setDisabled(True)
+        self.uic.btnGetBobberPosition.setDisabled(True)
+        self.uic.btnStopFishing.setDisabled(False)
+
         self.mAutoFishing.mCheckMouseRunning = False
         self.mAutoFishing.mAutoFishRunning = False
+
         self.SaveConfig()
         time.sleep(0.1)
 
         self.mAutoFishing.mFishingNum = 0
         self.mAutoFishing.mFishNum = 0
 
-        threading.Thread(target=self.mAutoFishing.StartAuto).start()
+        if self.mConfig.GetShowFishShadow() is False:
+            self.uic.lblShowFish.setPixmap(
+                QtGui.QPixmap(f'{self.mConfig.GetDataPath()}iconapp.ico').scaled(200, 200))
 
-        self.mTimer.start(300)
+        self.mAutoFishingThread = threading.Thread(target=self.mAutoFishing.StartAuto)
+        self.mAutoFishingThread.start()
+
+        self.mAutoFishing.mCurrentTime = time.time()
 
     def OnClickStop(self):
-        self.uic.btnConnectEmulator.show()
-        self.uic.btnStopFishing.hide()
-        self.uic.btnStartFishing.show()
+        self.uic.btnStopFishing.setDisabled(True)
         self.mAutoFishing.mCheckMouseRunning = False
         self.mAutoFishing.mAutoFishRunning = False
-
-        self.mAutoFishing.mFishingNum = 0
-        self.mAutoFishing.mFishNum = 0
-
-        self.mAutoFishing.mSignalUpdateFishingNum.emit(0)
-        self.mAutoFishing.mSignalUpdateFishNum.emit(0)
-
-        self.mTimer.stop()
-
-        self.SlotShowTime(True)
+        self.SlotShowStatus("ClickStop")
 
     def OnClickGetMarkPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
@@ -149,12 +164,40 @@ class MainWindow(QObject):
         self.uic.lblShowFish.setPixmap(mQPixmap)
 
     def SlotShowTime(self, mReset=False):
-        if mReset is True:
+        if self.mAutoFishing.mAutoFishRunning is False:
             self.uic.lcdTime.display('0')
         else:
             mTime = int(time.time() - self.mAutoFishing.mCurrentTime)
             self.uic.lcdTime.display(str(mTime))
         self.uic.lcdTime.setSegmentStyle(2)
+
+    def SlotShowStatus(self, mText: str):
+        if mText == self.mAuthor:
+            self.uic.lblStatus.setText(self.mAuthor)
+        elif self.uic.btnStartFishing.isEnabled() is False and self.uic.btnStopFishing.isEnabled() is False:
+            self.uic.lblStatus.setText(self.mWaitStatus)
+        else:
+            self.uic.lblStatus.setText(mText)
+
+        self.uic.lblStatus.setAlignment(Qt.AlignTop)
+        self.uic.lblStatus.setAlignment(Qt.AlignLeft)
+        self.uic.lblStatus.setAlignment(Qt.AlignVCenter)
+        self.uic.lblStatus.setWordWrap(True)
+
+    def SlotCheckThread(self):
+        if self.mAutoFishingThread.is_alive() is False:
+            self.mAutoFishing.mFishNum = 0
+            self.mAutoFishing.mFishingNum = 0
+
+            self.SlotShowNumFish(self.mAutoFishing.mFishNum)
+            self.SlotShowFishingNum(self.mAutoFishing.mFishingNum)
+
+            self.uic.btnConnectEmulator.setDisabled(False)
+            self.uic.btnStartFishing.setDisabled(False)
+            self.uic.btnGetMarkPosition.setDisabled(False)
+            self.uic.btnGetBobberPosition.setDisabled(False)
+            if self.uic.lblStatus.text() == self.mWaitStatus:
+                self.uic.lblStatus.setText(self.mAuthor)
 
     def SaveConfig(self):
         self.mConfig.SetFishingRod(int(self.uic.txtFishingRodPosition.toPlainText()))
@@ -165,3 +208,10 @@ class MainWindow(QObject):
         self.mConfig.SetFishDetection(self.uic.cbFishDetection.isChecked())
         self.mConfig.SetShowFishShadow(self.uic.cbShowFish.isChecked())
         self.mConfig.SaveConfig()
+
+    @staticmethod
+    def SlotShowMsgBox(mText: str, mReturn: bool):
+        mMsgBox = QMessageBox()
+        mMsgBox.setText(mText)
+        mMsgBox.setWindowTitle("Thông báo")
+        mMsgBox.exec()
