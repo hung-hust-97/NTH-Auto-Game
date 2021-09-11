@@ -18,65 +18,66 @@ class SingletonMeta(type):
 
 class Config(metaclass=SingletonMeta):
     def __init__(self):
-        self.mMutex = Lock()
+        self.__mMutex = Lock()
 
         self.__mCurrentPath = os.getcwd()
         self.__mDataPath = self.__mCurrentPath + "\\data\\"
+        self.__mConfigPath = self.__mCurrentPath + "\\config\\config.ini"
 
-        self.__mConfig = configparser.ConfigParser()
-        self.__mConfig.read(self.__mCurrentPath + "\\config\\config.ini")
-        self.__mConfig = self.__mConfig['CONFIG']
+        self.__mConfigParser = configparser.ConfigParser()
+        self.__mConfigParser.read(self.__mConfigPath)
+        self.__mConfig = self.__mConfigParser['CONFIG']
 
-        self.__mAdbHost = self.__mConfig['AdbHost']
-        self.__mAdbPort = int(self.__mConfig['AdbPort'])
+        self.__mAdbHost = self.__mConfig['adb_host']
+        self.__mAdbPort = int(self.__mConfig['adb_port'])
 
-        self.__mWindowNames = list(self.__mConfig['WindowNames'].split(','))
+        self.__mWindowNames = list(self.__mConfig['window_names'].split(','))
 
         self.__mWindowName = self.__mWindowNames[0]
 
-        self.__mFreeMouse = bool(self.__mConfig['FreeMouse'])
+        self.__mFreeMouse = self.__mConfig.getboolean('free_mouse')
 
-        self.__mDifferentColor = int(self.__mConfig['DifferentColor'])
+        self.__mDifferentColor = int(self.__mConfig['different_color'])
 
-        self.__mConfidence = float(self.__mConfig['Confidence'])
+        self.__mConfidence = float(self.__mConfig['confidence'])
 
-        self.__mWaitingFishTime = int(self.__mConfig['WaitingFishTime'])
+        self.__mWaitingFishTime = int(self.__mConfig['waiting_fish_time'])
 
-        self.__mPullingFishTime = int(self.__mConfig['PullingFishTime'])
+        self.__mPullingFishTime = int(self.__mConfig['pulling_fish_time'])
 
-        self.__mFishShadow = bool(self.__mConfig['FishShadow'])
+        self.__mFishShadow = self.__mConfig.getboolean('fish_shadow')
 
-        self.__mShowFishShadow = bool(self.__mConfig['ShowFishShadow'])
+        self.__mShowFishShadow = self.__mConfig.getboolean('show_fish_shadow')
 
-        self.__mFishSize = int(self.__mConfig['FishSize'])
+        self.__mFishSize = int(self.__mConfig['fish_size'])
 
-        self.__mRadiusFishingRegion = int(self.__mConfig['RadiusFishingRegion'])
+        self.__mRadiusFishingRegion = int(self.__mConfig['radius_fishing_region'])
 
-        self.__mOpenBackPack = list(map(int, self.__mConfig['OpenBackPack'].split(',')))
+        self.__mOpenBackPack = list(map(int, self.__mConfig['open_back_back'].split(',')))
 
-        self.__mCloseBackPack = list(map(int, self.__mConfig['CloseBackPack'].split(',')))
+        self.__mCloseBackPack = list(map(int, self.__mConfig['close_back_pack'].split(',')))
 
-        self.__mTools = list(map(int, self.__mConfig['Tools'].split(',')))
+        self.__mTools = list(map(int, self.__mConfig['tools'].split(',')))
 
-        self.__mCastingRod = list(map(int, self.__mConfig['CastingRod'].split(',')))
+        self.__mCastingRod = list(map(int, self.__mConfig['casting_rod'].split(',')))
 
-        self.__mPullingRod = list(map(int, self.__mConfig['PullingRod'].split(',')))
+        self.__mPullingRod = list(map(int, self.__mConfig['pulling_rod'].split(',')))
 
-        self.__mPreservation = list(map(int, self.__mConfig['Preservation'].split(',')))
+        self.__mPreservation = list(map(int, self.__mConfig['preservation'].split(',')))
 
-        self.__mConfirm = list(map(int, self.__mConfig['Confirm'].split(',')))
+        self.__mConfirm = list(map(int, self.__mConfig['confirm'].split(',')))
 
-        self.__mOKButton = list(map(int, self.__mConfig['OKButton'].split(',')))
+        self.__mOKButton = list(map(int, self.__mConfig['ok_button'].split(',')))
 
-        self.__mFishingRod = int(self.__mConfig['FishingRod'])
+        self.__mFishingRod = int(self.__mConfig['fishing_rod'])
 
         self.__mListFishingRodPosition = []
-        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['FishingRodPosition1'].split(','))))
-        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['FishingRodPosition2'].split(','))))
-        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['FishingRodPosition3'].split(','))))
-        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['FishingRodPosition4'].split(','))))
-        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['FishingRodPosition5'].split(','))))
-        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['FishingRodPosition6'].split(','))))
+        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position1'].split(','))))
+        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position2'].split(','))))
+        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position3'].split(','))))
+        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position4'].split(','))))
+        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position5'].split(','))))
+        self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position6'].split(','))))
 
     def __del__(self):
         pass
@@ -100,17 +101,17 @@ class Config(metaclass=SingletonMeta):
         return self.__mWindowName
 
     def SetWindowName(self, mWindowName: str):
-        self.mMutex.acquire()
+        self.__mMutex.acquire()
         self.__mWindowName = mWindowName
-        self.mMutex.release()
+        self.__mMutex.release()
 
     def GetFreeMouse(self):
         return self.__mFreeMouse
 
     def SetFreeMouse(self, mFreeMouse: bool):
-        self.mMutex.acquire()
+        self.__mMutex.acquire()
         self.__mFreeMouse = mFreeMouse
-        self.mMutex.release()
+        self.__mMutex.release()
 
     def GetDifferentColor(self):
         return self.__mDifferentColor
@@ -122,41 +123,41 @@ class Config(metaclass=SingletonMeta):
         return self.__mWaitingFishTime
 
     def SetWaitingFishTime(self, mWaitingFishTime: int):
-        self.mMutex.acquire()
+        self.__mMutex.acquire()
         self.__mWaitingFishTime = mWaitingFishTime
-        self.mMutex.release()
+        self.__mMutex.release()
 
     def GetPullingFishTime(self):
         return self.__mPullingFishTime
 
     def SetPullingFishTime(self, mPullingFishTime: int):
-        self.mMutex.acquire()
-        self.__mWaitingFishTime = mPullingFishTime
-        self.mMutex.release()
+        self.__mMutex.acquire()
+        self.__mPullingFishTime = mPullingFishTime
+        self.__mMutex.release()
 
     def GetFishDetection(self):
         return self.__mFishShadow
 
     def SetFishDetection(self, mFishShadow: bool):
-        self.mMutex.acquire()
+        self.__mMutex.acquire()
         self.__mFishShadow = mFishShadow
-        self.mMutex.release()
+        self.__mMutex.release()
 
     def GetShowFishShadow(self):
         return self.__mShowFishShadow
 
     def SetShowFishShadow(self, mShowFishShadow: bool):
-        self.mMutex.acquire()
+        self.__mMutex.acquire()
         self.__mShowFishShadow = mShowFishShadow
-        self.mMutex.release()
+        self.__mMutex.release()
 
     def GetFishSize(self):
         return self.__mFishSize
 
     def SetFishSize(self, mFishSize):
-        self.mMutex.acquire()
+        self.__mMutex.acquire()
         self.__mFishSize = mFishSize
-        self.mMutex.release()
+        self.__mMutex.release()
 
     def GetRadiusFishingRegion(self):
         return self.__mRadiusFishingRegion
@@ -189,13 +190,43 @@ class Config(metaclass=SingletonMeta):
         return self.__mFishingRod
 
     def SetFishingRod(self, mFishingRod: int):
-        self.mMutex.acquire()
+        self.__mMutex.acquire()
         self.__mFishingRod = mFishingRod
-        self.mMutex.release()
+        self.__mMutex.release()
 
     def GetFishingRodPosition(self):
         return self.__mListFishingRodPosition[self.__mFishingRod - 1]
 
     def SaveConfig(self):
-        with open(self.__mCurrentPath + "\\config\\config.ini", 'w') as mConfigFile:
-            self.__mConfig.write(mConfigFile)
+        mNewConfig = configparser.ConfigParser()
+        mNewConfig['CONFIG'] = {}
+        mNewConfig['CONFIG']['adb_host'] = self.__mConfig['adb_host']
+        mNewConfig['CONFIG']['adb_port'] = self.__mConfig['adb_port']
+        mNewConfig['CONFIG']['window_names'] = self.__mConfig['window_names']
+        mNewConfig['CONFIG']['free_mouse'] = str(self.__mFreeMouse)
+        mNewConfig['CONFIG']['different_color'] = self.__mConfig['different_color']
+        mNewConfig['CONFIG']['confidence'] = self.__mConfig['confidence']
+        mNewConfig['CONFIG']['waiting_fish_time'] = str(self.__mWaitingFishTime)
+        mNewConfig['CONFIG']['pulling_fish_time'] = str(self.__mPullingFishTime)
+        mNewConfig['CONFIG']['fish_shadow'] = str(self.__mFishShadow)
+        mNewConfig['CONFIG']['show_fish_shadow'] = str(self.__mShowFishShadow)
+        mNewConfig['CONFIG']['fish_size'] = str(self.__mFishSize)
+        mNewConfig['CONFIG']['radius_fishing_region'] = self.__mConfig['radius_fishing_region']
+        mNewConfig['CONFIG']['open_back_back'] = self.__mConfig['open_back_back']
+        mNewConfig['CONFIG']['close_back_pack'] = self.__mConfig['close_back_pack']
+        mNewConfig['CONFIG']['tools'] = self.__mConfig['tools']
+        mNewConfig['CONFIG']['casting_rod'] = self.__mConfig['casting_rod']
+        mNewConfig['CONFIG']['pulling_rod'] = self.__mConfig['pulling_rod']
+        mNewConfig['CONFIG']['preservation'] = self.__mConfig['preservation']
+        mNewConfig['CONFIG']['confirm'] = self.__mConfig['confirm']
+        mNewConfig['CONFIG']['ok_button'] = self.__mConfig['ok_button']
+        mNewConfig['CONFIG']['fishing_rod'] = str(self.__mFishingRod)
+        mNewConfig['CONFIG']['fishing_rod_position1'] = self.__mConfig['fishing_rod_position1']
+        mNewConfig['CONFIG']['fishing_rod_position2'] = self.__mConfig['fishing_rod_position2']
+        mNewConfig['CONFIG']['fishing_rod_position3'] = self.__mConfig['fishing_rod_position3']
+        mNewConfig['CONFIG']['fishing_rod_position4'] = self.__mConfig['fishing_rod_position4']
+        mNewConfig['CONFIG']['fishing_rod_position5'] = self.__mConfig['fishing_rod_position5']
+        mNewConfig['CONFIG']['fishing_rod_position6'] = self.__mConfig['fishing_rod_position6']
+
+        with open(self.__mConfigPath, 'w') as mConfigFile:
+            mNewConfig.write(mConfigFile)

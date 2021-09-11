@@ -1,18 +1,28 @@
 import math
 import time
 import pyautogui
-import keyboard
 import os
+import gc
 import cv2
 from ppadb.client import Client as AdbClient
 import numpy
+import win32api
 from src.config import Config
+from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QMessageBox
 
 
-class AutoFishing:
+class AutoFishing(QObject):
+    mSignalSetPixelPos = pyqtSignal(int, int)
+    mSignalSetFishingBobberPos = pyqtSignal(int, int)
+    mSignalUpdateFishingNum = pyqtSignal(int)
+    mSignalUpdateFishNum = pyqtSignal(int)
+    mSignalUpdateFishDetectionImage = pyqtSignal()
+    mSignalMessage = pyqtSignal(str)
+
     def __init__(self):
+        QObject.__init__(self, parent=None)  # Kế thừa QObject
         self.mConfig = Config()
-
         self.mFishingNum = 0
         self.mRodFixedCheck = 0
         self.mFishNum = 0
@@ -20,14 +30,38 @@ class AutoFishing:
         self.mMark = [0, 0]
         self.mFishingRegion = [0, 0, 0, 0]
         self.mAdbDevice = None
-        self.mRunning = True
+        self.mFishDetectionRunning = True
+        self.mCheckMouseRunning = True
+        self.mAutoFishRunning = True
         self.mCheckFish = False
         self.mEmulatorWindow = None
         self.mEmulatorBox = None
         self.mFishImage = None
+        self.mCurrentTime = time.time()
 
     def __del__(self):
-        self.mRunning = False
+        self.mFishDetectionRunning = False
+        self.mCheckMouseRunning = False
+        self.mAutoFishRunning = False
+
+    @staticmethod
+    def MsgBox(mText: str):
+        msgBox = QMessageBox()
+        msgBox.setText(mText)
+        msgBox.setWindowTitle("Thông báo")
+        msgBox.exec()
+
+    @staticmethod
+    def CheckLeftMouseClick():
+        if win32api.GetKeyState(0x01) < 0:
+            return True
+        return False
+
+    @staticmethod
+    def CheckRightMouseClick():
+        if win32api.GetKeyState(0x02) < 0:
+            return True
+        return False
 
     def CloseBackPack(self):
         self.AdbClick(self.mConfig.GetCloseBackPack()[0],
@@ -170,7 +204,7 @@ class AutoFishing:
         self.mRodFixedCheck += 1
         return False
 
-    def cast_fishing_rod(self):
+    def CastFishingRod(self):
         mCheck = 0
         while mCheck < 5:
             mCastFishingRodButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}cast_fishing_rod.png',
@@ -185,22 +219,10 @@ class AutoFishing:
                               self.mConfig.GetCastingRod()[1])
                 print("Thả cần câu")
                 return True
-
             mCheck += 1
             time.sleep(0.01)
-
         print("Không tìm thấy nút thả cần câu")
         return False
-
-    def ShowFish(self):
-        time.sleep(1)
-        while self.mRunning is True:
-            if self.mFishImage is not None:
-                cv2.imshow("Fish", self.mFishImage)
-                cv2.waitKey(10)
-            else:
-                time.sleep(0.1)
-        cv2.destroyAllWindows()
 
     def FishDetection(self, mPrevFrame, mCurrFrame):
         # tối ở camp 49
@@ -268,7 +290,9 @@ class AutoFishing:
 
             break
         mCurrFrameResize = cv2.resize(mCurrFrame, (200, 200), interpolation=cv2.INTER_AREA)
-        self.mFishImage = cv2.cvtColor(mCurrFrameResize, cv2.COLOR_GRAY2BGR)
+        self.mFishImage = mCurrFrameResize
+        if self.mConfig.GetShowFishShadow() is True:
+            self.mSignalUpdateFishDetectionImage.emit()
         return mFishArea
 
     def ScreenshotFishingRegion(self):
@@ -400,34 +424,34 @@ class AutoFishing:
         return False
 
     def SetPixelPos(self):
-        mCheckKeyBoard = False
+        self.mMark = [0, 0]
+        time.sleep(0.1)
         mMousePos = pyautogui.position()
-        print("\nDi chuyển chuột đến đầu của dấu chấm than và bấm phím q")
-        while mCheckKeyBoard is False:
+        print("\nDi chuyển chuột đến đầu của dấu chấm than và Click")
+        self.mCheckMouseRunning = True
+        while self.mCheckMouseRunning is True:
             mMousePos = pyautogui.position()
-            for i in range(50):
-                if keyboard.is_pressed('q'):
-                    mCheckKeyBoard = True
-                    break
-                time.sleep(0.01)
+            self.mSignalSetPixelPos.emit(int(mMousePos.x), int(mMousePos.y))
+            if self.CheckLeftMouseClick() is True:
+                self.mCheckMouseRunning = False
+            time.sleep(0.01)
         self.mMark[0] = int(mMousePos.x)
         self.mMark[1] = int(mMousePos.y)
         print("Vị trí dấu chấm than đã cài đặt: ", mMousePos)
-        time.sleep(2)
 
     def SetFishingBobberPos(self):
+        self.mFishingRegion = [0, 0, 0, 0]
+        time.sleep(0.1)
         mScreenSize = pyautogui.size()
-        mCheckKeyBoard = False
         mMousePos = pyautogui.position()
-        print("\nChế độ lọc bóng cá ON")
-        print("Di chuyển chuột đến vị trí phao câu và bấm phím q")
-        while mCheckKeyBoard is False:
+        print("\nDi chuyển chuột đến phao câu và Click")
+        self.mCheckMouseRunning = True
+        while self.mCheckMouseRunning is True:
             mMousePos = pyautogui.position()
-            for i in range(50):
-                if keyboard.is_pressed('q'):
-                    mCheckKeyBoard = True
-                    break
-                time.sleep(0.01)
+            self.mSignalSetFishingBobberPos.emit(int(mMousePos.x), int(mMousePos.y))
+            if self.CheckLeftMouseClick() is True:
+                self.mCheckMouseRunning = False
+            time.sleep(0.01)
         self.mFishingRegion[0] = mMousePos.x - self.mConfig.GetRadiusFishingRegion()
         self.mFishingRegion[1] = mMousePos.y - self.mConfig.GetRadiusFishingRegion()
         self.mFishingRegion[2] = self.mConfig.GetRadiusFishingRegion() * 2
@@ -451,29 +475,25 @@ class AutoFishing:
 
     def CheckRegionEmulator(self):
         mScreenSize = pyautogui.size()
+        self.mEmulatorBox = None
+        self.mEmulatorWindow = None
         mEmulatorWindows = []
         print("\nKích thước màn hình = ", mScreenSize)
         try:
             mEmulatorWindows = pyautogui.getWindowsWithTitle(self.mConfig.GetWindowName())
         except:
-            pyautogui.alert(text=f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}',
-                            title='AutoFishing Error',
-                            button='OK')
+            self.MsgBox(f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}')
             return False
         if len(mEmulatorWindows) > 0:
             self.mEmulatorWindow = mEmulatorWindows[0]
         else:
-            pyautogui.alert(text=f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}',
-                            title='AutoFishing Error',
-                            button='OK')
+            self.MsgBox(f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}')
             return False
         self.mEmulatorBox = self.mEmulatorWindow.box
         print("\nĐã tìm thấy cửa sổ giả lập ", self.mEmulatorBox)
         time.sleep(1)
         if self.mEmulatorBox.width < 1280 or self.mEmulatorBox.height < 720:
-            pyautogui.alert(text='Cửa số nhỏ hơn 1280x720',
-                            title='AutoFishing Error',
-                            button='OK')
+            self.MsgBox("Cửa sổ giả lập bị ẩn hoặc độ phân giải không phù hợp")
             return False
         if self.mEmulatorBox.top < 0:
             self.mEmulatorWindow.activate()
@@ -491,9 +511,10 @@ class AutoFishing:
             self.mEmulatorWindow.activate()
             self.mEmulatorWindow.move(0 - self.mEmulatorBox.left, 0)
             print("Cửa sổ giả lập bị khuất về bên phải, tự động di chuyển")
-        time.sleep(1)
+        time.sleep(0.1)
         self.mEmulatorBox = self.mEmulatorWindow.box
-        time.sleep(1)
+        self.MsgBox("Kết nối giả lập thành công")
+        time.sleep(0.1)
         return True
 
     def StartAdbServer(self):
@@ -516,24 +537,18 @@ class AutoFishing:
         except:
             mCheckStartServer = self.StartAdbServer()
             if mCheckStartServer is False:
-                pyautogui.alert(text='Không tìm thấy adb-server',
-                                title='AutoFishing Error',
-                                button='OK')
+                self.MsgBox('Không tìm thấy adb-server')
                 return False
             else:
                 mAdbClient = AdbClient(self.mConfig.GetAdbHost(),
                                        self.mConfig.GetAdbPort())
                 mDevices = mAdbClient.devices()
         if mDevices is None:
-            pyautogui.alert(text='Không tìm thấy phần mềm giả lập',
-                            title='AutoFishing Error',
-                            button='OK')
+            self.MsgBox('Không tìm thấy phần mềm giả lập')
             return False
 
         if len(mDevices) == 0:
-            pyautogui.alert(text='Không tìm thấy phần mềm giả lập',
-                            title='AutoFishing Error',
-                            button='OK')
+            self.MsgBox('Không tìm thấy phần mềm giả lập')
             return False
         elif len(mDevices) == 1:
             print("Đã tìm thấy phần mềm giả lập")
@@ -546,9 +561,7 @@ class AutoFishing:
             self.mAdbDevice = mDevices[m_device_index]
 
         if self.mAdbDevice is None:
-            pyautogui.alert(text='Không tìm thấy phần mềm giả lập',
-                            title='AutoFishing Error',
-                            button='OK')
+            self.MsgBox('Không tìm thấy phần mềm giả lập')
             return False
 
         print("Kết nối giả lập thành công")
@@ -569,3 +582,63 @@ class AutoFishing:
     def AdbHoldClick(self, mCoordinateX, mCoordinateY, mTime):
         self.mAdbDevice.shell(
             f'input swipe {str(mCoordinateX)} {str(mCoordinateY)} {str(mCoordinateX)} {str(mCoordinateY)} {str(mTime)}')
+
+    def StartAuto(self):
+        print(self.mEmulatorBox)
+        if self.mEmulatorBox is None:
+            print(1)
+            self.MsgBox("")
+            time.sleep(0.1)
+
+            return
+
+        if self.mMark[0] == 0:
+            self.MsgBox('Chưa xác định vị trí dấu chấm than')
+            return False
+        print(2)
+
+        if self.mConfig.GetFishDetection() is True:
+            if self.mFishingRegion[0] == 0:
+                self.MsgBox('Chưa xác định vùng câu')
+                return False
+        print(3)
+
+        time.sleep(0.1)
+        self.mCurrentTime = time.time()
+        self.mAutoFishRunning = True
+        while self.mAutoFishRunning is True:
+            t1 = time.time()
+            time.sleep(2)
+            self.mFishingNum += 1
+            print("____________________________")
+            print('Lượt câu thứ ', self.mFishingNum)
+            print("Số vật phẩm câu được = ", self.mFishNum)
+
+            self.mSignalUpdateFishingNum.emit(self.mFishingNum)
+
+            self.CastFishingRod()
+            mOutPutCheckRod = self.CheckRod()
+            if mOutPutCheckRod is True:
+                mCheckMarkRgb = self.CheckMark()
+                if mCheckMarkRgb is True:
+                    mPullingRod = self.PullFishingRod()
+                    if mPullingRod is True:
+                        self.FishPreservation()
+                        t2 = time.time()
+                        print("Thời gian câu = ", int(t2 - t1), " giây")
+
+            else:
+                print("\nKhông thể thả cần câu lần ", self.mRodFixedCheck)
+                print("Sau 3 lần không thể thả cần câu sẽ tiến hành lấy lại cần câu trong ba lô")
+                if self.mRodFixedCheck == 3:
+                    time.sleep(1)
+                    self.OpenBackPack()
+                    time.sleep(3)
+                    self.OpenTools()
+                    time.sleep(1)
+                    self.TakeFishingRod()
+                if self.mRodFixedCheck > 3:
+                    self.MsgBox('Lỗi không tìm được nút thả cần. Kiểm tra lại giả lập game')
+                    self.mRodFixedCheck = 0
+            self.mSignalUpdateFishNum.emit(self.mFishNum)
+            gc.collect()
