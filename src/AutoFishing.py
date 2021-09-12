@@ -352,7 +352,7 @@ class AutoFishing(QObject):
         return mScreenShotMatGray
 
     def CheckMark(self):
-        time.sleep(0.1)
+        time.sleep(3)
         mStaticFrame = None
         if self.mConfig.GetFishDetection() is True:
             mStaticFrame = self.ScreenshotFishingRegion()
@@ -391,6 +391,12 @@ class AutoFishing(QObject):
                     if mSizeFish < int(self.mConfig.GetFishSize()):
                         self.StatusEmit(f'Kích thước cá ={int(mSizeFish)}. Bỏ qua')
                         return True
+                    elif 2000 > mSizeFish:
+                        self.StatusEmit('Bóng bình thường. Đoán tầm bóng 3 đổ lại')
+                    elif 3000 > mSizeFish > 2000:
+                        self.StatusEmit('Bóng to vãi lều. Quả này chắc là bóng 4')
+                    elif mSizeFish > 3000:
+                        self.StatusEmit('Bóng to vãi lều. Quả này chắc là bóng 5')
             try:
                 mPixelCurrent = pyautogui.pixel(self.mMark[0], self.mMark[1])
             except:
@@ -640,9 +646,9 @@ class AutoFishing(QObject):
             f'input swipe {str(mCoordinateX)} {str(mCoordinateY)} {str(mCoordinateX)} {str(mCoordinateY)} {str(mTime)}')
 
     def StartAuto(self):
+        self.mAutoFishRunning = True
         if self.mEmulatorBox is None:
             self.MsgEmit("Chưa kết nối phần mềm giả lập", True)
-            time.sleep(0.1)
             return
 
         if self.mMark[0] == 0:
@@ -655,7 +661,6 @@ class AutoFishing(QObject):
                 return False
 
         time.sleep(1)
-        self.mAutoFishRunning = True
         while self.mAutoFishRunning is True:
             t1 = time.time()
             time.sleep(1)

@@ -97,13 +97,11 @@ class MainWindow(QObject):
         self.uic.btnStartFishing.setDisabled(True)
         self.uic.btnGetMarkPosition.setDisabled(True)
         self.uic.btnGetBobberPosition.setDisabled(True)
-        self.uic.btnStopFishing.setDisabled(False)
 
         self.mAutoFishing.mCheckMouseRunning = False
         self.mAutoFishing.mAutoFishRunning = False
 
         self.SaveConfig()
-        time.sleep(0.1)
 
         self.mAutoFishing.mFishingNum = 0
         self.mAutoFishing.mFishNum = 0
@@ -116,6 +114,7 @@ class MainWindow(QObject):
         self.mAutoFishingThread.start()
 
         self.mAutoFishing.mCurrentTime = time.time()
+        self.uic.btnStopFishing.setDisabled(False)
 
     def OnClickStop(self):
         self.uic.btnStopFishing.setDisabled(True)
