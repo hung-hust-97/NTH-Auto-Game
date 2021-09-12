@@ -81,8 +81,7 @@ class MainWindow(QObject):
         self.mTimer.timeout.connect(self.SlotCheckThread)
         self.mTimer.start(300)
 
-        # Hide btnStopFishing
-        # self.uic.btnStopFishing.hide()
+        # Disable btnStopFishing
         self.uic.btnStopFishing.setDisabled(True)
 
         # Show Author
@@ -165,10 +164,23 @@ class MainWindow(QObject):
 
     def SlotShowTime(self, mReset=False):
         if self.mAutoFishing.mAutoFishRunning is False:
-            self.uic.lcdTime.display('0')
+            self.uic.lcdTime.display('00:00:00')
         else:
             mTime = int(time.time() - self.mAutoFishing.mCurrentTime)
-            self.uic.lcdTime.display(str(mTime))
+            h = mTime // 3600
+            m = (mTime - h * 3600) // 60
+            s = ((mTime - h * 3600) - m * 60)
+            str_h = str(h)
+            str_m = str(m)
+            str_s = str(s)
+            if h < 10:
+                str_h = f'0{h}'
+            if m < 10:
+                str_m = f'0{m}'
+            if s < 10:
+                str_s = f'0{s}'
+            self.uic.lcdTime.display(f'{str_h}:{str_m}:{str_s}')
+        self.uic.lcdTime.setNumDigits(8)
         self.uic.lcdTime.setSegmentStyle(2)
 
     def SlotShowStatus(self, mText: str):

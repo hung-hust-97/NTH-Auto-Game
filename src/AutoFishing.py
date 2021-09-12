@@ -86,7 +86,7 @@ class AutoFishing(QObject):
         mRegionFixClickX = self.mEmulatorBox.left + self.mConfig.GetFishingRodPosition()[0] - 100
         mRegionFixClickY = self.mEmulatorBox.top + self.mEmulatorBox.height + \
                            self.mConfig.GetFishingRodPosition()[1] - 820
-        while mCheck < 3:
+        while mCheck < 5:
             mFixedRodButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}fix_rod.png',
                                                           grayscale=True,
                                                           region=(mRegionFixClickX, mRegionFixClickY, 200, 200),
@@ -99,13 +99,13 @@ class AutoFishing(QObject):
                 return True
 
             mCheck += 1
-            time.sleep(1)
+            time.sleep(0.2)
         self.StatusEmit("Không tìm được nút sửa cần")
         return False
 
     def FixConfirm(self):
         mCheck = 0
-        while mCheck < 3:
+        while mCheck < 5:
             mFixedRodConfirmButtonPos = pyautogui.locateOnScreen(
                 f'{self.mConfig.GetDataPath()}confirm.png',
                 grayscale=True,
@@ -122,13 +122,13 @@ class AutoFishing(QObject):
                 return True
 
             mCheck += 1
-            time.sleep(1)
+            time.sleep(0.2)
         self.StatusEmit("Không tìm thấy xác nhận sửa cần")
         return False
 
     def ClickOk(self):
         mCheck = 0
-        while mCheck < 3:
+        while mCheck < 5:
             mFixedRodDoneButtonPos = pyautogui.locateOnScreen(
                 f'{self.mConfig.GetDataPath()}OK.png',
                 grayscale=True,
@@ -145,17 +145,17 @@ class AutoFishing(QObject):
                 return True
 
             mCheck += 1
-            time.sleep(1)
+            time.sleep(0.2)
 
         self.StatusEmit("Không tìm thấy nút OK sau khi sửa cần")
         return False
 
     def CheckRod(self):
-        time.sleep(3)
+        time.sleep(1)
         if self.mAutoFishRunning is False:
             return False
         mCheck = 0
-        while mCheck < 3:
+        while mCheck < 5:
             mPullRodButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}pull_rod.png',
                                                          grayscale=True,
                                                          region=(self.mEmulatorBox.left,
@@ -169,7 +169,7 @@ class AutoFishing(QObject):
                 return True
 
             mCheck += 1
-            time.sleep(1)
+            time.sleep(0.3)
             if self.mAutoFishRunning is False:
                 return False
 
@@ -177,41 +177,41 @@ class AutoFishing(QObject):
         self.OpenBackPack()
         if self.mAutoFishRunning is False:
             return False
-        time.sleep(3)
+        time.sleep(1)
         if self.mAutoFishRunning is False:
             return False
         self.OpenTools()
         if self.mAutoFishRunning is False:
             return False
-        time.sleep(2)
+        time.sleep(0.5)
         if self.mAutoFishRunning is False:
             return False
         self.FixClick()
         if self.mAutoFishRunning is False:
             return False
-        time.sleep(2)
+        time.sleep(0.5)
         if self.mAutoFishRunning is False:
             return False
         self.FixConfirm()
         if self.mAutoFishRunning is False:
             return False
-        time.sleep(2)
+        time.sleep(0.5)
         if self.mAutoFishRunning is False:
             return False
         self.ClickOk()
         if self.mAutoFishRunning is False:
             return False
-        time.sleep(2)
+        time.sleep(0.5)
         if self.mAutoFishRunning is False:
             return False
         self.CloseBackPack()
         if self.mAutoFishRunning is False:
             return False
-        time.sleep(2)
+        time.sleep(0.5)
         if self.mAutoFishRunning is False:
             return False
         mCheck = 0
-        while mCheck < 3:
+        while mCheck < 5:
             mCastFishingRodButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}cast_fishing_rod.png',
                                                                 grayscale=True,
                                                                 region=(self.mEmulatorBox.left,
@@ -223,11 +223,28 @@ class AutoFishing(QObject):
                 self.mRodFixedCheck += 1
                 return False
             mCheck += 1
-            time.sleep(0.5)
+            time.sleep(0.2)
             if self.mAutoFishRunning is False:
                 return False
-        self.AdbClick(self.mConfig.GetPreservation()[0],
-                      self.mConfig.GetPreservation()[1])
+        mCheck = 0
+        while mCheck < 5:
+            mPreservationButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}preservation.png',
+                                                                grayscale=True,
+                                                                region=(self.mEmulatorBox.left,
+                                                                        self.mEmulatorBox.top,
+                                                                        self.mEmulatorBox.width,
+                                                                        self.mEmulatorBox.height),
+                                                                confidence=self.mConfig.GetConfidence())
+            if mPreservationButtonPos is not None:
+                self.AdbClick(self.mConfig.GetPreservation()[0],
+                              self.mConfig.GetPreservation()[1])
+                self.mRodFixedCheck += 1
+                return False
+            mCheck += 1
+            time.sleep(0.2)
+            if self.mAutoFishRunning is False:
+                return False
+
         self.mRodFixedCheck += 1
         return False
 
@@ -247,25 +264,26 @@ class AutoFishing(QObject):
                 self.StatusEmit("Thả cần câu")
                 return True
             mCheck += 1
-            time.sleep(0.01)
+            time.sleep(0.1)
             if self.mAutoFishRunning is False:
                 return False
         self.StatusEmit("Không tìm thấy nút thả cần câu")
         return False
 
     def FishDetection(self, mPrevFrame, mCurrFrame):
+        mBackGroundColor = mPrevFrame[150, 150]
         # tối ở camp 49
-        if mPrevFrame[0, 0] <= 50:
+        if mBackGroundColor <= 50:
             mMinThreshValue = 10
             mMaxThreshValue = 100
             mColor = (255, 255, 255)
         # tối ở biển 57
-        elif 50 < mPrevFrame[0, 0] <= 70:
+        elif 50 < mBackGroundColor <= 70:
             mMinThreshValue = 15
             mMaxThreshValue = 100
             mColor = (255, 255, 255)
         # buổi chiều nền biền 74, sáng ở camp 149, chiều ở cam 166
-        elif 70 < mPrevFrame[0, 0] < 170:
+        elif 70 < mBackGroundColor < 170:
             mMinThreshValue = 30
             mMaxThreshValue = 100
             mColor = (255, 255, 255)
@@ -296,7 +314,7 @@ class AutoFishing(QObject):
         mCurrFrame = cv2.circle(mCurrFrame, (mImgCenterX, mImgCenterY),
                                 self.mConfig.GetRadiusFishingRegion() - 50, mColor, 1)
         mCurrFrame = cv2.circle(mCurrFrame, (mImgCenterX, mImgCenterY), 50, mColor, 1)
-        cv2.putText(mCurrFrame, str(mPrevFrame[0, 0]), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, mColor, 2)
+        cv2.putText(mCurrFrame, str(mBackGroundColor), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, mColor, 2)
         for mContour in mContours:
             # check coordinates of all found contours
             (x, y, w, h) = cv2.boundingRect(mContour)
@@ -340,6 +358,7 @@ class AutoFishing(QObject):
             mStaticFrame = self.ScreenshotFishingRegion()
             self.mFishImage = cv2.resize(mStaticFrame, (200, 200), interpolation=cv2.INTER_AREA)
         self.StatusEmit("Đang đợi dấu chấm than")
+        print(344)
         time1 = time.time()
         time2 = time.time()
         mCheck = False
@@ -356,7 +375,7 @@ class AutoFishing(QObject):
         if mCheck is False:
             self.StatusEmit("Lỗi hệ thống\nKhông xác định được màu nền tại vị trí dấu chấm than")
             return False
-
+        print(361)
         time1 = time.time()
         time2 = time.time()
         mStopDetect = False
@@ -414,7 +433,7 @@ class AutoFishing(QObject):
             return True
 
     def FishPreservation(self):
-        time.sleep(2)
+        time.sleep(0.1)
         if self.mAutoFishRunning is False:
             return False
         time1 = time.time()
@@ -635,11 +654,11 @@ class AutoFishing(QObject):
                 self.MsgEmit('Chưa xác định vùng câu', False)
                 return False
 
-        time.sleep(0.1)
+        time.sleep(1)
         self.mAutoFishRunning = True
         while self.mAutoFishRunning is True:
             t1 = time.time()
-            time.sleep(2)
+            time.sleep(1)
             if self.mAutoFishRunning is False:
                 break
             self.mFishingNum += 1
@@ -665,36 +684,30 @@ class AutoFishing(QObject):
                             break
                         t2 = time.time()
                         self.StatusEmit(f'Thời gian câu = {int(t2 - t1)} giây')
+                        self.mSignalUpdateFishNum.emit(self.mFishNum)
 
             else:
-                self.StatusEmit(f'Không thể thả cần câu lần {self.mRodFixedCheck}')
-                time.sleep(1)
-                self.StatusEmit("Sau 3 lần không thể thả cần câu sẽ tiến hành lấy lại cần câu trong ba lô")
-                if self.mRodFixedCheck == 3:
-                    if self.mAutoFishRunning is False:
-                        break
-                    time.sleep(1)
-                    if self.mAutoFishRunning is False:
-                        break
+                self.StatusEmit(f'Không thể thả cần câu lần {self.mRodFixedCheck}\n'
+                                f'Sau 2 lần không thể thả cần câu, Auto tự lấy lại cần câu trong ba lô')
+                if self.mRodFixedCheck == 2:
                     self.OpenBackPack()
                     if self.mAutoFishRunning is False:
                         break
-                    time.sleep(3)
+                    time.sleep(1)
                     if self.mAutoFishRunning is False:
                         break
                     self.OpenTools()
                     if self.mAutoFishRunning is False:
                         break
-                    time.sleep(1)
+                    time.sleep(0.5)
                     if self.mAutoFishRunning is False:
                         break
                     self.TakeFishingRod()
-                    if self.mAutoFishRunning is False:
-                        break
-                if self.mRodFixedCheck > 3:
-                    self.MsgEmit('Lỗi không tìm được nút thả cần. Kiểm tra lại giả lập game', False)
+                if self.mRodFixedCheck > 2:
                     self.mRodFixedCheck = 0
                     self.mAutoFishRunning = False
-            self.mSignalUpdateFishNum.emit(self.mFishNum)
+                    self.MsgEmit('Lỗi không tìm được nút thả cần. Kiểm tra lại giả lập game'
+                                 '\nKiểm tra lại hình ảnh nút thả cần và kéo cần có bị '
+                                 'đường cắt ngang hoặc che lấp không', False)
             gc.collect()
         return False
