@@ -1,10 +1,11 @@
 # Requirement lib:
     Pillow
     PyAutoGUI
-    keyboard
     opencv-python
     pure-python-adb
     pyinstaller
+    PyQt5
+    pywin32
 
     SDK Platform-Tools Android for adb-server
     https://developer.android.com/studio/releases/platform-tools
