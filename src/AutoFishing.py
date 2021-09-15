@@ -1,7 +1,7 @@
 import math
 import time
 import pyautogui
-import os
+# import os
 import gc
 import cv2
 from ppadb.client import Client as AdbClient
@@ -9,8 +9,10 @@ import numpy
 import win32api
 from src.config import Config
 from PyQt5.QtCore import pyqtSignal, QObject
+import subprocess
 
 NOISE_CONTOUR_SIZE = 30
+CREATE_NO_WINDOW = 0x08000000
 
 
 class AutoFishing(QObject):
@@ -516,14 +518,12 @@ class AutoFishing(QObject):
         self.mAbsPullingRodPos[0] = self.mEmulatorBox.left + self.mConfig.GetPullingRod()[0]
         self.mAbsPullingRodPos[1] = self.mEmulatorBox.top + self.mEmulatorBox.height \
                                     + self.mConfig.GetPullingRod()[1] - self.mConfig.GetEmulatorSize()[1]
-
-        self.MsgEmit("Kết nối giả lập thành công", True)
         return True
 
     def StartAdbServer(self):
         self.StatusEmit("Đang khởi tạo adb-server")
         try:
-            os.system(f'{self.mConfig.GetCurrentPath()}\\adb\\adb.exe devices')
+            subprocess.call(f'{self.mConfig.GetCurrentPath()}\\adb\\adb.exe devices', creationflags=CREATE_NO_WINDOW)
         except:
             self.StatusEmit('Khởi tạo adb-server thất bại')
             return False
@@ -546,21 +546,17 @@ class AutoFishing(QObject):
                                        self.mConfig.GetAdbPort())
                 mDevices = mAdbClient.devices()
         if mDevices is None:
-            self.MsgEmit('Không tìm thấy phần mềm giả lập', False)
+            self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập', False)
             return False
 
         if len(mDevices) == 0:
-            self.MsgEmit('Không tìm thấy phần mềm giả lập', False)
+            self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập', False)
             return False
         elif len(mDevices) == 1:
-            self.StatusEmit("Đã tìm thấy phần mềm giả lập")
             self.mAdbDevice = mDevices[0]
+            self.StatusEmit(f'Kết nối giả lập qua adb-server thành công\nĐịa chỉ giả lập {self.mAdbDevice.serial}')
         else:
             self.MsgEmit("Hãy tắt bớt thiết bị kết nối Adb Server:")
-            return False
-
-        if self.mAdbDevice is None:
-            self.MsgEmit('Không tìm thấy phần mềm giả lập', False)
             return False
         return True
 

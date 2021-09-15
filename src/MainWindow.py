@@ -89,8 +89,10 @@ class MainWindow(QObject):
 
     def OnClickConnectEmulator(self):
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
-        self.mAutoFishing.AdbConnect()
-        self.mAutoFishing.CheckRegionEmulator()
+        check1 = self.mAutoFishing.AdbConnect()
+        check2 = self.mAutoFishing.CheckRegionEmulator()
+        if check1 is True and check2 is True:
+            self.SlotShowMsgBox("Kết nối giả lập thành công", True)
 
     def OnClickStart(self):
         self.uic.btnConnectEmulator.setDisabled(True)
