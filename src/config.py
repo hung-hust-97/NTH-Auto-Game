@@ -31,9 +31,7 @@ class Config(metaclass=SingletonMeta):
         self.__mAdbHost = self.__mConfig['adb_host']
         self.__mAdbPort = int(self.__mConfig['adb_port'])
 
-        self.__mWindowNames = list(self.__mConfig['window_names'].split(','))
-
-        self.__mWindowName = self.__mWindowNames[0]
+        self.__mWindowName = self.__mConfig['window_name']
 
         self.__mFreeMouse = self.__mConfig.getboolean('free_mouse')
 
@@ -71,6 +69,8 @@ class Config(metaclass=SingletonMeta):
 
         self.__mFishingRod = int(self.__mConfig['fishing_rod'])
 
+        self.__mEmulatorSize = list(map(int, self.__mConfig['emulator_size'].split(',')))
+
         self.__mListFishingRodPosition = []
         self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position1'].split(','))))
         self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position2'].split(','))))
@@ -81,6 +81,9 @@ class Config(metaclass=SingletonMeta):
 
     def __del__(self):
         pass
+
+    def GetEmulatorSize(self):
+        return self.__mEmulatorSize
 
     def GetCurrentPath(self):
         return self.__mCurrentPath
@@ -93,9 +96,6 @@ class Config(metaclass=SingletonMeta):
 
     def GetAdbPort(self):
         return self.__mAdbPort
-
-    def GetWindowNames(self):
-        return self.__mWindowNames
 
     def GetWindowName(self):
         return self.__mWindowName
@@ -202,7 +202,8 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG'] = {}
         mNewConfig['CONFIG']['adb_host'] = self.__mConfig['adb_host']
         mNewConfig['CONFIG']['adb_port'] = self.__mConfig['adb_port']
-        mNewConfig['CONFIG']['window_names'] = self.__mConfig['window_names']
+        mNewConfig['CONFIG']['window_name'] = self.__mWindowName
+        mNewConfig['CONFIG']['emulator_size'] = self.__mConfig['emulator_size']
         mNewConfig['CONFIG']['free_mouse'] = str(self.__mFreeMouse)
         mNewConfig['CONFIG']['different_color'] = self.__mConfig['different_color']
         mNewConfig['CONFIG']['confidence'] = self.__mConfig['confidence']

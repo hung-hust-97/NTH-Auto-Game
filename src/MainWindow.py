@@ -39,7 +39,7 @@ class MainWindow(QObject):
 
     def OpenApp(self):
         # Hien thi cac du lieu da luu trong config.ini
-        self.uic.listEmulator.addItems(self.mConfig.GetWindowNames())
+        self.uic.txtEmulatorName.setText(self.mConfig.GetWindowName())
 
         self.uic.txtFishingRodPosition.setText(str(self.mConfig.GetFishingRod()))
         self.uic.txtFishingRodPosition.setAlignment(Qt.AlignCenter)
@@ -88,7 +88,7 @@ class MainWindow(QObject):
         self.SlotShowStatus(self.mAuthor)
 
     def OnClickConnectEmulator(self):
-        self.mConfig.SetWindowName(self.uic.listEmulator.currentText())
+        self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
         self.mAutoFishing.AdbConnect()
         self.mAutoFishing.CheckRegionEmulator()
 
@@ -207,10 +207,12 @@ class MainWindow(QObject):
             self.uic.btnStartFishing.setDisabled(False)
             self.uic.btnGetMarkPosition.setDisabled(False)
             self.uic.btnGetBobberPosition.setDisabled(False)
+            self.uic.btnStopFishing.setDisabled(True)
             if self.uic.lblStatus.text() == self.mWaitStatus:
                 self.uic.lblStatus.setText(self.mAuthor)
 
     def SaveConfig(self):
+        self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
         self.mConfig.SetFishingRod(int(self.uic.txtFishingRodPosition.toPlainText()))
         self.mConfig.SetPullingFishTime(int(self.uic.txtPullingFishTime.toPlainText()))
         self.mConfig.SetWaitingFishTime(int(self.uic.txtWaitingFishTime.toPlainText()))
