@@ -467,8 +467,7 @@ class AutoFishing(QObject):
         self.mFishingRegion[1] = mMousePos.y - self.mConfig.GetRadiusFishingRegion()
         self.mFishingRegion[2] = self.mConfig.GetRadiusFishingRegion() * 2
         self.mFishingRegion[3] = self.mConfig.GetRadiusFishingRegion() * 2
-        if self.mFishingRegion[0] < self.mConfig.GetRadiusFishingRegion() \
-                or self.mFishingRegion[1] < self.mConfig.GetRadiusFishingRegion() \
+        if self.mFishingRegion[0] < 0 or self.mFishingRegion[1] < 0 \
                 or self.mFishingRegion[0] + self.mFishingRegion[2] > mScreenSize.width \
                 or self.mFishingRegion[1] + self.mFishingRegion[3] > mScreenSize.height:
             self.MsgEmit("Vị trí phao câu quá gần viền màn hình", False)
