@@ -1,18 +1,14 @@
 import math
 import time
 import pyautogui
-# import os
 import gc
 import cv2
 from ppadb.client import Client as AdbClient
 import numpy
 import win32api
-from src.config import Config
+from src.config import *
 from PyQt5.QtCore import pyqtSignal, QObject
 import subprocess
-
-NOISE_CONTOUR_SIZE = 30
-CREATE_NO_WINDOW = 0x08000000
 
 
 class AutoFishing(QObject):
@@ -32,7 +28,10 @@ class AutoFishing(QObject):
         self.mAbsPullingRodPos = [0, 0]
         self.mMark = [0, 0]
         self.mFishingRegion = [0, 0, 0, 0]
+        self.mAdbClient = None
         self.mAdbDevice = None
+        self.mAdbDevices = []
+        self.mListAdbDevicesSerial = []
         self.mFishDetectionRunning = True
         self.mCheckMouseRunning = False
         self.mAutoFishRunning = False
@@ -94,7 +93,7 @@ class AutoFishing(QObject):
                       self.mConfig.GetOKButton()[1])
 
     def CheckRod(self):
-        time.sleep(3)
+        time.sleep(self.mConfig.GetDelayTime() + 2.5)
         if self.mAutoFishRunning is False:
             return False
         mCheck = 0
@@ -129,37 +128,37 @@ class AutoFishing(QObject):
         self.OpenBackPack()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(1)
+        time.sleep(self.mConfig.GetDelayTime() + 0.5)
         if self.mAutoFishRunning is False:
             return
         self.OpenTools()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(0.5)
+        time.sleep(self.mConfig.GetDelayTime())
         if self.mAutoFishRunning is False:
             return
         self.FixClick()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(0.5)
+        time.sleep(self.mConfig.GetDelayTime())
         if self.mAutoFishRunning is False:
             return
         self.FixConfirm()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(0.5)
+        time.sleep(self.mConfig.GetDelayTime())
         if self.mAutoFishRunning is False:
             return
         self.ClickOk()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(0.5)
+        time.sleep(self.mConfig.GetDelayTime())
         if self.mAutoFishRunning is False:
             return
         self.CloseBackPack()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(0.5)
+        time.sleep(self.mConfig.GetDelayTime())
         if self.mAutoFishRunning is False:
             return
         mCheck = 0
@@ -229,6 +228,9 @@ class AutoFishing(QObject):
             time.sleep(0.2)
             if self.mAutoFishRunning is False:
                 return False
+        self.FixConfirm()
+        time.sleep(self.mConfig.GetDelayTime())
+        self.ClickOk()
         return False
 
     def FishDetection(self, mPrevFrame, mCurrFrame):
@@ -490,9 +492,13 @@ class AutoFishing(QObject):
             self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.GetWindowName()}', False)
             return False
         self.mEmulatorBox = self.mEmulatorWindow.box
+        self.mEmulatorWindow.activate()
         self.StatusEmit(f'Đã tìm thấy cửa sổ giả lập\n{self.mEmulatorBox}')
-        if self.mEmulatorBox.width < self.mConfig.GetEmulatorSize()[0] or self.mEmulatorBox.height < \
-                self.mConfig.GetEmulatorSize()[1]:
+        mEmulatorSize = self.mConfig.GetEmulatorSize()
+        if mEmulatorSize[0] * 0.9 > self.mEmulatorBox.width or \
+                self.mEmulatorBox.width > mEmulatorSize[0] * 1.1 or \
+                mEmulatorSize[1] * 0.9 > self.mEmulatorBox.height or \
+                self.mEmulatorBox.height > mEmulatorSize[1] * 1.1:
             self.MsgEmit("Cửa sổ giả lập bị ẩn hoặc độ phân giải không phù hợp", False)
             return False
         if self.mEmulatorBox.top < 0:
@@ -505,11 +511,11 @@ class AutoFishing(QObject):
             self.StatusEmit("Cửa sổ giả lập bị khuất về bên trái\nTự động di chuyển")
         if self.mEmulatorBox.top + self.mEmulatorBox.height > mScreenSize.height:
             self.mEmulatorWindow.activate()
-            self.mEmulatorWindow.move(0, 0 - self.mEmulatorBox.top)
+            self.mEmulatorWindow.move(0, mScreenSize.height - (self.mEmulatorBox.top + self.mEmulatorBox.height))
             self.StatusEmit("Cửa sổ giả lập bị khuất về bên dưới\nTự động di chuyển")
         if self.mEmulatorBox.left + self.mEmulatorBox.width > mScreenSize.width:
             self.mEmulatorWindow.activate()
-            self.mEmulatorWindow.move(0 - self.mEmulatorBox.left, 0)
+            self.mEmulatorWindow.move(mScreenSize.width - (self.mEmulatorBox.left + self.mEmulatorBox.width), 0)
             self.StatusEmit("Cửa sổ giả lập bị khuất về bên phải\nTự động di chuyển")
         self.mEmulatorBox = self.mEmulatorWindow.box
 
@@ -529,33 +535,37 @@ class AutoFishing(QObject):
         self.StatusEmit('Khởi tạo adb-server thành công')
         return True
 
-    def AdbConnect(self):
-        mDevices = None
+    def AdbServerConnect(self):
+        self.mAdbDevices = []
+        self.mListAdbDevicesSerial = []
         try:
-            mAdbClient = AdbClient(self.mConfig.GetAdbHost(),
-                                   self.mConfig.GetAdbPort())
-            mDevices = mAdbClient.devices()
+            self.mAdbClient = AdbClient(self.mConfig.GetAdbHost(),
+                                        self.mConfig.GetAdbPort())
+            self.mAdbDevices = self.mAdbClient.devices()
         except:
             mCheckStartServer = self.StartAdbServer()
             if mCheckStartServer is False:
                 self.MsgEmit('Không tìm thấy adb-server', False)
                 return False
             else:
-                mAdbClient = AdbClient(self.mConfig.GetAdbHost(),
-                                       self.mConfig.GetAdbPort())
-                mDevices = mAdbClient.devices()
-        if mDevices is None:
+                self.mAdbClient = AdbClient(self.mConfig.GetAdbHost(),
+                                            self.mConfig.GetAdbPort())
+                self.mAdbDevices = self.mAdbClient.devices()
+        if len(self.mAdbDevices) == 0:
+            self.mAdbClient = None
             self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập', False)
             return False
-
-        if len(mDevices) == 0:
-            self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập', False)
-            return False
-        elif len(mDevices) == 1:
-            self.mAdbDevice = mDevices[0]
-            self.StatusEmit(f'Kết nối giả lập qua adb-server thành công\nĐịa chỉ giả lập {self.mAdbDevice.serial}')
         else:
-            self.MsgEmit("Hãy tắt bớt thiết bị kết nối Adb Server:")
+            for tempDevice in self.mAdbDevices:
+                self.mListAdbDevicesSerial.append(tempDevice.serial)
+        return True
+
+    def AdbDeviceConnect(self):
+        for index in range(len(self.mAdbDevices)):
+            if self.mAdbDevices[index].serial == self.mConfig.GetAdbAddress():
+                self.mAdbDevice = self.mAdbDevices[index]
+                break
+        if self.mAdbDevice is None:
             return False
         return True
 
@@ -572,8 +582,13 @@ class AutoFishing(QObject):
 
     def StartAuto(self):
         self.mAutoFishRunning = True
+
         if self.mEmulatorBox is None:
-            self.MsgEmit("Chưa kết nối phần mềm giả lập", True)
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập", True)
+            return
+
+        if self.mAdbDevice is None:
+            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị", True)
             return
 
         if self.mMark[0] == 0:
@@ -585,17 +600,18 @@ class AutoFishing(QObject):
                 self.MsgEmit('Chưa xác định vùng câu', False)
                 return False
 
-        time.sleep(1)
+        time.sleep(self.mConfig.GetDelayTime())
         while self.mAutoFishRunning is True:
-            time.sleep(1)
+            time.sleep(self.mConfig.GetDelayTime())
             if self.mAutoFishRunning is False:
                 break
-            self.mFishingNum += 1
-            self.mSignalUpdateFishingNum.emit(self.mFishingNum)
-
             mOutputCastRod = self.CastFishingRod()
             if mOutputCastRod is False:
                 continue
+
+            self.mFishingNum += 1
+            self.mSignalUpdateFishingNum.emit(self.mFishingNum)
+
             if self.mAutoFishRunning is False:
                 break
             mOutPutCheckRod = self.CheckRod()

@@ -7,152 +7,30 @@
     <x>0</x>
     <y>0</y>
     <width>350</width>
-    <height>450</height>
+    <height>500</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>350</width>
-    <height>450</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>350</width>
-    <height>450</height>
+    <height>500</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Auto Fishing</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="horizontalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>351</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="row1" stretch="2,0,0">
-     <property name="spacing">
-      <number>2</number>
-     </property>
-     <property name="sizeConstraint">
-      <enum>QLayout::SetMinimumSize</enum>
-     </property>
-     <property name="leftMargin">
-      <number>2</number>
-     </property>
-     <property name="topMargin">
-      <number>2</number>
-     </property>
-     <property name="rightMargin">
-      <number>2</number>
-     </property>
-     <property name="bottomMargin">
-      <number>2</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="lblChooseEmulator">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>86</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>80</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>7</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Tên cửa sổ</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QTextEdit" name="txtEmulatorName">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>7</pointsize>
-        </font>
-       </property>
-       <property name="html">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Emualator Name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnConnectEmulator">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>80</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>80</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <pointsize>7</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Kết nối</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
    <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>240</y>
+      <y>280</y>
       <width>351</width>
       <height>71</height>
      </rect>
@@ -381,9 +259,9 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>370</y>
+      <y>410</y>
       <width>351</width>
-      <height>51</height>
+      <height>44</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="row5">
@@ -410,8 +288,98 @@ p, li { white-space: pre-wrap; }
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>40</height>
+        </size>
+       </property>
        <property name="text">
         <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnYoutube">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+         <kerning>false</kerning>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnFacebook">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+         <kerning>false</kerning>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
@@ -421,8 +389,8 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>310</y>
-      <width>355</width>
+      <y>350</y>
+      <width>351</width>
       <height>61</height>
      </rect>
     </property>
@@ -619,12 +587,15 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>30</y>
-      <width>359</width>
-      <height>213</height>
+      <y>60</y>
+      <width>350</width>
+      <height>216</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="row2">
+    <layout class="QHBoxLayout" name="row2" stretch="0,0">
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
      <item>
       <layout class="QFormLayout" name="col2_1">
        <property name="labelAlignment">
@@ -634,7 +605,7 @@ p, li { white-space: pre-wrap; }
         <number>2</number>
        </property>
        <property name="verticalSpacing">
-        <number>2</number>
+        <number>0</number>
        </property>
        <property name="leftMargin">
         <number>2</number>
@@ -652,14 +623,14 @@ p, li { white-space: pre-wrap; }
         <widget class="QLabel" name="lblTimeWaitMark">
          <property name="minimumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
@@ -670,7 +641,7 @@ p, li { white-space: pre-wrap; }
           </font>
          </property>
          <property name="text">
-          <string>Thời gian chờ cá</string>
+          <string>Chờ cá (giây)</string>
          </property>
         </widget>
        </item>
@@ -684,20 +655,26 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="minimumSize">
           <size>
-           <width>60</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>30</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
           <font>
            <pointsize>7</pointsize>
           </font>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
          </property>
          <property name="html">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -712,14 +689,14 @@ p, li { white-space: pre-wrap; }
         <widget class="QLabel" name="lblTimePullingFish">
          <property name="minimumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
@@ -730,7 +707,7 @@ p, li { white-space: pre-wrap; }
           </font>
          </property>
          <property name="text">
-          <string>Thời gian kéo cá</string>
+          <string>Kéo cá (giây)</string>
          </property>
         </widget>
        </item>
@@ -744,20 +721,26 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="minimumSize">
           <size>
-           <width>60</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>60</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
           <font>
            <pointsize>7</pointsize>
           </font>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
          </property>
          <property name="html">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -768,18 +751,18 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="QLabel" name="lblRodPosition">
          <property name="minimumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
@@ -794,7 +777,7 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="3" column="1">
         <widget class="QTextEdit" name="txtFishingRodPosition">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -804,20 +787,26 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="minimumSize">
           <size>
-           <width>60</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>60</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
           <font>
            <pointsize>7</pointsize>
           </font>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
          </property>
          <property name="html">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -828,18 +817,18 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="4" column="0">
         <widget class="QLabel" name="lblMinFishSize">
          <property name="minimumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>85</width>
-           <height>30</height>
+           <width>80</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
@@ -848,11 +837,11 @@ p, li { white-space: pre-wrap; }
           </font>
          </property>
          <property name="text">
-          <string>Kích thước cá min</string>
+          <string>Lọc cá nhỏ</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
+       <item row="4" column="1">
         <widget class="QTextEdit" name="txtMinFishSize">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -862,20 +851,26 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="minimumSize">
           <size>
-           <width>60</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>60</width>
-           <height>30</height>
+           <width>50</width>
+           <height>25</height>
           </size>
          </property>
          <property name="font">
           <font>
            <pointsize>7</pointsize>
           </font>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
          </property>
          <property name="html">
           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -887,7 +882,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QCheckBox" name="cbFishDetection">
+        <widget class="QCheckBox" name="cbShutdownPC">
          <property name="minimumSize">
           <size>
            <width>80</width>
@@ -898,6 +893,54 @@ p, li { white-space: pre-wrap; }
           <size>
            <width>85</width>
            <height>25</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>7</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Tắt PC (phút)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="cbFreeMouse">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>85</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>7</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Chuột tự do</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QCheckBox" name="cbFishDetection">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>85</width>
+           <height>20</height>
           </size>
          </property>
          <property name="font">
@@ -910,18 +953,18 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="8" column="0">
         <widget class="QCheckBox" name="cbShowFish">
          <property name="minimumSize">
           <size>
            <width>80</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
            <width>85</width>
-           <height>25</height>
+           <height>20</height>
           </size>
          </property>
          <property name="font">
@@ -934,8 +977,48 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
-        <widget class="QCheckBox" name="cbFreeMouse">
+       <item row="5" column="1">
+        <widget class="QTextEdit" name="txtShutdownTime">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>7</pointsize>
+          </font>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="html">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;60&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="lblDelayTime">
          <property name="minimumSize">
           <size>
            <width>80</width>
@@ -944,7 +1027,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="maximumSize">
           <size>
-           <width>85</width>
+           <width>80</width>
            <height>25</height>
           </size>
          </property>
@@ -954,7 +1037,47 @@ p, li { white-space: pre-wrap; }
           </font>
          </property>
          <property name="text">
-          <string>Chuột tự do</string>
+          <string>Độ trễ</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QTextEdit" name="txtDelayTime">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>50</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>50</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>7</pointsize>
+          </font>
+         </property>
+         <property name="verticalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="html">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;0.5&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -996,6 +1119,192 @@ p, li { white-space: pre-wrap; }
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="gridLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>351</width>
+      <height>58</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="row1" columnstretch="0,0,0" columnminimumwidth="0,0,0">
+     <property name="leftMargin">
+      <number>2</number>
+     </property>
+     <property name="topMargin">
+      <number>2</number>
+     </property>
+     <property name="rightMargin">
+      <number>2</number>
+     </property>
+     <property name="bottomMargin">
+      <number>2</number>
+     </property>
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item row="0" column="2">
+      <widget class="QPushButton" name="btnConnectWindowTitle">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Xác nhận</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="lblChooseEmulator">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>82</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Tên cửa sổ</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QTextEdit" name="txtEmulatorName">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+        </font>
+       </property>
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Emualator Name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lblAdbAddress">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>82</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>23</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Địa chỉ ADB</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QPushButton" name="btnConnectAdb">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Kết nối</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="listAdbAddress"/>
      </item>
     </layout>
    </widget>

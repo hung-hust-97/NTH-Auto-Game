@@ -2,6 +2,11 @@ import configparser
 import os
 from threading import Lock
 
+NOISE_CONTOUR_SIZE = 30
+CREATE_NO_WINDOW = 0x08000000
+AUTHOR = 'AutoFishing app for game \"Play Together\" by nth'
+BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
+
 
 # Tương tự như C++ get con trỏ Object Config
 class SingletonMeta(type):
@@ -69,7 +74,18 @@ class Config(metaclass=SingletonMeta):
 
         self.__mFishingRod = int(self.__mConfig['fishing_rod'])
 
+        self.__mDelayTime = float(self.__mConfig['delay_time'])
+
         self.__mEmulatorSize = list(map(int, self.__mConfig['emulator_size'].split(',')))
+
+        self.__mShutdownPC = False
+
+        self.__mShutdownTime = 0
+
+        self.__mAdbAddress = "None"
+
+        self.__mFacebook = self.__mConfig["facebook"]
+        self.__mYoutube = self.__mConfig["youtube"]
 
         self.__mListFishingRodPosition = []
         self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position1'].split(','))))
@@ -81,6 +97,44 @@ class Config(metaclass=SingletonMeta):
 
     def __del__(self):
         pass
+
+    def GetDelayTime(self):
+        return self.__mDelayTime
+
+    def GetFacebook(self):
+        return self.__mFacebook
+
+    def GetYoutube(self):
+        return self.__mYoutube
+
+    def SetDelayTime(self, mDelayTime: float):
+        self.__mMutex.acquire()
+        self.__mDelayTime = mDelayTime
+        self.__mMutex.release()
+
+    def GetAdbAddress(self):
+        return self.__mAdbAddress
+
+    def SetAdbAddress(self, mAdbAddress: str):
+        self.__mMutex.acquire()
+        self.__mAdbAddress = mAdbAddress
+        self.__mMutex.release()
+
+    def GetShutdownPC(self):
+        return self.__mShutdownPC
+
+    def SetShutdownPC(self, mShutdownPC: bool):
+        self.__mMutex.acquire()
+        self.__mShutdownPC = mShutdownPC
+        self.__mMutex.release()
+
+    def GetShutdownTime(self):
+        return self.__mShutdownTime
+
+    def SetShutdownTime(self, mShutdownTime: int):
+        self.__mMutex.acquire()
+        self.__mShutdownTime = mShutdownTime
+        self.__mMutex.release()
 
     def GetEmulatorSize(self):
         return self.__mEmulatorSize
@@ -228,6 +282,9 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['fishing_rod_position4'] = self.__mConfig['fishing_rod_position4']
         mNewConfig['CONFIG']['fishing_rod_position5'] = self.__mConfig['fishing_rod_position5']
         mNewConfig['CONFIG']['fishing_rod_position6'] = self.__mConfig['fishing_rod_position6']
+        mNewConfig['CONFIG']['delay_time'] = str(self.__mDelayTime)
+        mNewConfig['CONFIG']['facebook'] = self.__mConfig['facebook']
+        mNewConfig['CONFIG']['youtube'] = self.__mConfig['youtube']
 
         with open(self.__mConfigPath, 'w') as mConfigFile:
             mNewConfig.write(mConfigFile)
