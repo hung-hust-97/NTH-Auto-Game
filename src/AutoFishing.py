@@ -86,7 +86,6 @@ class AutoFishing(QObject):
     def FixConfirm(self):
         self.AdbClick(self.mConfig.GetConfirm()[0],
                       self.mConfig.GetConfirm()[1])
-        self.StatusEmit("Đã xác nhận sửa cần")
 
     def ClickOk(self):
         self.AdbClick(self.mConfig.GetOKButton()[0],
@@ -209,7 +208,7 @@ class AutoFishing(QObject):
                 return True
             time.sleep(0.2)
             mCheck += 1
-        self.StatusEmit("Không tìm được cần câu")
+        self.StatusEmit("Không tìm được nút thả cần câu\nAuto Fishing đang tự động khắc phục\nVui lòng chờ trong giây lát")
         self.CloseBackPack()
         mCheck = 0
         while mCheck < 5:
@@ -270,7 +269,7 @@ class AutoFishing(QObject):
         # Quét tất cả các đường biên
         mFishArea = 0
         mCurrFrame = cv2.circle(mCurrFrame, (mImgCenterX, mImgCenterY),
-                                self.mConfig.GetRadiusFishingRegion() * 3 // 4, mColor, 1)
+                                int(self.mConfig.GetRadiusFishingRegion() * 3 // 4), mColor, 1)
         mCurrFrame = cv2.circle(mCurrFrame, (mImgCenterX, mImgCenterY), self.mConfig.GetRadiusFishingRegion() * 1 // 4,
                                 mColor, 1)
         cv2.putText(mCurrFrame, str(mBackGroundColor), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, mColor, 2)
@@ -284,7 +283,7 @@ class AutoFishing(QObject):
             if mRadius < self.mConfig.GetRadiusFishingRegion() / 4:
                 continue
             # loại box nhỏ tránh nhiễu
-            if cv2.contourArea(mContour) < NOISE_CONTOUR_SIZE:
+            if cv2.contourArea(mContour) < self.mConfig.GetMinContour():
                 continue
             # loại bỏ box xuất hiện ở viền
             if mRadius > self.mConfig.GetRadiusFishingRegion() * 3 / 4:
@@ -383,8 +382,11 @@ class AutoFishing(QObject):
             time1 = time.time()
             self.AdbClick(self.mConfig.GetPullingRod()[0],
                           self.mConfig.GetPullingRod()[1])
-            time2 = time.time()
-            self.StatusEmit(f'Độ trễ giật cần {round(time2 - time1, 2)} giây')
+            timeDelay = time.time() - time1
+            self.StatusEmit(f'Độ trễ giật cần {round(timeDelay, 2)} giây')
+            if timeDelay > 0.5:
+                self.mAutoFishRunning = False
+                self.MsgEmit(f'Độ trễ truyền lệnh điều khiển giả lập qua Adb Server quá cao trên 0.5 giây\nTắt chế độ "Chuột tự do" để không bị kéo hụt cá', False)
             return True
 
     def FishPreservation(self):

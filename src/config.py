@@ -2,10 +2,14 @@ import configparser
 import os
 from threading import Lock
 
-NOISE_CONTOUR_SIZE = 30
 CREATE_NO_WINDOW = 0x08000000
+TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
 AUTHOR = 'AutoFishing app for game \"Play Together\" by nth'
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
+IMAGE = "image.png"
+YOUTUBE = "youtube.png"
+FACEBOOK = "facebook.png"
+WAIT_STATUS = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
 
 
 # Tương tự như C++ get con trỏ Object Config
@@ -54,6 +58,8 @@ class Config(metaclass=SingletonMeta):
 
         self.__mFishSize = int(self.__mConfig['fish_size'])
 
+        self.__mMinContour = int(self.__mConfig['min_contour'])
+
         self.__mRadiusFishingRegion = int(self.__mConfig['radius_fishing_region'])
 
         self.__mOpenBackPack = list(map(int, self.__mConfig['open_back_back'].split(',')))
@@ -78,7 +84,7 @@ class Config(metaclass=SingletonMeta):
 
         self.__mEmulatorSize = list(map(int, self.__mConfig['emulator_size'].split(',')))
 
-        self.__mShutdownPC = False
+        self.__mShutdownCheckBox = False
 
         self.__mShutdownTime = 0
 
@@ -101,16 +107,16 @@ class Config(metaclass=SingletonMeta):
     def GetDelayTime(self):
         return self.__mDelayTime
 
+    def SetDelayTime(self, mDelayTime: float):
+        self.__mMutex.acquire()
+        self.__mDelayTime = mDelayTime
+        self.__mMutex.release()
+
     def GetFacebook(self):
         return self.__mFacebook
 
     def GetYoutube(self):
         return self.__mYoutube
-
-    def SetDelayTime(self, mDelayTime: float):
-        self.__mMutex.acquire()
-        self.__mDelayTime = mDelayTime
-        self.__mMutex.release()
 
     def GetAdbAddress(self):
         return self.__mAdbAddress
@@ -120,12 +126,20 @@ class Config(metaclass=SingletonMeta):
         self.__mAdbAddress = mAdbAddress
         self.__mMutex.release()
 
-    def GetShutdownPC(self):
-        return self.__mShutdownPC
+    def GetMinContour(self):
+        return self.__mMinContour
 
-    def SetShutdownPC(self, mShutdownPC: bool):
+    def SetMinContour(self, mMinContour: int):
         self.__mMutex.acquire()
-        self.__mShutdownPC = mShutdownPC
+        self.__mMinContour = mMinContour
+        self.__mMutex.release()
+
+    def GetShutdownCheckBox(self):
+        return self.__mShutdownCheckBox
+
+    def SetShutdownCheckBox(self, mShutdownCheckBox: bool):
+        self.__mMutex.acquire()
+        self.__mShutdownCheckBox = mShutdownCheckBox
         self.__mMutex.release()
 
     def GetShutdownTime(self):
@@ -208,7 +222,7 @@ class Config(metaclass=SingletonMeta):
     def GetFishSize(self):
         return self.__mFishSize
 
-    def SetFishSize(self, mFishSize):
+    def SetFishSize(self, mFishSize: int):
         self.__mMutex.acquire()
         self.__mFishSize = mFishSize
         self.__mMutex.release()
@@ -266,6 +280,7 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['fish_shadow'] = str(self.__mFishShadow)
         mNewConfig['CONFIG']['show_fish_shadow'] = str(self.__mShowFishShadow)
         mNewConfig['CONFIG']['fish_size'] = str(self.__mFishSize)
+        mNewConfig['CONFIG']['min_contour'] = str(self.__mMinContour)
         mNewConfig['CONFIG']['radius_fishing_region'] = self.__mConfig['radius_fishing_region']
         mNewConfig['CONFIG']['open_back_back'] = self.__mConfig['open_back_back']
         mNewConfig['CONFIG']['close_back_pack'] = self.__mConfig['close_back_pack']
