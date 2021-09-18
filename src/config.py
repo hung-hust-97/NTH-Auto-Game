@@ -1,15 +1,36 @@
 import configparser
 import os
 from threading import Lock
+from enum import Enum
 
 CREATE_NO_WINDOW = 0x08000000
-TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
-AUTHOR = 'AutoFishing app for game \"Play Together\" by nth'
+HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
+AUTHOR = 'AutoFishing by nth'
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
 IMAGE = "image.png"
 YOUTUBE = "youtube.png"
 FACEBOOK = "facebook.png"
+LEULEU = "leuleu.png"
 WAIT_STATUS = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
+
+CHECK_TYPE_FISH_POS = [770, 220]
+FISH_IMG_REGION = [625, 42, 295, 295]
+# RGB in QT
+VIOLET_FISH_COLOR = [231, 147, 232]
+BLUE_FISH_COLOR = [89, 198, 217]
+GREEN_FISH_COLOR = [163, 228, 103]
+GRAY_FISH_COLOR = [228, 224, 197]
+# RGB in openCV is BGR
+VIOLET_FISH_COLOR_BGR = [232, 147, 231]
+BLUE_FISH_COLOR_BGR = [217, 198, 89]
+GREEN_FISH_COLOR_BGR = [103, 228, 163]
+GRAY_FISH_COLOR_BGR = [197, 224, 228]
+
+
+class FishImageColor(Enum):
+    RGB = 1
+    GRAY = 2
+    LEU = 3
 
 
 # Tương tự như C++ get con trỏ Object Config

@@ -2,6 +2,7 @@ import time
 import threading
 import subprocess
 
+import cv2
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from PyQt5.QtCore import QObject, Qt, QTimer, QUrl, QSize
 from PyQt5 import QtGui
@@ -43,31 +44,37 @@ class MainWindow(QObject):
 
         self.uic.txtFishingRodPosition.setText(str(self.mConfig.GetFishingRod()))
         self.uic.txtFishingRodPosition.setAlignment(Qt.AlignCenter)
-        self.uic.txtFishingRodPosition.setStyleSheet(TEXT_BOX_STYLE)
+        # self.uic.txtFishingRodPosition.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtPullingFishTime.setText(str(self.mConfig.GetPullingFishTime()))
         self.uic.txtPullingFishTime.setAlignment(Qt.AlignCenter)
-        self.uic.txtPullingFishTime.setStyleSheet(TEXT_BOX_STYLE)
+        # self.uic.txtPullingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtWaitingFishTime.setText(str(self.mConfig.GetWaitingFishTime()))
         self.uic.txtWaitingFishTime.setAlignment(Qt.AlignCenter)
-        self.uic.txtWaitingFishTime.setStyleSheet(TEXT_BOX_STYLE)
+        # self.uic.txtWaitingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtMinFishSize.setText(str(self.mConfig.GetFishSize()))
         self.uic.txtMinFishSize.setAlignment(Qt.AlignCenter)
-        self.uic.txtMinFishSize.setStyleSheet(TEXT_BOX_STYLE)
+        # self.uic.txtMinFishSize.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtShutdownTime.setText("0")
         self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
-        self.uic.txtShutdownTime.setStyleSheet(TEXT_BOX_STYLE)
+        # self.uic.txtShutdownTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtDelayTime.setText(str(self.mConfig.GetDelayTime()))
         self.uic.txtDelayTime.setAlignment(Qt.AlignCenter)
-        self.uic.txtDelayTime.setStyleSheet(TEXT_BOX_STYLE)
+        # self.uic.txtDelayTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtMinContour.setText(str(self.mConfig.GetMinContour()))
         self.uic.txtMinContour.setAlignment(Qt.AlignCenter)
-        self.uic.txtMinContour.setStyleSheet(TEXT_BOX_STYLE)
+        # self.uic.txtMinContour.setStyleSheet(HIDE_TEXT_BOX_STYLE)
+
+        self.uic.txtMinContour.setText(str(self.mConfig.GetMinContour()))
+        self.uic.txtMinContour.setAlignment(Qt.AlignCenter)
+        # self.uic.txtMinContour.setStyleSheet(HIDE_TEXT_BOX_STYLE)
+
+        self.SlotShowNumFish()
 
         self.uic.listAdbAddress.addItem(self.mConfig.GetAdbAddress())
 
@@ -194,9 +201,17 @@ class MainWindow(QObject):
         if self.SaveConfig() is False:
             return
 
-        # Reset num fishing and num fish
+        # Reset fish num
+        self.mAutoFishing.mAllFish = 0
         self.mAutoFishing.mFishingNum = 0
-        self.mAutoFishing.mFishNum = 0
+        self.mAutoFishing.mVioletFish = 0
+        self.mAutoFishing.mBlueFish = 0
+        self.mAutoFishing.mGreenFish = 0
+        self.mAutoFishing.mGrayFish = 0
+
+        # Show zero fish num
+        self.SlotShowNumFish()
+        self.SlotShowFishingNum()
 
         # Set image on graphic label
         if self.mConfig.GetShowFishShadow() is False:
@@ -252,13 +267,43 @@ class MainWindow(QObject):
         self.uic.lcdMarkY.display(y)
         self.uic.lcdMarkY.setSegmentStyle(2)
 
-    def SlotShowFishingNum(self, x: int):
-        self.uic.lcdNumFishing.display(str(x))
+    def SlotShowFishingNum(self):
+        self.uic.lcdNumFishing.display(str(self.mAutoFishing.mFishingNum))
         self.uic.lcdNumFishing.setSegmentStyle(2)
 
-    def SlotShowNumFish(self, x: int):
-        self.uic.lcdNumFish.display(str(x))
+    def SlotShowNumFish(self):
+        self.uic.lcdNumFish.display(str(self.mAutoFishing.mAllFish))
         self.uic.lcdNumFish.setSegmentStyle(2)
+
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
+        self.uic.txtVioletFish.setText(str(self.mAutoFishing.mVioletFish))
+        self.uic.txtVioletFish.setAlignment(Qt.AlignCenter)
+        self.uic.txtVioletFish.setDisabled(True)
+        # self.uic.txtVioletFish.setFont(font)
+        self.uic.txtVioletFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({VIOLET_FISH_COLOR[0]}, {VIOLET_FISH_COLOR[1]}, {VIOLET_FISH_COLOR[2]}, 255);')
+
+        self.uic.txtBlueFish.setText(str(self.mAutoFishing.mBlueFish))
+        self.uic.txtBlueFish.setAlignment(Qt.AlignCenter)
+        self.uic.txtBlueFish.setDisabled(True)
+        # self.uic.txtBlueFish.setFont(font)
+        self.uic.txtBlueFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({BLUE_FISH_COLOR[0]}, {BLUE_FISH_COLOR[1]}, {BLUE_FISH_COLOR[2]}, 255);')
+
+        self.uic.txtGreenFish.setText(str(self.mAutoFishing.mGreenFish))
+        self.uic.txtGreenFish.setAlignment(Qt.AlignCenter)
+        self.uic.txtGreenFish.setDisabled(True)
+        # self.uic.txtGreenFish.setFont(font)
+        self.uic.txtGreenFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({GREEN_FISH_COLOR[0]}, {GREEN_FISH_COLOR[1]}, {GREEN_FISH_COLOR[2]}, 255);')
+
+        self.uic.txtGrayFish.setText(str(self.mAutoFishing.mGrayFish))
+        self.uic.txtGrayFish.setAlignment(Qt.AlignCenter)
+        self.uic.txtGrayFish.setDisabled(True)
+        # self.uic.txtGrayFish.setFont(font)
+        self.uic.txtGrayFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({GRAY_FISH_COLOR[0]}, {GRAY_FISH_COLOR[1]}, {GRAY_FISH_COLOR[2]}, 255);')
 
     def OnClickGetBobberPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
@@ -271,12 +316,24 @@ class MainWindow(QObject):
         self.uic.lcdRodY.display(y)
         self.uic.lcdRodY.setSegmentStyle(2)
 
-    def SlotShowFishImage(self):
-        mMatImage = self.mAutoFishing.mFishImage
-        mQImage = QtGui.QImage(mMatImage.data,
-                               mMatImage.shape[1],
-                               mMatImage.shape[0],
-                               QtGui.QImage.Format_Grayscale8)
+    def SlotShowFishImage(self, mFlag):
+        # if mFlag == FishImageColor.GRAY:
+        #     mQImage = QtGui.QImage(mMatImage.data,
+        #                            mMatImage.shape[1],
+        #                            mMatImage.shape[0],
+        #                            QtGui.QImage.Format_Grayscale8)
+        if mFlag == FishImageColor.RGB:
+            mMatImage = self.mAutoFishing.mFishImage
+            mMatImage = cv2.resize(mMatImage, (200, 200), interpolation=cv2.INTER_AREA)
+            mQImage = QtGui.QImage(mMatImage.data,
+                                   mMatImage.shape[1],
+                                   mMatImage.shape[0],
+                                   QtGui.QImage.Format_RGB888).rgbSwapped()
+        else:
+            mQImage = QtGui.QImage(self.mAutoFishing.mLeu.data,
+                                   self.mAutoFishing.mLeu.data.shape[1],
+                                   self.mAutoFishing.mLeu.data.shape[0],
+                                   QtGui.QImage.Format_RGB888).rgbSwapped()
         mQPixmap = QtGui.QPixmap.fromImage(mQImage).scaled(200, 200)
         self.uic.lblShowFish.setPixmap(mQPixmap)
 
@@ -317,14 +374,6 @@ class MainWindow(QObject):
         if self.mAutoFishingThread.is_alive() is False:
             # Disable thread flag
             self.mAutoFishing.mAutoFishRunning = False
-
-            # Reset fish num
-            self.mAutoFishing.mFishNum = 0
-            self.mAutoFishing.mFishingNum = 0
-
-            # Show zero fish num
-            self.SlotShowNumFish(self.mAutoFishing.mFishNum)
-            self.SlotShowFishingNum(self.mAutoFishing.mFishingNum)
 
             # Show all button
             self.uic.btnConnectWindowTitle.setDisabled(False)
@@ -432,4 +481,5 @@ class MainWindow(QObject):
         mMsgBox = QMessageBox()
         mMsgBox.setText(mText)
         mMsgBox.setWindowTitle("Thông báo")
+        mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
         mMsgBox.exec()
