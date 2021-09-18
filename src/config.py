@@ -12,6 +12,8 @@ YOUTUBE = "youtube.png"
 FACEBOOK = "facebook.png"
 LEULEU = "leuleu.png"
 WAIT_STATUS = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
+PRESERVATION_REC = [320, 160]
+BACKPACK_REC = [100, 100]
 
 CHECK_TYPE_FISH_POS = [770, 220]
 FISH_IMG_REGION = [625, 42, 295, 295]

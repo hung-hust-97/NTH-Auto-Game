@@ -150,7 +150,7 @@ class MainWindow(QObject):
         self.mAutoFishing.AdbServerConnect()
         self.UpdateListAdbAddress()
         self.SaveConfig()
-        self.SlotShowMsgBox("Kết nối cửa sổ giả lập thành công", True)
+        self.SlotShowMsgBox("Kết nối cửa sổ giả lập thành công\nChọn địa chỉ ADB của giả lập và kết nối", True)
         return
 
     def OnClickConnectAdbAddress(self):
@@ -323,7 +323,7 @@ class MainWindow(QObject):
         #                            mMatImage.shape[0],
         #                            QtGui.QImage.Format_Grayscale8)
         if mFlag == FishImageColor.RGB:
-            mMatImage = self.mAutoFishing.mFishImage
+            mMatImage = self.mAutoFishing.mFishImage.copy()
             mMatImage = cv2.resize(mMatImage, (200, 200), interpolation=cv2.INTER_AREA)
             mQImage = QtGui.QImage(mMatImage.data,
                                    mMatImage.shape[1],

@@ -26,6 +26,7 @@ class AutoFishing(QObject):
         self.mFishingNum = 0
         self.mAbsPullingRodPos = [0, 0]
         self.mAbsBackPackRegion = [0, 0, 0, 0]
+        self.mAbsPreservationRegion = [0, 0, 0, 0]
         self.mMark = [0, 0]
         self.mFishingRegion = [0, 0, 0, 0]
         self.mAdbClient = None
@@ -86,8 +87,8 @@ class AutoFishing(QObject):
     @staticmethod
     def ComparePixel(mPixel1: list, mPixel2: list):
         mDiffTotal = 0
-        for i in range(2):
-            mDiffTotal += abs(mPixel1[i] - mPixel2[i])
+        for i in range(3):
+            mDiffTotal += abs(int(mPixel1[i]) - int(mPixel2[i]))
         return mDiffTotal / len(mPixel1)
 
     # Convert tọa độ tương đối trên giả lập thành tọa độ tuyệt đối trên màn hình PC
@@ -115,7 +116,6 @@ class AutoFishing(QObject):
     def FixClick(self):
         self.AdbClick(self.mConfig.GetFishingRodPosition()[0],
                       self.mConfig.GetFishingRodPosition()[1])
-        self.StatusEmit("Đã bấm nút sửa cần")
 
     def FixConfirm(self):
         self.AdbClick(self.mConfig.GetConfirm()[0],
@@ -126,22 +126,12 @@ class AutoFishing(QObject):
                       self.mConfig.GetOKButton()[1])
 
     def CheckRod(self):
-        time.sleep(self.mConfig.GetDelayTime() + 2.5)
+        time.sleep(self.mConfig.GetDelayTime() + 1.5)
         if self.mAutoFishRunning is False:
             return False
         mCheck = 0
         while mCheck < 5:
             mBackpackPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}backpack.png',
-                                                    grayscale=True,
-                                                    region=(self.mAbsBackPackRegion[0],
-                                                            self.mAbsBackPackRegion[1],
-                                                            self.mAbsBackPackRegion[2],
-                                                            self.mAbsBackPackRegion[3]),
-                                                    confidence=self.mConfig.GetConfidence())
-            if mBackpackPos is not None:
-                self.FixRod()
-                return False
-            mBackpackPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}backpack2.png',
                                                     grayscale=True,
                                                     region=(self.mAbsBackPackRegion[0],
                                                             self.mAbsBackPackRegion[1],
@@ -158,6 +148,8 @@ class AutoFishing(QObject):
         return True
 
     def FixRod(self):
+        self.StatusEmit("Cần câu bị hỏng. Auto đang sửa cần\n"
+                        "Nếu không đúng hỏng cần, hãy cài đặt độ trễ từ 1 giây trở lên")
         self.OpenBackPack()
         if self.mAutoFishRunning is False:
             return
@@ -173,13 +165,13 @@ class AutoFishing(QObject):
         self.FixClick()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(self.mConfig.GetDelayTime())
+        time.sleep(self.mConfig.GetDelayTime() + 0.5)
         if self.mAutoFishRunning is False:
             return
         self.FixConfirm()
         if self.mAutoFishRunning is False:
             return
-        time.sleep(self.mConfig.GetDelayTime())
+        time.sleep(self.mConfig.GetDelayTime() + 0.5)
         if self.mAutoFishRunning is False:
             return
         self.ClickOk()
@@ -198,8 +190,8 @@ class AutoFishing(QObject):
         while mCheck < 5:
             mPreservationButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}preservation.png',
                                                               grayscale=True,
-                                                              region=(self.mConfig.GetPreservation()[0] - 160,
-                                                                      self.mConfig.GetPreservation()[1] - 80,
+                                                              region=(self.mAbsPreservationRegion[0],
+                                                                      self.mAbsPreservationRegion[1],
                                                                       320, 160),
                                                               confidence=self.mConfig.GetConfidence())
             if mPreservationButtonPos is not None:
@@ -227,29 +219,16 @@ class AutoFishing(QObject):
                               self.mConfig.GetCastingRod()[1])
                 self.StatusEmit("Đã thả cần câu")
                 return True
-            mBackpackPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}backpack2.png',
-                                                    grayscale=True,
-                                                    region=(self.mAbsBackPackRegion[0],
-                                                            self.mAbsBackPackRegion[1],
-                                                            self.mAbsBackPackRegion[2],
-                                                            self.mAbsBackPackRegion[3]),
-                                                    confidence=self.mConfig.GetConfidence())
-            if mBackpackPos is not None:
-                self.AdbClick(self.mConfig.GetCastingRod()[0],
-                              self.mConfig.GetCastingRod()[1])
-                self.StatusEmit("Đã thả cần câu")
-                return True
             time.sleep(0.2)
             mCheck += 1
-        status = f"Không tìm thấy ba lô. Auto đang xử lý ...\nNếu đợi quá lâu, xoay góc nhìn nhân vật ra khu vực khác, sao cho ba lô nằm trong vùng nền đơn sắc rồi thử lại"
-        self.StatusEmit(status)
+        self.StatusEmit("Không tìm thấy ba lô. Hãy thu cần về và thử lại")
         self.CloseBackPack()
         mCheck = 0
         while mCheck < 5:
             mPreservationButtonPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}preservation.png',
                                                               grayscale=True,
-                                                              region=(self.mConfig.GetPreservation()[0] - 160,
-                                                                      self.mConfig.GetPreservation()[1] - 80,
+                                                              region=(self.mAbsPreservationRegion[0],
+                                                                      self.mAbsPreservationRegion[1],
                                                                       320, 160),
                                                               confidence=self.mConfig.GetConfidence())
             if mPreservationButtonPos is not None:
@@ -349,7 +328,7 @@ class AutoFishing(QObject):
         if self.mConfig.GetFishDetection() is True:
             mStaticFrameGray, mStaticFrameRGB = self.ScreenshotFishingRegion()
             self.mFishImage = mStaticFrameRGB
-        self.StatusEmit("Đang đợi dấu chấm than")
+        self.StatusEmit("Đang đợi cá")
         # Chụp ảnh màn hình vùng chứa pixel chấm than
         mMarkRGB = self.ScreenshotWindowRegion([self.mMark[0] - 1, self.mMark[1] - 1, 3, 3])
         mPixelBase = mMarkRGB[1, 1]
@@ -424,22 +403,9 @@ class AutoFishing(QObject):
                     self.mSignalUpdateFishDetectionImage.emit(FishImageColor.LEU)
                 return True
 
-            mBackpackPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}backpack2.png',
-                                                    region=(self.mAbsBackPackRegion[0],
-                                                            self.mAbsBackPackRegion[1],
-                                                            self.mAbsBackPackRegion[2],
-                                                            self.mAbsBackPackRegion[3]),
-                                                    grayscale=True,
-                                                    confidence=self.mConfig.GetConfidence())
-            if mBackpackPos is not None:
-                self.StatusEmit("Câu thất bại")
-                # Hiện ảnh cá câu được lên app auto
-                if self.mConfig.GetShowFishShadow() is True:
-                    self.mSignalUpdateFishDetectionImage.emit(FishImageColor.LEU)
-                return True
             mPreservationPos = pyautogui.locateOnScreen(f'{self.mConfig.GetDataPath()}preservation.png',
-                                                        region=(self.mConfig.GetPreservation()[0] - 160,
-                                                                self.mConfig.GetPreservation()[1] - 80,
+                                                        region=(self.mAbsPreservationRegion[0],
+                                                                self.mAbsPreservationRegion[1],
                                                                 320, 160),
                                                         grayscale=True,
                                                         confidence=self.mConfig.GetConfidence())
@@ -570,10 +536,16 @@ class AutoFishing(QObject):
         # Tọa độ tuyệt đối
         self.mAbsPullingRodPos = self.ConvertCoordinates(self.mConfig.GetPullingRod())
         mAbsBackpackPos = self.ConvertCoordinates(self.mConfig.GetOpenBackPack())
-        self.mAbsBackPackRegion[2] = (self.mEmulatorBox.width - self.mConfig.GetOpenBackPack()[0]) * 2
-        self.mAbsBackPackRegion[0] = mAbsBackpackPos[0] - self.mAbsBackPackRegion[2] // 2
-        self.mAbsBackPackRegion[1] = self.mConfig.GetOpenBackPack()[1] - 50
-        self.mAbsBackPackRegion[3] = 100
+        self.mAbsBackPackRegion[0] = mAbsBackpackPos[0] - BACKPACK_REC[0] // 2
+        self.mAbsBackPackRegion[1] = mAbsBackpackPos[1] - BACKPACK_REC[1] // 2
+        self.mAbsBackPackRegion[2] = BACKPACK_REC[0]
+        self.mAbsBackPackRegion[3] = BACKPACK_REC[1]
+
+        mAbsPreservationPos = self.ConvertCoordinates(self.mConfig.GetPreservation())
+        self.mAbsPreservationRegion[2] = PRESERVATION_REC[0]
+        self.mAbsPreservationRegion[3] = PRESERVATION_REC[1]
+        self.mAbsPreservationRegion[0] = mAbsPreservationPos[0] - PRESERVATION_REC[0] // 2
+        self.mAbsPreservationRegion[1] = mAbsPreservationPos[1] - PRESERVATION_REC[1] // 2
 
         # Troll
         self.mLeu = cv2.imread(f'{self.mConfig.GetDataPath()}{LEULEU}', cv2.IMREAD_COLOR)
