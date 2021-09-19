@@ -85,7 +85,7 @@ class MainWindow(QObject):
 
         # Set button color
         # self.uic.btnConnectAdb.setStyleSheet(BUTTON_COLOR)
-        # self.uic.btnStopFishing.setStyleSheet(BUTTON_COLOR)
+        # self.uic.btnPauseFishing.setStyleSheet(BUTTON_COLOR)
         # self.uic.btnConnectWindowTitle.setStyleSheet(BUTTON_COLOR)
         # self.uic.btnStartFishing.setStyleSheet(BUTTON_COLOR)
         # self.uic.btnGetBobberPosition.setStyleSheet(BUTTON_COLOR)
@@ -106,7 +106,7 @@ class MainWindow(QObject):
         # Connect btn
         self.uic.btnConnectWindowTitle.clicked.connect(self.OnClickConnectWindowTitle)
         self.uic.btnStartFishing.clicked.connect(self.OnClickStart)
-        self.uic.btnStopFishing.clicked.connect(self.OnClickStop)
+        self.uic.btnPauseFishing.clicked.connect(self.OnClickPause)
         self.uic.btnGetMarkPosition.clicked.connect(self.OnClickGetMarkPosition)
         self.uic.btnGetBobberPosition.clicked.connect(self.OnClickGetBobberPosition)
         self.uic.btnConnectAdb.clicked.connect(self.OnClickConnectAdbAddress)
@@ -126,10 +126,9 @@ class MainWindow(QObject):
         self.mTimer.timeout.connect(self.SlotShowTime)
         self.mTimer.timeout.connect(self.SlotCheckThread)
         self.mTimer.timeout.connect(self.ShowShutdownPCTime)
-        self.mTimer.start(300)
 
-        # Disable btnStopFishing
-        self.uic.btnStopFishing.setDisabled(True)
+        # Disable btnPauseFishing
+        self.uic.btnPauseFishing.setDisabled(True)
 
         # Show Author
         self.SlotShowStatus(AUTHOR)
@@ -193,7 +192,7 @@ class MainWindow(QObject):
         self.uic.cbShutdownPC.setDisabled(True)
         self.uic.cbFishDetection.setDisabled(True)
 
-        #  Stop all thread flag
+        # All thread flag = False
         self.mAutoFishing.mCheckMouseRunning = False
         self.mAutoFishing.mAutoFishRunning = False
 
@@ -202,16 +201,16 @@ class MainWindow(QObject):
             return
 
         # Reset fish num
-        self.mAutoFishing.mAllFish = 0
-        self.mAutoFishing.mFishingNum = 0
-        self.mAutoFishing.mVioletFish = 0
-        self.mAutoFishing.mBlueFish = 0
-        self.mAutoFishing.mGreenFish = 0
-        self.mAutoFishing.mGrayFish = 0
+        # self.mAutoFishing.mAllFish = 0
+        # self.mAutoFishing.mFishingNum = 0
+        # self.mAutoFishing.mVioletFish = 0
+        # self.mAutoFishing.mBlueFish = 0
+        # self.mAutoFishing.mGreenFish = 0
+        # self.mAutoFishing.mGrayFish = 0
 
         # Show zero fish num
-        self.SlotShowNumFish()
-        self.SlotShowFishingNum()
+        # self.SlotShowNumFish()
+        # self.SlotShowFishingNum()
 
         # Set image on graphic label
         if self.mConfig.GetShowFishShadow() is False:
@@ -222,7 +221,7 @@ class MainWindow(QObject):
         self.mAutoFishingThread = threading.Thread(target=self.mAutoFishing.StartAuto)
 
         # Set time fishing
-        self.mAutoFishing.mCurrentTime = time.time()
+        self.mAutoFishing.mStartTime = time.time()
 
         # Start thread auto fishing
         self.mAutoFishingThread.start()
@@ -230,19 +229,20 @@ class MainWindow(QObject):
         # Check thread is not live, return
         if self.mAutoFishingThread.is_alive() is False:
             return
+        self.mTimer.start(100)
 
-        # Disable Stop button
-        self.uic.btnStopFishing.setDisabled(False)
+        # Disable Pause button
+        self.uic.btnPauseFishing.setDisabled(False)
 
-    def OnClickStop(self):
-        # Disable Stop button
-        self.uic.btnStopFishing.setDisabled(True)
+    def OnClickPause(self):
+        # Disable Pause button
+        self.uic.btnPauseFishing.setDisabled(True)
 
-        # Stop all thread flag
+        # Pause all thread flag
         self.mAutoFishing.mCheckMouseRunning = False
         self.mAutoFishing.mAutoFishRunning = False
 
-        # Show status notice doing stop
+        # Show status notice doing Pause
         self.SlotShowStatus("")
 
     def OnClickGetMarkPosition(self):
@@ -255,7 +255,7 @@ class MainWindow(QObject):
             return
         if self.mAutoFishing.mAutoFishRunning is False:
             return
-        mCountDownTime = (self.mConfig.GetShutdownTime() * 60 - (time.time() - self.mAutoFishing.mCurrentTime)) / 60
+        mCountDownTime = (self.mConfig.GetShutdownTime() * 60 - (time.time() - self.mAutoFishing.mStartTime)) / 60
         self.uic.txtShutdownTime.setText(str(int(mCountDownTime) + 1))
         self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
         if mCountDownTime < 0:
@@ -338,30 +338,27 @@ class MainWindow(QObject):
         self.uic.lblShowFish.setPixmap(mQPixmap)
 
     def SlotShowTime(self, mReset=False):
-        if self.mAutoFishing.mAutoFishRunning is False:
-            self.uic.lcdTime.display('00:00:00')
-        else:
-            mTime = int(time.time() - self.mAutoFishing.mCurrentTime)
-            h = mTime // 3600
-            m = (mTime - h * 3600) // 60
-            s = ((mTime - h * 3600) - m * 60)
-            str_h = str(h)
-            str_m = str(m)
-            str_s = str(s)
-            if h < 10:
-                str_h = f'0{h}'
-            if m < 10:
-                str_m = f'0{m}'
-            if s < 10:
-                str_s = f'0{s}'
-            self.uic.lcdTime.display(f'{str_h}:{str_m}:{str_s}')
+        mShowTime = self.mAutoFishing.mSaveTime + int(time.time() - self.mAutoFishing.mStartTime)
+        h = mShowTime // 3600
+        m = (mShowTime - h * 3600) // 60
+        s = ((mShowTime - h * 3600) - m * 60)
+        str_h = str(h)
+        str_m = str(m)
+        str_s = str(s)
+        if h < 10:
+            str_h = f'0{h}'
+        if m < 10:
+            str_m = f'0{m}'
+        if s < 10:
+            str_s = f'0{s}'
+        self.uic.lcdTime.display(f'{str_h}:{str_m}:{str_s}')
         self.uic.lcdTime.setNumDigits(8)
         self.uic.lcdTime.setSegmentStyle(2)
 
     def SlotShowStatus(self, mText: str):
         if mText == AUTHOR:
             self.uic.lblStatus.setText(AUTHOR)
-        elif self.uic.btnStartFishing.isEnabled() is False and self.uic.btnStopFishing.isEnabled() is False:
+        elif self.uic.btnStartFishing.isEnabled() is False and self.uic.btnPauseFishing.isEnabled() is False:
             self.uic.lblStatus.setText(self.mWaitStatus)
         else:
             self.uic.lblStatus.setText(mText)
@@ -404,11 +401,13 @@ class MainWindow(QObject):
             self.uic.lblShowFish.setPixmap(
                 QtGui.QPixmap(f'{self.mConfig.GetDataPath()}{IMAGE}').scaled(200, 200))
 
-            self.uic.btnStopFishing.setDisabled(True)
+            self.uic.btnPauseFishing.setDisabled(True)
             self.uic.btnStartFishing.setDisabled(False)
 
-            if self.uic.lblStatus.text() == self.mWaitStatus:
-                self.uic.lblStatus.setText(AUTHOR)
+            self.uic.lblStatus.setText(AUTHOR)
+
+            self.mTimer.stop()
+            self.mAutoFishing.mSaveTime += int(time.time() - self.mAutoFishing.mStartTime)
 
     def SlotOpenFacebook(self):
         QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.GetFacebook()))

@@ -41,6 +41,7 @@ class AutoFishing(QObject):
         self.mEmulatorBox = None
         self.mFishImage = None
         self.mLeu = None
+        self.mCheckAdbDelay = 0
 
         # Khai báo số cá các loại
         self.mAllFish = 0
@@ -49,7 +50,8 @@ class AutoFishing(QObject):
         self.mGreenFish = 0
         self.mGrayFish = 0
 
-        self.mCurrentTime = time.time()
+        self.mStartTime = time.time()
+        self.mSaveTime = 0
 
     def __del__(self):
         self.mFishDetectionRunning = False
@@ -246,21 +248,19 @@ class AutoFishing(QObject):
 
     def FishDetection(self, mPrevFrameGray, mCurrFrameGray, mCurrFrameRGB):
         mBackGroundColor = mPrevFrameGray[self.mFishingRegion[3] // 2, self.mFishingRegion[2] // 4]
+        mColor = (255, 255, 255)
         # tối ở camp 49  # tối ở biển 57
         if mBackGroundColor <= 70:
             mMinThreshValue = 10
             mMaxThreshValue = 100
-            mColor = (255, 255, 255)
         # buổi chiều nền biền 74, sáng ở camp 149, chiều ở cam 166
         elif 70 < mBackGroundColor < 170:
             mMinThreshValue = 30
             mMaxThreshValue = 100
-            mColor = (255, 255, 255)
         # buổi sáng nền biển 174
         else:
             mMinThreshValue = 50
             mMaxThreshValue = 100
-            mColor = (0, 0, 0)
 
         mCurrImgArrWidth, mCurrImgArrHeight = mCurrFrameGray.shape
         mImgCenterX = mCurrImgArrWidth // 2
@@ -295,12 +295,18 @@ class AutoFishing(QObject):
             # loại bỏ phao câu
             if mRadius < self.mConfig.GetRadiusFishingRegion() / 4:
                 continue
-            # loại box nhỏ tránh nhiễu
-            if cv2.contourArea(mContour) < self.mConfig.GetMinContour():
-                continue
             # loại bỏ box xuất hiện ở viền
             if mRadius > self.mConfig.GetRadiusFishingRegion() * 3 / 4:
                 continue
+
+            # loại box nhỏ tránh nhiễu
+            if cv2.contourArea(mContour) < self.mConfig.GetMinContour():
+                continue
+
+            # loai box qua to
+            if cv2.contourArea(mContour) > MAX_CONTOUR:
+                continue
+
             mFishArea = int(cv2.contourArea(mContour))
             cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), mColor, 1)
             cv2.putText(mCurrFrameRGB, str(mFishArea), (x, y),
@@ -376,10 +382,14 @@ class AutoFishing(QObject):
             timeDelay = time.time() - time1
             self.StatusEmit(f'Độ trễ giật cần {round(timeDelay, 2)} giây')
             if timeDelay > 0.5:
+                self.mCheckAdbDelay += 1
+                if self.mCheckAdbDelay <= 3:
+                    return True
                 self.mAutoFishRunning = False
                 self.MsgEmit(
                     f'Độ trễ truyền lệnh điều khiển giả lập qua Adb Server quá cao trên 0.5 giây\nTắt chế độ "Chuột tự do" để không bị kéo hụt cá',
                     False)
+                self.mCheckAdbDelay = 0
             return True
 
     def FishPreservation(self):
