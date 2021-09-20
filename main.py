@@ -6,7 +6,7 @@ from src.config import Config
 
 if __name__ == "__main__":
     mConfig = Config()
-    mIconPath = f'{mConfig.GetDataPath()}iconapp.ico'
+    mIconPath = mConfig.mIconPath
 
     app = QApplication(sys.argv)
     app.setWindowIcon(QtGui.QIcon(mIconPath))

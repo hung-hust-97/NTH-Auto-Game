@@ -21,11 +21,8 @@ class MainWindow(QObject):
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
         self.mAutoFishingThread = None
-
-        self.mWaitStatus = WAIT_STATUS
-
+        self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mTimer = QTimer()
-
         self.OpenApp()
 
     def __del__(self):
@@ -39,22 +36,22 @@ class MainWindow(QObject):
 
     def OpenApp(self):
         # Hien thi cac du lieu da luu trong config.ini
-        self.uic.txtEmulatorName.setText(self.mConfig.GetWindowName())
+        self.uic.txtEmulatorName.setText(self.mConfig.mWindowName)
         self.uic.txtEmulatorName.setAlignment(Qt.AlignLeft)
 
-        self.uic.txtFishingRodPosition.setText(str(self.mConfig.GetFishingRod()))
+        self.uic.txtFishingRodPosition.setText(str(self.mConfig.mFishingRodIndex))
         self.uic.txtFishingRodPosition.setAlignment(Qt.AlignCenter)
         # self.uic.txtFishingRodPosition.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
-        self.uic.txtPullingFishTime.setText(str(self.mConfig.GetPullingFishTime()))
+        self.uic.txtPullingFishTime.setText(str(self.mConfig.mPullingFishTime))
         self.uic.txtPullingFishTime.setAlignment(Qt.AlignCenter)
         # self.uic.txtPullingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
-        self.uic.txtWaitingFishTime.setText(str(self.mConfig.GetWaitingFishTime()))
+        self.uic.txtWaitingFishTime.setText(str(self.mConfig.mWaitingFishTime))
         self.uic.txtWaitingFishTime.setAlignment(Qt.AlignCenter)
         # self.uic.txtWaitingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
-        self.uic.txtMinFishSize.setText(str(self.mConfig.GetFishSize()))
+        self.uic.txtMinFishSize.setText(str(self.mConfig.mFishSize))
         self.uic.txtMinFishSize.setAlignment(Qt.AlignCenter)
         # self.uic.txtMinFishSize.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
@@ -62,25 +59,21 @@ class MainWindow(QObject):
         self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
         # self.uic.txtShutdownTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
-        self.uic.txtDelayTime.setText(str(self.mConfig.GetDelayTime()))
+        self.uic.txtDelayTime.setText(str(self.mConfig.mDelayTime))
         self.uic.txtDelayTime.setAlignment(Qt.AlignCenter)
         # self.uic.txtDelayTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
-        self.uic.txtMinContour.setText(str(self.mConfig.GetMinContour()))
-        self.uic.txtMinContour.setAlignment(Qt.AlignCenter)
-        # self.uic.txtMinContour.setStyleSheet(HIDE_TEXT_BOX_STYLE)
-
-        self.uic.txtMinContour.setText(str(self.mConfig.GetMinContour()))
+        self.uic.txtMinContour.setText(str(self.mConfig.mMinContour))
         self.uic.txtMinContour.setAlignment(Qt.AlignCenter)
         # self.uic.txtMinContour.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.SlotShowNumFish()
+        self.ShowListEmulatorSize()
+        self.uic.listAdbAddress.addItem(self.mConfig.mAdbAddress)
 
-        self.uic.listAdbAddress.addItem(self.mConfig.GetAdbAddress())
-
-        self.uic.cbFreeMouse.setChecked(self.mConfig.GetFreeMouse())
-        self.uic.cbFishDetection.setChecked(self.mConfig.GetFishDetection())
-        self.uic.cbShowFish.setChecked(self.mConfig.GetShowFishShadow())
+        self.uic.cbFreeMouse.setChecked(self.mConfig.mFreeMouseCheck)
+        self.uic.cbFishDetection.setChecked(self.mConfig.mFishDetectionCheck)
+        self.uic.cbShowFish.setChecked(self.mConfig.mShowFishCheck)
         self.uic.cbShutdownPC.setChecked(False)
 
         # Set button color
@@ -92,16 +85,18 @@ class MainWindow(QObject):
         # self.uic.btnGetMarkPosition.setStyleSheet(BUTTON_COLOR)
 
         # Show logo
-        self.uic.lblShowFish.setPixmap(
-            QtGui.QPixmap(f'{self.mConfig.GetDataPath()}{IMAGE}').scaled(200, 200))
-        self.uic.btnYoutube.setIcon(
-            QtGui.QIcon(f'{self.mConfig.GetDataPath()}{YOUTUBE}'))
+        self.uic.lblShowFish.setPixmap(QtGui.QPixmap(self.mConfig.mLogoImgPath).scaled(200, 200))
+        self.uic.btnYoutube.setIcon(QtGui.QIcon(self.mConfig.mYoutubeImgPath))
         self.uic.btnYoutube.setIconSize(QSize(40, 40))
         self.uic.btnYoutube.setFlat(True)
-        self.uic.btnFacebook.setIcon(
-            QtGui.QIcon(f'{self.mConfig.GetDataPath()}{FACEBOOK}'))
+        self.uic.btnFacebook.setIcon(QtGui.QIcon(self.mConfig.mFacebookImgPath))
         self.uic.btnFacebook.setIconSize(QSize(40, 40))
         self.uic.btnFacebook.setFlat(True)
+
+        # Show time
+        self.uic.lcdTime.setNumDigits(8)
+        self.uic.lcdTime.setSegmentStyle(2)
+        self.uic.lcdTime.display('00:00:00')
 
         # Connect btn
         self.uic.btnConnectWindowTitle.clicked.connect(self.OnClickConnectWindowTitle)
@@ -138,6 +133,8 @@ class MainWindow(QObject):
 
     def OnClickConnectWindowTitle(self):
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
+        self.mConfig.SetEmulatorSize(self.uic.listEmulatorSize.currentIndex())
+
         if self.mAutoFishing.CheckRegionEmulator() is True:
             self.SlotShowStatus("Kết nối cửa sổ giả lập thành công\n"
                                 f"{self.mAutoFishing.mEmulatorBox}")
@@ -185,6 +182,7 @@ class MainWindow(QObject):
 
         # Hide list box
         self.uic.listAdbAddress.setDisabled(True)
+        self.uic.listEmulatorSize.setDisabled(True)
 
         # Hide check box
         self.uic.cbShowFish.setDisabled(True)
@@ -213,9 +211,9 @@ class MainWindow(QObject):
         # self.SlotShowFishingNum()
 
         # Set image on graphic label
-        if self.mConfig.GetShowFishShadow() is False:
+        if self.mConfig.mShowFishCheck is False:
             self.uic.lblShowFish.setPixmap(
-                QtGui.QPixmap(f'{self.mConfig.GetDataPath()}{IMAGE}').scaled(200, 200))
+                QtGui.QPixmap(self.mConfig.mLogoImgPath).scaled(200, 200))
 
         # Define thread start fishing
         self.mAutoFishingThread = threading.Thread(target=self.mAutoFishing.StartAuto)
@@ -223,13 +221,13 @@ class MainWindow(QObject):
         # Set time fishing
         self.mAutoFishing.mStartTime = time.time()
 
+        self.mTimer.start(200)
         # Start thread auto fishing
         self.mAutoFishingThread.start()
 
         # Check thread is not live, return
         if self.mAutoFishingThread.is_alive() is False:
             return
-        self.mTimer.start(100)
 
         # Disable Pause button
         self.uic.btnPauseFishing.setDisabled(False)
@@ -250,12 +248,18 @@ class MainWindow(QObject):
         time.sleep(0.1)
         threading.Thread(target=self.mAutoFishing.SetPixelPos).start()
 
+    def ShowListEmulatorSize(self):
+        for mSize in self.mConfig.mListEmulatorSize:
+            strSize = f'{mSize[0]}x{mSize[1]}'
+            self.uic.listEmulatorSize.addItem(strSize)
+        self.uic.listEmulatorSize.setCurrentIndex(self.mConfig.mEmulatorSizeId)
+
     def ShowShutdownPCTime(self):
-        if self.mConfig.GetShutdownCheckBox() is False:
+        if self.mConfig.mShutdownCheckBox is False:
             return
         if self.mAutoFishing.mAutoFishRunning is False:
             return
-        mCountDownTime = (self.mConfig.GetShutdownTime() * 60 - (time.time() - self.mAutoFishing.mStartTime)) / 60
+        mCountDownTime = (self.mConfig.mShutdownTime * 60 - (time.time() - self.mAutoFishing.mStartTime)) / 60
         self.uic.txtShutdownTime.setText(str(int(mCountDownTime) + 1))
         self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
         if mCountDownTime < 0:
@@ -282,28 +286,32 @@ class MainWindow(QObject):
         self.uic.txtVioletFish.setDisabled(True)
         # self.uic.txtVioletFish.setFont(font)
         self.uic.txtVioletFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({VIOLET_FISH_COLOR[0]}, {VIOLET_FISH_COLOR[1]}, {VIOLET_FISH_COLOR[2]}, 255);')
+            f'border: 0px; background-color: rgba({self.mConfig.mVioletColorRGB[0]},'
+            f' {self.mConfig.mVioletColorRGB[1]}, {self.mConfig.mVioletColorRGB[2]}, 255);')
 
         self.uic.txtBlueFish.setText(str(self.mAutoFishing.mBlueFish))
         self.uic.txtBlueFish.setAlignment(Qt.AlignCenter)
         self.uic.txtBlueFish.setDisabled(True)
         # self.uic.txtBlueFish.setFont(font)
         self.uic.txtBlueFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({BLUE_FISH_COLOR[0]}, {BLUE_FISH_COLOR[1]}, {BLUE_FISH_COLOR[2]}, 255);')
+            f'border: 0px; background-color: rgba({self.mConfig.mBlueColorRGB[0]},'
+            f' {self.mConfig.mBlueColorRGB[1]}, {self.mConfig.mBlueColorRGB[2]}, 255);')
 
         self.uic.txtGreenFish.setText(str(self.mAutoFishing.mGreenFish))
         self.uic.txtGreenFish.setAlignment(Qt.AlignCenter)
         self.uic.txtGreenFish.setDisabled(True)
         # self.uic.txtGreenFish.setFont(font)
         self.uic.txtGreenFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({GREEN_FISH_COLOR[0]}, {GREEN_FISH_COLOR[1]}, {GREEN_FISH_COLOR[2]}, 255);')
+            f'border: 0px; background-color: rgba({self.mConfig.mGreenColorRGB[0]},'
+            f' {self.mConfig.mGreenColorRGB[1]}, {self.mConfig.mGreenColorRGB[2]}, 255);')
 
         self.uic.txtGrayFish.setText(str(self.mAutoFishing.mGrayFish))
         self.uic.txtGrayFish.setAlignment(Qt.AlignCenter)
         self.uic.txtGrayFish.setDisabled(True)
         # self.uic.txtGrayFish.setFont(font)
         self.uic.txtGrayFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({GRAY_FISH_COLOR[0]}, {GRAY_FISH_COLOR[1]}, {GRAY_FISH_COLOR[2]}, 255);')
+            f'border: 0px; background-color: rgba({self.mConfig.mGrayColorRGB[0]},'
+            f' {self.mConfig.mGrayColorRGB[1]}, {self.mConfig.mGrayColorRGB[2]}, 255);')
 
     def OnClickGetBobberPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
@@ -331,7 +339,7 @@ class MainWindow(QObject):
         mQPixmap = QtGui.QPixmap.fromImage(mQImage).scaled(200, 200)
         self.uic.lblShowFish.setPixmap(mQPixmap)
 
-    def SlotShowTime(self, mReset=False):
+    def SlotShowTime(self):
         mShowTime = self.mAutoFishing.mSaveTime + int(time.time() - self.mAutoFishing.mStartTime)
         h = mShowTime // 3600
         m = (mShowTime - h * 3600) // 60
@@ -346,8 +354,6 @@ class MainWindow(QObject):
         if s < 10:
             str_s = f'0{s}'
         self.uic.lcdTime.display(f'{str_h}:{str_m}:{str_s}')
-        self.uic.lcdTime.setNumDigits(8)
-        self.uic.lcdTime.setSegmentStyle(2)
 
     def SlotShowStatus(self, mText: str):
         if mText == AUTHOR:
@@ -389,11 +395,12 @@ class MainWindow(QObject):
             self.uic.txtMinContour.setDisabled(False)
 
             self.uic.listAdbAddress.setDisabled(False)
+            self.uic.listEmulatorSize.setDisabled(False)
 
-            self.uic.txtShutdownTime.setText(str(self.mConfig.GetShutdownTime()))
+            self.uic.txtShutdownTime.setText(str(self.mConfig.mShutdownTime))
             self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
             self.uic.lblShowFish.setPixmap(
-                QtGui.QPixmap(f'{self.mConfig.GetDataPath()}{IMAGE}').scaled(200, 200))
+                QtGui.QPixmap(self.mConfig.mLogoImgPath).scaled(200, 200))
 
             self.uic.btnPauseFishing.setDisabled(True)
             self.uic.btnStartFishing.setDisabled(False)
@@ -404,10 +411,10 @@ class MainWindow(QObject):
             self.mAutoFishing.mSaveTime += int(time.time() - self.mAutoFishing.mStartTime)
 
     def SlotOpenFacebook(self):
-        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.GetFacebook()))
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mFacebookImgPath))
 
     def SlotOpenYoutube(self):
-        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.GetYoutube()))
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeImgPath))
 
     def SaveConfig(self):
         if (self.uic.txtPullingFishTime.toPlainText()).isnumeric() is False:
