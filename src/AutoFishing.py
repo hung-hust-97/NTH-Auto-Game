@@ -40,7 +40,6 @@ class AutoFishing(QObject):
         self.mEmulatorWindow = None
         self.mEmulatorBox = None
         self.mFishImage = None
-        self.mLeu = None
         self.mCheckAdbDelay = 0
 
         # Khai báo số cá các loại
@@ -391,7 +390,7 @@ class AutoFishing(QObject):
                 mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
                 if mSizeFish != 0:
                     mSkipFrame += 1
-                if mSkipFrame == 10:
+                if mSkipFrame == 5:
                     mStopDetect = True
                     if mSizeFish < int(self.mConfig.GetFishSize()):
                         return True
@@ -399,14 +398,14 @@ class AutoFishing(QObject):
             mMarkRGBCurr = self.ScreenshotWindowRegion([self.mMark[0] - 1, self.mMark[1] - 1, 3, 3])
             if mMarkRGBCurr is False:
                 time2 = time.time()
-                time.sleep(0.02)
+                time.sleep(0.05)
                 continue
             mPixelCurr = mMarkRGBCurr[1, 1]
             mDiffRgb = self.ComparePixel(mPixelCurr, mPixelBase)
             if mDiffRgb > self.mConfig.GetDifferentColor():
                 return True
             time2 = time.time()
-            time.sleep(0.03)
+            time.sleep(0.05)
 
         self.StatusEmit("Không phát hiện dấu chấm than")
         return False
@@ -460,9 +459,6 @@ class AutoFishing(QObject):
 
             if mBackpackPos is not None:
                 self.StatusEmit("Câu thất bại")
-                # Hiện ảnh cá câu được lên app auto
-                # if self.mConfig.GetShowFishShadow() is True:
-                #     self.mSignalUpdateFishDetectionImage.emit(FishImageColor.LEU)
                 return True
 
             mPreservationPos = self.FindImage(f'{self.mConfig.GetDataPath()}preservation.png',
@@ -488,6 +484,7 @@ class AutoFishing(QObject):
         return False
 
     def FishCount(self):
+        time.sleep(0.2)
         mFishImagePos = self.ConvertCoordinates([self.mConfig.mFishImgRegion[0], self.mConfig.mFishImgRegion[1]])
         mFishImageRegion = [mFishImagePos[0], mFishImagePos[1], self.mConfig.mFishImgRegion[2],
                             self.mConfig.mFishImgRegion[3]]
@@ -615,10 +612,6 @@ class AutoFishing(QObject):
         self.mAbsPreservationRegion[3] = self.mConfig.mPreservationRec[1]
         self.mAbsPreservationRegion[0] = mAbsPreservationPos[0] - self.mConfig.mPreservationRec[0] // 2
         self.mAbsPreservationRegion[1] = mAbsPreservationPos[1] - self.mConfig.mPreservationRec[1] // 2
-
-        # Troll
-        self.mLeu = cv2.imread(f'{self.mConfig.GetDataPath()}{LEULEU}', cv2.IMREAD_COLOR)
-        self.mLeu = cv2.resize(self.mLeu, (200, 200), interpolation=cv2.INTER_AREA)
 
         return True
 

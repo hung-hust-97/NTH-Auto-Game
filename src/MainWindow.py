@@ -322,18 +322,12 @@ class MainWindow(QObject):
         #                            mMatImage.shape[1],
         #                            mMatImage.shape[0],
         #                            QtGui.QImage.Format_Grayscale8)
-        if mFlag == FishImageColor.RGB:
-            mMatImage = self.mAutoFishing.mFishImage.copy()
-            mMatImage = cv2.resize(mMatImage, (200, 200), interpolation=cv2.INTER_AREA)
-            mQImage = QtGui.QImage(mMatImage.data,
-                                   mMatImage.shape[1],
-                                   mMatImage.shape[0],
-                                   QtGui.QImage.Format_RGB888).rgbSwapped()
-        else:
-            mQImage = QtGui.QImage(self.mAutoFishing.mLeu.data,
-                                   self.mAutoFishing.mLeu.data.shape[1],
-                                   self.mAutoFishing.mLeu.data.shape[0],
-                                   QtGui.QImage.Format_RGB888).rgbSwapped()
+        mMatImage = self.mAutoFishing.mFishImage.copy()
+        mMatImage = cv2.resize(mMatImage, (200, 200), interpolation=cv2.INTER_AREA)
+        mQImage = QtGui.QImage(mMatImage.data,
+                               mMatImage.shape[1],
+                               mMatImage.shape[0],
+                               QtGui.QImage.Format_RGB888).rgbSwapped()
         mQPixmap = QtGui.QPixmap.fromImage(mQImage).scaled(200, 200)
         self.uic.lblShowFish.setPixmap(mQPixmap)
 

@@ -10,7 +10,6 @@ BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
 IMAGE = "image.png"
 YOUTUBE = "youtube.png"
 FACEBOOK = "facebook.png"
-LEULEU = "leuleu.png"
 WAIT_STATUS = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
 
 DEFAULT_EMULATOR_SIZE = [960, 540]
@@ -38,7 +37,6 @@ TEXT_COLOR = (255, 255, 255)
 class FishImageColor(Enum):
     RGB = 1
     GRAY = 2
-    LEU = 3
 
 
 # Tương tự như C++ get con trỏ Object Config
