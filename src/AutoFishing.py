@@ -461,8 +461,8 @@ class AutoFishing(QObject):
             if mBackpackPos is not None:
                 self.StatusEmit("Câu thất bại")
                 # Hiện ảnh cá câu được lên app auto
-                if self.mConfig.GetShowFishShadow() is True:
-                    self.mSignalUpdateFishDetectionImage.emit(FishImageColor.LEU)
+                # if self.mConfig.GetShowFishShadow() is True:
+                #     self.mSignalUpdateFishDetectionImage.emit(FishImageColor.LEU)
                 return True
 
             mPreservationPos = self.FindImage(f'{self.mConfig.GetDataPath()}preservation.png',
@@ -494,23 +494,11 @@ class AutoFishing(QObject):
         mFishImage = self.ScreenshotWindowRegion(mFishImageRegion)
         if mFishImage is False:
             return False
-        # self.mFishImage = mFishImage.copy()
-
-        # Hiện ảnh cá câu được lên app auto
-        if self.mConfig.GetShowFishShadow() is True:
-            self.mSignalUpdateFishDetectionImage.emit(FishImageColor.RGB)
         self.mAllFish += 1
-
         mPixelCheckTypeFishPosition = [self.mConfig.mCheckTypeFishPos[0] - self.mConfig.mFishImgRegion[0],
                                        self.mConfig.mCheckTypeFishPos[1] - self.mConfig.mFishImgRegion[1]]
-        # Debug vi tri xac dinh mau sac ca
-        # mFishImage = cv2.circle(mFishImage, (mPixelCheckTypeFishPosition[0], mPixelCheckTypeFishPosition[1]), 3,
-        #                         TEXT_COLOR, 1, cv2.LINE_AA)
-        self.mFishImage = mFishImage.copy()
-
         mPixelCheckTypeFish = mFishImage[mPixelCheckTypeFishPosition[1],
                                          mPixelCheckTypeFishPosition[0]]
-
         if self.ComparePixel(mPixelCheckTypeFish, VIOLET_FISH_COLOR_BGR) < 10:
             self.mVioletFish += 1
         elif self.ComparePixel(mPixelCheckTypeFish, BLUE_FISH_COLOR_BGR) < 10:
@@ -521,6 +509,15 @@ class AutoFishing(QObject):
             self.mGrayFish += 1
         else:
             pass
+
+        # Debug vi tri xac dinh mau sac ca
+        # mFishImage = cv2.circle(mFishImage, (mPixelCheckTypeFishPosition[0], mPixelCheckTypeFishPosition[1]), 3,
+        #                         TEXT_COLOR, 1, cv2.LINE_AA)
+        self.mFishImage = mFishImage.copy()
+
+        # Hiện ảnh cá câu được lên app auto
+        if self.mConfig.GetShowFishShadow() is True:
+            self.mSignalUpdateFishDetectionImage.emit(FishImageColor.RGB)
 
     def SetPixelPos(self):
         self.mMark = [0, 0]
