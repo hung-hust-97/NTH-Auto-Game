@@ -20,7 +20,7 @@ class MainWindow(QObject):
         self.uic.setupUi(self.main_win)
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
-        self.mAutoFishingThread = threading.Thread(target=None)
+        self.mAutoFishingThread = None
 
         self.mWaitStatus = WAIT_STATUS
 
