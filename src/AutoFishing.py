@@ -575,10 +575,8 @@ class AutoFishing(QObject):
         self.mEmulatorWindow.activate()
         self.StatusEmit(f'Đã tìm thấy cửa sổ giả lập\n{self.mEmulatorBox}')
         mEmulatorSize = self.mConfig.GetEmulatorSize()
-        if mEmulatorSize[0] * 0.9 > self.mEmulatorBox.width or \
-                self.mEmulatorBox.width > mEmulatorSize[0] * 1.1 or \
-                mEmulatorSize[1] * 0.9 > self.mEmulatorBox.height or \
-                self.mEmulatorBox.height > mEmulatorSize[1] * 1.1:
+        if abs(mEmulatorSize[0] - self.mEmulatorBox.width) > 200 or abs(
+                mEmulatorSize[1] - self.mEmulatorBox.height) > 200:
             self.MsgEmit("Cửa sổ giả lập bị ẩn hoặc độ phân giải không phù hợp", False)
             return False
         if self.mEmulatorBox.top < 0:
