@@ -12,11 +12,15 @@ YOUTUBE = "youtube.png"
 FACEBOOK = "facebook.png"
 LEULEU = "leuleu.png"
 WAIT_STATUS = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
+
+DEFAULT_EMULATOR_SIZE = [960, 540]
 PRESERVATION_REC = [320, 160]
 BACKPACK_REC = [100, 100]
-
 CHECK_TYPE_FISH_POS = [770, 220]
 FISH_IMG_REGION = [625, 42, 295, 295]
+FONT_SCALE_DEFAULT = 1
+MAX_CONTOUR = 5000
+
 # RGB in QT
 VIOLET_FISH_COLOR = [231, 147, 232]
 BLUE_FISH_COLOR = [89, 198, 217]
@@ -28,7 +32,7 @@ BLUE_FISH_COLOR_BGR = [217, 198, 89]
 GREEN_FISH_COLOR_BGR = [103, 228, 163]
 GRAY_FISH_COLOR_BGR = [197, 224, 228]
 
-MAX_CONTOUR = 5000
+TEXT_COLOR = (255, 255, 255)
 
 
 class FishImageColor(Enum):
@@ -62,6 +66,8 @@ class Config(metaclass=SingletonMeta):
         self.__mConfigParser.read(self.__mConfigPath)
         self.__mConfig = self.__mConfigParser['CONFIG']
 
+        self.__mEmulatorSize = list(map(int, self.__mConfig['emulator_size'].split(',')))
+
         self.__mAdbHost = self.__mConfig['adb_host']
         self.__mAdbPort = int(self.__mConfig['adb_port'])
 
@@ -86,28 +92,43 @@ class Config(metaclass=SingletonMeta):
         self.__mMinContour = int(self.__mConfig['min_contour'])
 
         self.__mRadiusFishingRegion = int(self.__mConfig['radius_fishing_region'])
+        self.__mRadiusFishingRegion = self.__mRadiusFishingRegion * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0]
 
         self.__mOpenBackPack = list(map(int, self.__mConfig['open_back_back'].split(',')))
+        self.__mOpenBackPack = [self.__mOpenBackPack[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                                self.__mOpenBackPack[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mCloseBackPack = list(map(int, self.__mConfig['close_back_pack'].split(',')))
+        self.__mCloseBackPack = [self.__mCloseBackPack[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                                 self.__mCloseBackPack[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mTools = list(map(int, self.__mConfig['tools'].split(',')))
+        self.__mTools = [self.__mTools[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                         self.__mTools[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mCastingRod = list(map(int, self.__mConfig['casting_rod'].split(',')))
+        self.__mCastingRod = [self.__mCastingRod[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                              self.__mCastingRod[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mPullingRod = list(map(int, self.__mConfig['pulling_rod'].split(',')))
+        self.__mPullingRod = [self.__mPullingRod[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                              self.__mPullingRod[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mPreservation = list(map(int, self.__mConfig['preservation'].split(',')))
+        self.__mPreservation = [self.__mPreservation[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                                self.__mPreservation[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mConfirm = list(map(int, self.__mConfig['confirm'].split(',')))
+        self.__mConfirm = [self.__mConfirm[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                           self.__mConfirm[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mOKButton = list(map(int, self.__mConfig['ok_button'].split(',')))
+        self.__mOKButton = [self.__mOKButton[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                            self.__mOKButton[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
 
         self.__mFishingRod = int(self.__mConfig['fishing_rod'])
 
         self.__mDelayTime = float(self.__mConfig['delay_time'])
-
-        self.__mEmulatorSize = list(map(int, self.__mConfig['emulator_size'].split(',')))
 
         self.__mShutdownCheckBox = False
 
@@ -125,6 +146,24 @@ class Config(metaclass=SingletonMeta):
         self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position4'].split(','))))
         self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position5'].split(','))))
         self.__mListFishingRodPosition.append(list(map(int, self.__mConfig['fishing_rod_position6'].split(','))))
+
+        for i in range(len(self.__mListFishingRodPosition)):
+            self.__mListFishingRodPosition[i] = [
+                self.__mListFishingRodPosition[i][0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                self.__mListFishingRodPosition[i][1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
+
+        self.mPreservationRec = [PRESERVATION_REC[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                                 PRESERVATION_REC[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
+        self.mBackpackRec = [BACKPACK_REC[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                             BACKPACK_REC[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
+        self.mCheckTypeFishPos = [CHECK_TYPE_FISH_POS[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                                  CHECK_TYPE_FISH_POS[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
+        self.mFishImgRegion = [FISH_IMG_REGION[0] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                               FISH_IMG_REGION[1] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1],
+                               FISH_IMG_REGION[2] * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0],
+                               FISH_IMG_REGION[3] * self.__mEmulatorSize[1] // DEFAULT_EMULATOR_SIZE[1]]
+        self.mFontScale = FONT_SCALE_DEFAULT * self.__mEmulatorSize[0] / DEFAULT_EMULATOR_SIZE[0]
+        self.mMaxContour = MAX_CONTOUR * self.__mEmulatorSize[0] // DEFAULT_EMULATOR_SIZE[0]
 
     def __del__(self):
         pass

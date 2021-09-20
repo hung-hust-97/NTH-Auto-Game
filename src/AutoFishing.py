@@ -253,8 +253,8 @@ class AutoFishing(QObject):
             mPreservationButtonPos = self.FindImage(f'{self.mConfig.GetDataPath()}preservation.png',
                                                     [self.mAbsPreservationRegion[0],
                                                      self.mAbsPreservationRegion[1],
-                                                     PRESERVATION_REC[0],
-                                                     PRESERVATION_REC[1]],
+                                                     self.mConfig.mPreservationRec[0],
+                                                     self.mConfig.mPreservationRec[1]],
                                                     self.mConfig.GetConfidence())
             if mPreservationButtonPos is False:
                 mCheck += 1
@@ -275,7 +275,6 @@ class AutoFishing(QObject):
 
     def FishDetection(self, mPrevFrameGray, mCurrFrameGray, mCurrFrameRGB):
         mBackGroundColor = mPrevFrameGray[self.mFishingRegion[3] // 2, self.mFishingRegion[2] // 4]
-        mColor = (255, 255, 255)
         # tối ở camp 49  # tối ở biển 57
         if mBackGroundColor <= 70:
             mMinThreshValue = 10
@@ -308,11 +307,15 @@ class AutoFishing(QObject):
         # Quét tất cả các đường biên
         mFishArea = 0
         mCurrFrameRGB = cv2.circle(mCurrFrameRGB, (mImgCenterX, mImgCenterY),
-                                   int(self.mConfig.GetRadiusFishingRegion() * 3 // 4), mColor, 1)
+                                   int(self.mConfig.GetRadiusFishingRegion() * 3 // 4), TEXT_COLOR, 1)
         mCurrFrameRGB = cv2.circle(mCurrFrameRGB, (mImgCenterX, mImgCenterY),
                                    self.mConfig.GetRadiusFishingRegion() * 1 // 4,
-                                   mColor, 1)
-        cv2.putText(mCurrFrameRGB, str(mBackGroundColor), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, mColor, 2)
+                                   TEXT_COLOR, 1)
+        cv2.putText(mCurrFrameRGB, str(mBackGroundColor),
+                    (int(10 * self.mConfig.mFontScale),
+                     int(40 * self.mConfig.mFontScale)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    self.mConfig.mFontScale, TEXT_COLOR, 1)
         for mContour in mContours:
             # check coordinates of all found contours
             (x, y, w, h) = cv2.boundingRect(mContour)
@@ -331,13 +334,13 @@ class AutoFishing(QObject):
                 continue
 
             # loai box qua to
-            if cv2.contourArea(mContour) > MAX_CONTOUR:
+            if cv2.contourArea(mContour) > self.mConfig.mMaxContour:
                 continue
 
             mFishArea = int(cv2.contourArea(mContour))
-            cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), mColor, 1)
+            cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), TEXT_COLOR, 1)
             cv2.putText(mCurrFrameRGB, str(mFishArea), (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, mColor, 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, self.mConfig.mFontScale, TEXT_COLOR, 1)
 
             break
         self.mFishImage = mCurrFrameRGB.copy()
@@ -396,14 +399,14 @@ class AutoFishing(QObject):
             mMarkRGBCurr = self.ScreenshotWindowRegion([self.mMark[0] - 1, self.mMark[1] - 1, 3, 3])
             if mMarkRGBCurr is False:
                 time2 = time.time()
-                time.sleep(0.01)
+                time.sleep(0.02)
                 continue
             mPixelCurr = mMarkRGBCurr[1, 1]
             mDiffRgb = self.ComparePixel(mPixelCurr, mPixelBase)
             if mDiffRgb > self.mConfig.GetDifferentColor():
                 return True
             time2 = time.time()
-            time.sleep(0.01)
+            time.sleep(0.03)
 
         self.StatusEmit("Không phát hiện dấu chấm than")
         return False
@@ -465,7 +468,7 @@ class AutoFishing(QObject):
             mPreservationPos = self.FindImage(f'{self.mConfig.GetDataPath()}preservation.png',
                                               [self.mAbsPreservationRegion[0],
                                                self.mAbsPreservationRegion[1],
-                                               320, 160],
+                                               self.mConfig.mPreservationRec[0], self.mConfig.mPreservationRec[1]],
                                               self.mConfig.GetConfidence())
             if mPreservationPos is False:
                 time.sleep(0.1)
@@ -485,31 +488,36 @@ class AutoFishing(QObject):
         return False
 
     def FishCount(self):
-        mFishImagePos = self.ConvertCoordinates([FISH_IMG_REGION[0], FISH_IMG_REGION[1]])
-        mFishImageRegion = [mFishImagePos[0], mFishImagePos[1], FISH_IMG_REGION[2], FISH_IMG_REGION[3]]
+        mFishImagePos = self.ConvertCoordinates([self.mConfig.mFishImgRegion[0], self.mConfig.mFishImgRegion[1]])
+        mFishImageRegion = [mFishImagePos[0], mFishImagePos[1], self.mConfig.mFishImgRegion[2],
+                            self.mConfig.mFishImgRegion[3]]
         mFishImage = self.ScreenshotWindowRegion(mFishImageRegion)
         if mFishImage is False:
             return False
-        self.mFishImage = mFishImage.copy()
+        # self.mFishImage = mFishImage.copy()
 
         # Hiện ảnh cá câu được lên app auto
         if self.mConfig.GetShowFishShadow() is True:
             self.mSignalUpdateFishDetectionImage.emit(FishImageColor.RGB)
         self.mAllFish += 1
 
-        mPixelCheckTypeFishPosition = [CHECK_TYPE_FISH_POS[0] - FISH_IMG_REGION[0],
-                                       CHECK_TYPE_FISH_POS[1] - FISH_IMG_REGION[1]]
+        mPixelCheckTypeFishPosition = [self.mConfig.mCheckTypeFishPos[0] - self.mConfig.mFishImgRegion[0],
+                                       self.mConfig.mCheckTypeFishPos[1] - self.mConfig.mFishImgRegion[1]]
+        # Debug vi tri xac dinh mau sac ca
+        # mFishImage = cv2.circle(mFishImage, (mPixelCheckTypeFishPosition[0], mPixelCheckTypeFishPosition[1]), 3,
+        #                         TEXT_COLOR, 1, cv2.LINE_AA)
+        self.mFishImage = mFishImage.copy()
 
         mPixelCheckTypeFish = mFishImage[mPixelCheckTypeFishPosition[1],
                                          mPixelCheckTypeFishPosition[0]]
 
-        if self.ComparePixel(mPixelCheckTypeFish, VIOLET_FISH_COLOR_BGR) < 5:
+        if self.ComparePixel(mPixelCheckTypeFish, VIOLET_FISH_COLOR_BGR) < 10:
             self.mVioletFish += 1
-        elif self.ComparePixel(mPixelCheckTypeFish, BLUE_FISH_COLOR_BGR) < 5:
+        elif self.ComparePixel(mPixelCheckTypeFish, BLUE_FISH_COLOR_BGR) < 10:
             self.mBlueFish += 1
-        elif self.ComparePixel(mPixelCheckTypeFish, GREEN_FISH_COLOR_BGR) < 5:
+        elif self.ComparePixel(mPixelCheckTypeFish, GREEN_FISH_COLOR_BGR) < 10:
             self.mGreenFish += 1
-        elif self.ComparePixel(mPixelCheckTypeFish, GRAY_FISH_COLOR_BGR) < 5:
+        elif self.ComparePixel(mPixelCheckTypeFish, GRAY_FISH_COLOR_BGR) < 10:
             self.mGrayFish += 1
         else:
             pass
@@ -600,16 +608,16 @@ class AutoFishing(QObject):
         # Tọa độ tuyệt đối
         self.mAbsPullingRodPos = self.ConvertCoordinates(self.mConfig.GetPullingRod())
         mAbsBackpackPos = self.ConvertCoordinates(self.mConfig.GetOpenBackPack())
-        self.mAbsBackPackRegion[0] = mAbsBackpackPos[0] - BACKPACK_REC[0] // 2
-        self.mAbsBackPackRegion[1] = mAbsBackpackPos[1] - BACKPACK_REC[1] // 2
-        self.mAbsBackPackRegion[2] = BACKPACK_REC[0]
-        self.mAbsBackPackRegion[3] = BACKPACK_REC[1]
+        self.mAbsBackPackRegion[0] = mAbsBackpackPos[0] - self.mConfig.mBackpackRec[0] // 2
+        self.mAbsBackPackRegion[1] = mAbsBackpackPos[1] - self.mConfig.mBackpackRec[1] // 2
+        self.mAbsBackPackRegion[2] = self.mConfig.mBackpackRec[0]
+        self.mAbsBackPackRegion[3] = self.mConfig.mBackpackRec[1]
 
         mAbsPreservationPos = self.ConvertCoordinates(self.mConfig.GetPreservation())
-        self.mAbsPreservationRegion[2] = PRESERVATION_REC[0]
-        self.mAbsPreservationRegion[3] = PRESERVATION_REC[1]
-        self.mAbsPreservationRegion[0] = mAbsPreservationPos[0] - PRESERVATION_REC[0] // 2
-        self.mAbsPreservationRegion[1] = mAbsPreservationPos[1] - PRESERVATION_REC[1] // 2
+        self.mAbsPreservationRegion[2] = self.mConfig.mPreservationRec[0]
+        self.mAbsPreservationRegion[3] = self.mConfig.mPreservationRec[1]
+        self.mAbsPreservationRegion[0] = mAbsPreservationPos[0] - self.mConfig.mPreservationRec[0] // 2
+        self.mAbsPreservationRegion[1] = mAbsPreservationPos[1] - self.mConfig.mPreservationRec[1] // 2
 
         # Troll
         self.mLeu = cv2.imread(f'{self.mConfig.GetDataPath()}{LEULEU}', cv2.IMREAD_COLOR)
