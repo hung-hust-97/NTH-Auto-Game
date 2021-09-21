@@ -63,10 +63,6 @@ class MainWindow(QObject):
         self.uic.txtDelayTime.setAlignment(Qt.AlignCenter)
         # self.uic.txtDelayTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
-        self.uic.txtMinContour.setText(str(self.mConfig.mMinContour))
-        self.uic.txtMinContour.setAlignment(Qt.AlignCenter)
-        # self.uic.txtMinContour.setStyleSheet(HIDE_TEXT_BOX_STYLE)
-
         self.SlotShowNumFish()
         self.ShowListEmulatorSize()
         self.uic.listAdbAddress.addItem(self.mConfig.mAdbAddress)
@@ -113,7 +109,7 @@ class MainWindow(QObject):
         self.mAutoFishing.mSignalSetFishingBobberPos.connect(self.SlotShowBobberPosition)
         self.mAutoFishing.mSignalUpdateFishingNum.connect(self.SlotShowFishingNum)
         self.mAutoFishing.mSignalUpdateFishNum.connect(self.SlotShowNumFish)
-        self.mAutoFishing.mSignalUpdateFishDetectionImage.connect(self.SlotShowFishImage)
+        self.mAutoFishing.mSignalUpdateImageShow.connect(self.SlotShowImage)
         self.mAutoFishing.mSignalMessage.connect(self.SlotShowMsgBox)
         self.mAutoFishing.mSignalUpdateStatus.connect(self.SlotShowStatus)
 
@@ -178,7 +174,6 @@ class MainWindow(QObject):
         self.uic.txtShutdownTime.setDisabled(True)
         self.uic.txtEmulatorName.setDisabled(True)
         self.uic.txtDelayTime.setDisabled(True)
-        self.uic.txtMinContour.setDisabled(True)
 
         # Hide list box
         self.uic.listAdbAddress.setDisabled(True)
@@ -245,7 +240,6 @@ class MainWindow(QObject):
 
     def OnClickGetMarkPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
-        time.sleep(0.1)
         threading.Thread(target=self.mAutoFishing.SetPixelPos).start()
 
     def ShowListEmulatorSize(self):
@@ -324,13 +318,8 @@ class MainWindow(QObject):
         self.uic.lcdRodY.display(y)
         self.uic.lcdRodY.setSegmentStyle(2)
 
-    def SlotShowFishImage(self, mFlag):
-        # if mFlag == FishImageColor.GRAY:
-        #     mQImage = QtGui.QImage(mMatImage.data,
-        #                            mMatImage.shape[1],
-        #                            mMatImage.shape[0],
-        #                            QtGui.QImage.Format_Grayscale8)
-        mMatImage = self.mAutoFishing.mFishImage.copy()
+    def SlotShowImage(self):
+        mMatImage = self.mAutoFishing.mImageShow.copy()
         mMatImage = cv2.resize(mMatImage, (200, 200), interpolation=cv2.INTER_AREA)
         mQImage = QtGui.QImage(mMatImage.data,
                                mMatImage.shape[1],
@@ -392,7 +381,6 @@ class MainWindow(QObject):
             self.uic.txtShutdownTime.setDisabled(False)
             self.uic.txtEmulatorName.setDisabled(False)
             self.uic.txtDelayTime.setDisabled(False)
-            self.uic.txtMinContour.setDisabled(False)
 
             self.uic.listAdbAddress.setDisabled(False)
             self.uic.listEmulatorSize.setDisabled(False)
@@ -441,10 +429,6 @@ class MainWindow(QObject):
             self.SlotShowMsgBox("Hẹn giờ tắt PC sai định dạng", False)
             return False
 
-        if self.uic.txtMinContour.toPlainText().isnumeric() is False:
-            self.SlotShowMsgBox("Hệ số XLA sai định dạng", False)
-            return False
-
         try:
             mDelayTime = float(self.uic.txtDelayTime.toPlainText())
         except ValueError:
@@ -457,7 +441,6 @@ class MainWindow(QObject):
         self.mConfig.SetPullingFishTime(int(self.uic.txtPullingFishTime.toPlainText()))
         self.mConfig.SetWaitingFishTime(int(self.uic.txtWaitingFishTime.toPlainText()))
         self.mConfig.SetFishSize(int(self.uic.txtMinFishSize.toPlainText()))
-        self.mConfig.SetMinContour(int(self.uic.txtMinContour.toPlainText()))
 
         self.mConfig.SetShutdownCheckBox(self.uic.cbShutdownPC.isChecked())
         self.mConfig.SetFreeMouse(self.uic.cbFreeMouse.isChecked())

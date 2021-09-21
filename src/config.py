@@ -1,7 +1,6 @@
 import configparser
 import os
 from threading import Lock
-from enum import Enum
 
 CREATE_NO_WINDOW = 0x08000000
 HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
@@ -25,12 +24,8 @@ BACKPACK_REC = [100, 100]
 CHECK_TYPE_FISH_POS = [770, 220]
 FISH_IMG_REGION = [625, 42, 295, 295]
 FONT_SCALE_DEFAULT = 1
-MAX_CONTOUR = 5000
-
-
-class FishImageColor(Enum):
-    RGB = 1
-    GRAY = 2
+MAX_CONTOUR = 3500
+MIN_CONTOUR = 100
 
 
 # Tương tự như C++ get con trỏ Object Config
@@ -70,7 +65,6 @@ class Config(metaclass=SingletonMeta):
         self.mFishDetectionCheck = self.__mConfig.getboolean('fish_detection')
         self.mShowFishCheck = self.__mConfig.getboolean('show_fish')
         self.mFishSize = self.__mConfig.getint('fish_size')
-        self.mMinContour = self.__mConfig.getint('min_contour')
         self.mFishingRodIndex = self.__mConfig.getint('fishing_rod_id')
         self.mDelayTime = self.__mConfig.getfloat('delay_time')
 
@@ -99,6 +93,8 @@ class Config(metaclass=SingletonMeta):
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
+        self.mListBlurArg = [19, 7, 5, 3]
+        self.mBlur = 13
 
         # Cac gia tri nay se thay doi theo size cua emulator
         self.mListFishingRodPosition = LIST_FISHING_ROD_POS
@@ -116,7 +112,11 @@ class Config(metaclass=SingletonMeta):
         self.mCheckTypeFishPos = CHECK_TYPE_FISH_POS
         self.mFishImgRegion = FISH_IMG_REGION
         self.mFontScale = FONT_SCALE_DEFAULT
+
+        # Cac tham so detect ca
         self.mMaxContour = MAX_CONTOUR
+        self.mMinContour = MIN_CONTOUR
+
 
         # RGB in QT
         self.mVioletColorRGB = [231, 147, 232]
@@ -139,6 +139,7 @@ class Config(metaclass=SingletonMeta):
         self.mEmulatorSize = self.mListEmulatorSize[mEmulatorSizeId]
         self.mPreservationImgPath = self.mListPreservationImgPath[mEmulatorSizeId]
         self.mBackpackImgPath = self.mListBackpackImgPath[mEmulatorSizeId]
+        self.mBlur = self.mListBlurArg[mEmulatorSizeId]
 
         self.mWindowRatio = self.mEmulatorSize[0] / DEFAULT_EMULATOR_SIZE[0]
         self.mRadiusFishingRegion = int(RADIUS_FISHING_REGION * self.mWindowRatio)
@@ -187,11 +188,6 @@ class Config(metaclass=SingletonMeta):
     def SetAdbAddress(self, mAdbAddress: str):
         self.__mMutex.acquire()
         self.mAdbAddress = mAdbAddress
-        self.__mMutex.release()
-
-    def SetMinContour(self, mMinContour: int):
-        self.__mMutex.acquire()
-        self.mMinContour = mMinContour
         self.__mMutex.release()
 
     def SetShutdownCheckBox(self, mShutdownCheckBox: bool):
@@ -255,7 +251,6 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['fish_detection'] = str(self.mFishDetectionCheck)
         mNewConfig['CONFIG']['show_fish'] = str(self.mShowFishCheck)
         mNewConfig['CONFIG']['fish_size'] = str(self.mFishSize)
-        mNewConfig['CONFIG']['min_contour'] = str(self.mMinContour)
         mNewConfig['CONFIG']['fishing_rod_id'] = str(self.mFishingRodIndex)
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)
 

@@ -6,7 +6,7 @@ import cv2
 from ppadb.client import Client as AdbClient
 import numpy
 import win32api
-from src.config import *
+from src.config import Config
 from PyQt5.QtCore import pyqtSignal, QObject
 import subprocess
 
@@ -16,7 +16,7 @@ class AutoFishing(QObject):
     mSignalSetFishingBobberPos = pyqtSignal(int, int)
     mSignalUpdateFishingNum = pyqtSignal()
     mSignalUpdateFishNum = pyqtSignal()
-    mSignalUpdateFishDetectionImage = pyqtSignal(FishImageColor)
+    mSignalUpdateImageShow = pyqtSignal()
     mSignalMessage = pyqtSignal(str, bool)
     mSignalUpdateStatus = pyqtSignal(str)
 
@@ -28,6 +28,7 @@ class AutoFishing(QObject):
         self.mAbsBackPackRegion = [0, 0, 0, 0]
         self.mAbsPreservationRegion = [0, 0, 0, 0]
         self.mMark = [0, 0]
+        self.mScreenSize = [0, 0]
         self.mFishingRegion = [0, 0, 0, 0]
         self.mAdbClient = None
         self.mAdbDevice = None
@@ -39,7 +40,7 @@ class AutoFishing(QObject):
         self.mCheckFish = False
         self.mEmulatorWindow = None
         self.mEmulatorBox = None
-        self.mFishImage = None
+        self.mImageShow = None
         self.mCheckAdbDelay = 0
 
         # Khai báo số cá các loại
@@ -288,8 +289,8 @@ class AutoFishing(QObject):
         mImgCenterX = mCurrImgArrWidth // 2
         mImgCenterY = mCurrImgArrHeight // 2
 
-        mPrevFrameBlur = cv2.GaussianBlur(mPrevFrameGray, (21, 21), 0)
-        mCurrFrameBlur = cv2.GaussianBlur(mCurrFrameGray, (21, 21), 0)
+        mPrevFrameBlur = cv2.GaussianBlur(mPrevFrameGray, (self.mConfig.mBlur, self.mConfig.mBlur), 0)
+        mCurrFrameBlur = cv2.GaussianBlur(mCurrFrameGray, (self.mConfig.mBlur, self.mConfig.mBlur), 0)
 
         # so sánh 2 frame, tìm sai khác
         mFrameDelta = cv2.absdiff(mPrevFrameBlur, mCurrFrameBlur)
@@ -329,10 +330,11 @@ class AutoFishing(QObject):
 
             # loại box nhỏ tránh nhiễu
             if cv2.contourArea(mContour) < self.mConfig.mMinContour * self.mConfig.mWindowRatio:
+
                 continue
 
             # loai box qua to
-            if cv2.contourArea(mContour) > self.mConfig.mMaxContour:
+            if cv2.contourArea(mContour) > self.mConfig.mMaxContour * self.mConfig.mWindowRatio:
                 continue
 
             mFishArea = int(cv2.contourArea(mContour))
@@ -341,9 +343,9 @@ class AutoFishing(QObject):
                         cv2.FONT_HERSHEY_SIMPLEX, self.mConfig.mFontScale, self.mConfig.mTextColor, 1)
 
             break
-        self.mFishImage = mCurrFrameRGB.copy()
+        self.mImageShow = mCurrFrameRGB.copy()
         if self.mConfig.mShowFishCheck is True:
-            self.mSignalUpdateFishDetectionImage.emit(FishImageColor.RGB)
+            self.mSignalUpdateImageShow.emit()
         return mFishArea
 
     def ScreenshotFishingRegion(self):
@@ -360,13 +362,18 @@ class AutoFishing(QObject):
         return mScreenShotMatGray, mScreenShotMatRGB
 
     def CheckMark(self):
-        time.sleep(5)
+        for i in range(10):
+            time.sleep(0.5)
+            # break point thread
+            if self.mAutoFishRunning is False:
+                return False
+
         mStaticFrameGray = None
         if self.mConfig.mFishDetectionCheck is True:
             mStaticFrameGray, mStaticFrameRGB = self.ScreenshotFishingRegion()
             if mStaticFrameRGB is False:
                 return False
-            self.mFishImage = mStaticFrameRGB
+            self.mImageShow = mStaticFrameRGB
         self.StatusEmit("Đang đợi cá")
         # Chụp ảnh màn hình vùng chứa pixel chấm than
         mMarkRGB = self.ScreenshotWindowRegion([self.mMark[0] - 1, self.mMark[1] - 1, 3, 3])
@@ -392,20 +399,46 @@ class AutoFishing(QObject):
                     mSkipFrame += 1
                 if mSkipFrame == 5:
                     mStopDetect = True
-                    if mSizeFish < int(self.mConfig.mFishSize):
+                    if mSizeFish < self.mConfig.mFishSize:
                         return True
             # Chụp ảnh màn hình vùng chứa pixel chấm than
             mMarkRGBCurr = self.ScreenshotWindowRegion([self.mMark[0] - 1, self.mMark[1] - 1, 3, 3])
             if mMarkRGBCurr is False:
                 time2 = time.time()
-                time.sleep(0.003)
+                time.sleep(0.005)
                 continue
             mPixelCurr = mMarkRGBCurr[1, 1]
             mDiffRgb = self.ComparePixel(mPixelCurr, mPixelBase)
+
+            if self.mConfig.mShowFishCheck is True:
+                if self.mConfig.mFishDetectionCheck is False:
+                    mImageW = self.mImageShow.shape[0]
+                    mImageH = self.mImageShow.shape[1]
+                    mRegion = [self.mMark[0] - 20, self.mMark[1] - 20, 40, 40]
+                    mTempImage = self.ScreenshotWindowRegion(mRegion)
+                    mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
+                    mTempImage = cv2.rectangle(mTempImage, (0, 0), (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
+                                               self.mConfig.mTextColor, 1, cv2.LINE_AA)
+                    mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
+                    self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
+                else:
+                    if mStopDetect is True:
+                        mImageW = self.mImageShow.shape[0]
+                        mImageH = self.mImageShow.shape[1]
+                        mRegion = [self.mMark[0] - 20, self.mMark[1] - 20, 40, 40]
+                        mTempImage = self.ScreenshotWindowRegion(mRegion)
+                        mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
+                        mTempImage = cv2.rectangle(mTempImage, (0, 0),
+                                                   (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
+                                                   self.mConfig.mTextColor, 1, cv2.LINE_AA)
+                        mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
+                        self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
+                self.mSignalUpdateImageShow.emit()
+
             if mDiffRgb > self.mConfig.mDifferentColor:
                 return True
             time2 = time.time()
-            time.sleep(0.003)
+            time.sleep(0.005)
 
         self.StatusEmit("Không phát hiện dấu chấm than")
         return False
@@ -423,12 +456,11 @@ class AutoFishing(QObject):
             self.StatusEmit("Đang kéo cần câu")
             return True
         else:
-            self.StatusEmit("Đang kéo cần câu")
             time1 = time.time()
             self.AdbClick(self.mConfig.mPullingRodPos[0],
                           self.mConfig.mPullingRodPos[1])
             timeDelay = time.time() - time1
-            self.StatusEmit(f'Độ trễ giật cần {round(timeDelay, 2)} giây')
+            self.StatusEmit(f'Đang kéo cần câu. Độ trễ giật cần {round(timeDelay, 2)} giây')
             if timeDelay > 0.5:
                 self.mCheckAdbDelay += 1
                 if self.mCheckAdbDelay <= 3:
@@ -506,15 +538,21 @@ class AutoFishing(QObject):
             pass
 
         # Debug vi tri xac dinh mau sac ca
-        # mFishImage = cv2.circle(mFishImage, (mPixelCheckTypeFishPosition[0], mPixelCheckTypeFishPosition[1]), 3,
+        # mImageShow = cv2.circle(mImageShow, (mPixelCheckTypeFishPosition[0], mPixelCheckTypeFishPosition[1]), 3,
         #                         TEXT_COLOR, 1, cv2.LINE_AA)
-        self.mFishImage = mFishImage.copy()
+        self.mImageShow = mFishImage.copy()
 
         # Hiện ảnh cá câu được lên app auto
         if self.mConfig.mShowFishCheck is True:
-            self.mSignalUpdateFishDetectionImage.emit(FishImageColor.RGB)
+            self.mSignalUpdateImageShow.emit()
 
     def SetPixelPos(self):
+        if self.mEmulatorBox is None:
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập", True)
+            return
+        if self.mAdbDevice is None:
+            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị", True)
+            return
         self.mMark = [0, 0]
         time.sleep(0.1)
         mMousePos = pyautogui.position()
@@ -522,12 +560,19 @@ class AutoFishing(QObject):
         self.mCheckMouseRunning = True
         while self.mCheckMouseRunning is True:
             mMousePos = pyautogui.position()
-            self.mSignalSetPixelPos.emit(int(mMousePos.x), int(mMousePos.y))
+            self.mSignalSetPixelPos.emit(mMousePos.x, mMousePos.y)
+            if self.mScreenSize[0] - 50 > mMousePos.x > 50 and \
+                    self.mScreenSize[1] - 50 > mMousePos.y > 50:
+                mRegion = [mMousePos.x - 50, mMousePos.y - 50, 100, 100]
+                mTempImage = self.ScreenshotWindowRegion(mRegion)
+                mTempImage = cv2.circle(mTempImage, (50, 50), 1, (0, 0, 255), 2, cv2.LINE_AA)
+                self.mImageShow = mTempImage.copy()
+                self.mSignalUpdateImageShow.emit()
             if self.CheckLeftMouseClick() is True:
                 self.mCheckMouseRunning = False
             time.sleep(0.01)
-        self.mMark[0] = int(mMousePos.x)
-        self.mMark[1] = int(mMousePos.y)
+        self.mMark[0] = mMousePos.x
+        self.mMark[1] = mMousePos.y
         self.StatusEmit(f'Vị trí dấu chấm than đã cài đặt:\n{mMousePos}')
 
     def SetFishingBobberPos(self):
@@ -540,13 +585,20 @@ class AutoFishing(QObject):
             return
         self.mFishingRegion = [0, 0, 0, 0]
         time.sleep(0.1)
-        mScreenSize = pyautogui.size()
+        self.mScreenSize = pyautogui.size()
         mMousePos = pyautogui.position()
         self.StatusEmit("Di chuyển chuột đến phao câu và Click")
         self.mCheckMouseRunning = True
         while self.mCheckMouseRunning is True:
             mMousePos = pyautogui.position()
-            self.mSignalSetFishingBobberPos.emit(int(mMousePos.x), int(mMousePos.y))
+            self.mSignalSetFishingBobberPos.emit(mMousePos.x, mMousePos.y)
+            if self.mScreenSize[0] - 50 > mMousePos.x > 50 and \
+                    self.mScreenSize[1] - 50 > mMousePos.y > 50:
+                mRegion = [mMousePos.x - 50, mMousePos.y - 50, 100, 100]
+                mTempImage = self.ScreenshotWindowRegion(mRegion)
+                mTempImage = cv2.circle(mTempImage, (50, 50), 1, (0, 0, 255), 2, cv2.LINE_AA)
+                self.mImageShow = mTempImage.copy()
+                self.mSignalUpdateImageShow.emit()
             if self.CheckLeftMouseClick() is True:
                 self.mCheckMouseRunning = False
             time.sleep(0.01)
@@ -555,17 +607,16 @@ class AutoFishing(QObject):
         self.mFishingRegion[2] = self.mConfig.mRadiusFishingRegion * 2
         self.mFishingRegion[3] = self.mConfig.mRadiusFishingRegion * 2
         if self.mFishingRegion[0] < 0 or self.mFishingRegion[1] < 0 \
-                or self.mFishingRegion[0] + self.mFishingRegion[2] > mScreenSize.width \
-                or self.mFishingRegion[1] + self.mFishingRegion[3] > mScreenSize.height:
+                or self.mFishingRegion[0] + self.mFishingRegion[2] > self.mScreenSize.width \
+                or self.mFishingRegion[1] + self.mFishingRegion[3] > self.mScreenSize.height:
             self.MsgEmit("Vị trí phao câu quá gần viền màn hình", False)
         self.StatusEmit(f'Vị trí phao câu đã cài đặt:\n{mMousePos}')
 
     def CheckRegionEmulator(self):
-        mScreenSize = pyautogui.size()
+        self.mScreenSize = pyautogui.size()
         self.mEmulatorBox = None
         self.mEmulatorWindow = None
-        mEmulatorWindows = []
-        self.StatusEmit(f'Kích thước màn hình =\n{mScreenSize}')
+        self.StatusEmit(f'Kích thước màn hình =\n{self.mScreenSize}')
         try:
             mEmulatorWindows = pyautogui.getWindowsWithTitle(self.mConfig.mWindowName)
         except:
@@ -582,7 +633,7 @@ class AutoFishing(QObject):
         mEmulatorSize = self.mConfig.mEmulatorSize
         if abs(mEmulatorSize[0] - self.mEmulatorBox.width) > 100 or abs(
                 mEmulatorSize[1] - self.mEmulatorBox.height) > 100:
-            self.MsgEmit("Độ phân giải giả lập không phù hợp", False)
+            self.MsgEmit(f'Cửa sổ giả lập {self.mEmulatorBox.width}x{self.mEmulatorBox.height} không phù hợp', False)
             return False
         if self.mEmulatorBox.top < 0:
             self.mEmulatorWindow.activate()
@@ -592,13 +643,13 @@ class AutoFishing(QObject):
             self.mEmulatorWindow.activate()
             self.mEmulatorWindow.move(abs(self.mEmulatorBox.left), 0)
             # self.StatusEmit("Cửa sổ giả lập bị khuất về bên trái\nTự động di chuyển")
-        if self.mEmulatorBox.top + self.mEmulatorBox.height > mScreenSize.height:
+        if self.mEmulatorBox.top + self.mEmulatorBox.height > self.mScreenSize.height:
             self.mEmulatorWindow.activate()
-            self.mEmulatorWindow.move(0, mScreenSize.height - (self.mEmulatorBox.top + self.mEmulatorBox.height))
+            self.mEmulatorWindow.move(0, self.mScreenSize.height - (self.mEmulatorBox.top + self.mEmulatorBox.height))
             # self.StatusEmit("Cửa sổ giả lập bị khuất về bên dưới\nTự động di chuyển")
-        if self.mEmulatorBox.left + self.mEmulatorBox.width > mScreenSize.width:
+        if self.mEmulatorBox.left + self.mEmulatorBox.width > self.mScreenSize.width:
             self.mEmulatorWindow.activate()
-            self.mEmulatorWindow.move(mScreenSize.width - (self.mEmulatorBox.left + self.mEmulatorBox.width), 0)
+            self.mEmulatorWindow.move(self.mScreenSize.width - (self.mEmulatorBox.left + self.mEmulatorBox.width), 0)
             # self.StatusEmit("Cửa sổ giả lập bị khuất về bên phải\nTự động di chuyển")
         self.mEmulatorBox = self.mEmulatorWindow.box
 
