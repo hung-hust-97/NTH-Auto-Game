@@ -2,9 +2,7 @@ import configparser
 import os
 from threading import Lock
 
-CREATE_NO_WINDOW = 0x08000000
 HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
-AUTHOR = 'AutoFishing by nth'
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
 
 # Statics config cho size 960x540
@@ -90,6 +88,7 @@ class Config(metaclass=SingletonMeta):
         self.mAdbAddress = "None"
         self.mFacebook = "https://www.facebook.com/groups/kayty"
         self.mYoutube = "https://www.youtube.com/channel/UCHMv61r6ZZwiJdNGUlLt5NQ"
+        self.mAuthor = 'AutoFishing by nth'
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]

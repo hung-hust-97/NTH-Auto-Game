@@ -3,21 +3,22 @@ import threading
 import subprocess
 
 import cv2
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
-from PyQt5.QtCore import QObject, Qt, QTimer, QUrl, QSize
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QWidget
+from PyQt5.QtCore import Qt, QTimer, QUrl, QSize
 from PyQt5 import QtGui
 
 from ui.UiMainWindow import Ui_MainWindow
-from src.config import *
+from src.config import Config
 from src.AutoFishing import AutoFishing
 
 
-class MainWindow(QObject):
+class MainWindow(QWidget):
     def __init__(self):
-        QObject.__init__(self, parent=None)
+        super().__init__()
         self.main_win = QMainWindow()
         self.uic = Ui_MainWindow()
         self.uic.setupUi(self.main_win)
+
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
         self.mAutoFishingThread = None
@@ -26,10 +27,19 @@ class MainWindow(QObject):
         self.OpenApp()
 
     def __del__(self):
-        self.mTimer.destroyed()
+        print(29, self.mAutoFishing.mAutoFishRunning)
         self.mAutoFishing.mAutoFishRunning = False
         self.mAutoFishing.mCheckMouseRunning = False
-        self.mAutoFishing.mFishDetectionRunning = False
+
+    def closeEvent(self, event):
+        print("Ấdsasas")
+        # reply = QMessageBox.question(self, 'Thông báo', "Chắc chắn thoát?",
+        #                              QMessageBox.Yes | QMessageBox.No,
+        #                              QMessageBox.No)
+        # if reply == QMessageBox.Yes:
+        #     event.accept()
+        # else:
+        #     event.ignore()
 
     def Show(self):
         self.main_win.show()
@@ -122,7 +132,7 @@ class MainWindow(QObject):
         self.uic.btnPauseFishing.setDisabled(True)
 
         # Show Author
-        self.SlotShowStatus(AUTHOR)
+        self.SlotShowStatus(self.mConfig.mAuthor)
 
         # Show status bar
         self.uic.statusbar.showMessage("Phần mềm miễn phí, không dùng cho mục đích thương mại")
@@ -142,20 +152,20 @@ class MainWindow(QObject):
         self.mAutoFishing.AdbServerConnect()
         self.UpdateListAdbAddress()
         self.SaveConfig()
-        self.SlotShowMsgBox("Kết nối cửa sổ giả lập thành công\nChọn địa chỉ ADB của giả lập và kết nối", True)
+        self.SlotShowMsgBox("Kết nối cửa sổ giả lập thành công\nChọn địa chỉ ADB của giả lập và kết nối")
         return
 
     def OnClickConnectAdbAddress(self):
         if self.uic.listAdbAddress.currentText() == "None":
-            self.SlotShowMsgBox("Xác nhận lại cửa sổ giả lập để tìm địa chỉ Adb", False)
+            self.SlotShowMsgBox("Xác nhận lại cửa sổ giả lập để tìm địa chỉ Adb")
             return False
         self.mConfig.SetAdbAddress(self.uic.listAdbAddress.currentText())
         if self.mAutoFishing.AdbDeviceConnect() is True:
             self.SlotShowStatus("Kết nối địa chỉ Adb giả lập thành công")
-            self.SlotShowMsgBox("Kết nối địa chỉ Adb giả lập thành công", True)
+            self.SlotShowMsgBox("Kết nối địa chỉ Adb giả lập thành công")
             return True
         else:
-            self.SlotShowMsgBox("Kết nối địa chỉ Adb giả lập thất bại\n Restart lại giả lập", False)
+            self.SlotShowMsgBox("Kết nối địa chỉ Adb giả lập thất bại\n Restart lại giả lập")
             return False
 
     def OnClickStart(self):
@@ -192,18 +202,6 @@ class MainWindow(QObject):
         # Apply and save all config
         if self.SaveConfig() is False:
             return
-
-        # Reset fish num
-        # self.mAutoFishing.mAllFish = 0
-        # self.mAutoFishing.mFishingNum = 0
-        # self.mAutoFishing.mVioletFish = 0
-        # self.mAutoFishing.mBlueFish = 0
-        # self.mAutoFishing.mGreenFish = 0
-        # self.mAutoFishing.mGrayFish = 0
-
-        # Show zero fish num
-        # self.SlotShowNumFish()
-        # self.SlotShowFishingNum()
 
         # Set image on graphic label
         if self.mConfig.mShowFishCheck is False:
@@ -257,7 +255,7 @@ class MainWindow(QObject):
         self.uic.txtShutdownTime.setText(str(int(mCountDownTime) + 1))
         self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
         if mCountDownTime < 0:
-            subprocess.call(["shutdown", "/s"], creationflags=CREATE_NO_WINDOW)
+            subprocess.call(["shutdown", "/s"], creationflags=0x08000000)
 
     def SlotShowMarkPosition(self, x: int, y: int):
         self.uic.lcdMarkX.display(str(x))
@@ -345,8 +343,8 @@ class MainWindow(QObject):
         self.uic.lcdTime.display(f'{str_h}:{str_m}:{str_s}')
 
     def SlotShowStatus(self, mText: str):
-        if mText == AUTHOR:
-            self.uic.lblStatus.setText(AUTHOR)
+        if mText == self.mConfig.mAuthor:
+            self.uic.lblStatus.setText(self.mConfig.mAuthor)
         elif self.uic.btnStartFishing.isEnabled() is False and self.uic.btnPauseFishing.isEnabled() is False:
             self.uic.lblStatus.setText(self.mWaitStatus)
         else:
@@ -357,6 +355,7 @@ class MainWindow(QObject):
 
     # Watchdog thread auto fishing
     def SlotCheckThread(self):
+        print("dog")
         if self.mAutoFishingThread.is_alive() is False:
             # Disable thread flag
             self.mAutoFishing.mAutoFishRunning = False
@@ -393,7 +392,7 @@ class MainWindow(QObject):
             self.uic.btnPauseFishing.setDisabled(True)
             self.uic.btnStartFishing.setDisabled(False)
 
-            self.uic.lblStatus.setText(AUTHOR)
+            self.uic.lblStatus.setText(self.mConfig.mAuthor)
 
             self.mTimer.stop()
             self.mAutoFishing.mSaveTime += int(time.time() - self.mAutoFishing.mStartTime)
@@ -406,33 +405,33 @@ class MainWindow(QObject):
 
     def SaveConfig(self):
         if (self.uic.txtPullingFishTime.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Thời gian kéo cá sai định dạng", False)
+            self.SlotShowMsgBox("Thời gian kéo cá sai định dạng")
             return False
 
         if (self.uic.txtWaitingFishTime.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Thời gian chờ cá sai định dạng", False)
+            self.SlotShowMsgBox("Thời gian chờ cá sai định dạng")
             return False
 
         if (self.uic.txtFishingRodPosition.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Thời gian chờ cá sai định dạng", False)
+            self.SlotShowMsgBox("Thời gian chờ cá sai định dạng")
             return False
 
         if int(self.uic.txtFishingRodPosition.toPlainText()) not in range(1, 7, 1):
-            self.SlotShowMsgBox("Vị trí cần câu phải từ 1 đến 6", False)
+            self.SlotShowMsgBox("Vị trí cần câu phải từ 1 đến 6")
             return False
 
         if (self.uic.txtMinFishSize.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Lọc cả nhỏ sai định dạng", False)
+            self.SlotShowMsgBox("Lọc cả nhỏ sai định dạng")
             return False
 
         if self.uic.txtShutdownTime.toPlainText().isnumeric() is False:
-            self.SlotShowMsgBox("Hẹn giờ tắt PC sai định dạng", False)
+            self.SlotShowMsgBox("Hẹn giờ tắt PC sai định dạng")
             return False
 
         try:
             mDelayTime = float(self.uic.txtDelayTime.toPlainText())
         except ValueError:
-            self.SlotShowMsgBox("Độ trễ sửa cần sai định dạng", False)
+            self.SlotShowMsgBox("Độ trễ sửa cần sai định dạng")
             return False
 
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
@@ -460,7 +459,7 @@ class MainWindow(QObject):
             self.uic.listAdbAddress.addItem(AdbDevicesSerial)
 
     @staticmethod
-    def SlotShowMsgBox(mText: str, mReturn: bool):
+    def SlotShowMsgBox(mText: str):
         mMsgBox = QMessageBox()
         mMsgBox.setText(mText)
         mMsgBox.setWindowTitle("Thông báo")

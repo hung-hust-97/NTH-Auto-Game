@@ -17,7 +17,7 @@ class AutoFishing(QObject):
     mSignalUpdateFishingNum = pyqtSignal()
     mSignalUpdateFishNum = pyqtSignal()
     mSignalUpdateImageShow = pyqtSignal()
-    mSignalMessage = pyqtSignal(str, bool)
+    mSignalMessage = pyqtSignal(str)
     mSignalUpdateStatus = pyqtSignal(str)
 
     def __init__(self):
@@ -34,7 +34,6 @@ class AutoFishing(QObject):
         self.mAdbDevice = None
         self.mAdbDevices = []
         self.mListAdbDevicesSerial = []
-        self.mFishDetectionRunning = True
         self.mCheckMouseRunning = False
         self.mAutoFishRunning = False
         self.mCheckFish = False
@@ -54,12 +53,12 @@ class AutoFishing(QObject):
         self.mSaveTime = 0
 
     def __del__(self):
-        self.mFishDetectionRunning = False
+        print(59, self.mAutoFishRunning)
         self.mCheckMouseRunning = False
         self.mAutoFishRunning = False
 
-    def MsgEmit(self, mText: str, mReturn: bool):
-        self.mSignalMessage.emit(mText, mReturn)
+    def MsgEmit(self, mText: str):
+        self.mSignalMessage.emit(mText)
 
     def StatusEmit(self, mText: str):
         self.mSignalUpdateStatus.emit(mText)
@@ -83,7 +82,7 @@ class AutoFishing(QObject):
                                                                mRegion[1],
                                                                mRegion[2],
                                                                mRegion[3]))
-        except:
+        except (ValueError, Exception):
             return False
         mScreenShotMat = numpy.array(mScreenShotPilImage)
         mScreenShotMat = cv2.cvtColor(mScreenShotMat, cv2.COLOR_BGR2RGB)
@@ -105,7 +104,7 @@ class AutoFishing(QObject):
                                                        mRegion[2],
                                                        mRegion[3]),
                                                confidence=mConfidence)
-        except:
+        except (ValueError, Exception):
             return False
         return mLocate
 
@@ -316,6 +315,10 @@ class AutoFishing(QObject):
                     self.mConfig.mFontScale,
                     self.mConfig.mTextColor, 1)
         for mContour in mContours:
+            # break point thread
+            if self.mAutoFishRunning is False:
+                return False
+
             # check coordinates of all found contours
             (x, y, w, h) = cv2.boundingRect(mContour)
             mContourCenterX = x + w // 2
@@ -327,21 +330,16 @@ class AutoFishing(QObject):
             # loại bỏ box xuất hiện ở viền
             if mRadius > self.mConfig.mRadiusFishingRegion * 3 / 4:
                 continue
-
             # loại box nhỏ tránh nhiễu
             if cv2.contourArea(mContour) < self.mConfig.mMinContour * self.mConfig.mWindowRatio:
-
                 continue
-
             # loai box qua to
             if cv2.contourArea(mContour) > self.mConfig.mMaxContour * self.mConfig.mWindowRatio:
                 continue
-
             mFishArea = int(cv2.contourArea(mContour))
             cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), self.mConfig.mTextColor, 1)
             cv2.putText(mCurrFrameRGB, str(mFishArea), (x, y),
                         cv2.FONT_HERSHEY_SIMPLEX, self.mConfig.mFontScale, self.mConfig.mTextColor, 1)
-
             break
         self.mImageShow = mCurrFrameRGB.copy()
         if self.mConfig.mShowFishCheck is True:
@@ -354,7 +352,7 @@ class AutoFishing(QObject):
                                                                self.mFishingRegion[1],
                                                                self.mFishingRegion[2],
                                                                self.mFishingRegion[3]))
-        except:
+        except (ValueError, Exception):
             return False, False
         mScreenShotMat = numpy.array(mScreenShotPilImage)
         mScreenShotMatRGB = cv2.cvtColor(mScreenShotMat, cv2.COLOR_BGR2RGB)
@@ -451,7 +449,7 @@ class AutoFishing(QObject):
                                 clicks=2,
                                 interval=0.1,
                                 button='left')
-            except:
+            except (ValueError, Exception):
                 return False
             self.StatusEmit("Đang kéo cần câu")
             return True
@@ -467,8 +465,7 @@ class AutoFishing(QObject):
                     return True
                 self.mAutoFishRunning = False
                 self.MsgEmit(
-                    f'Độ trễ truyền lệnh điều khiển giả lập qua Adb Server quá cao trên 0.5 giây\nTắt chế độ "Chuột tự do" để không bị kéo hụt cá',
-                    False)
+                    f'Độ trễ truyền lệnh điều khiển giả lập qua Adb Server quá cao trên 0.5 giây\nTắt chế độ "Chuột tự do" để không bị kéo hụt cá')
                 self.mCheckAdbDelay = 0
             return True
 
@@ -548,10 +545,10 @@ class AutoFishing(QObject):
 
     def SetPixelPos(self):
         if self.mEmulatorBox is None:
-            self.MsgEmit("Chưa kết nối cửa sổ giả lập", True)
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập")
             return
         if self.mAdbDevice is None:
-            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị", True)
+            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị")
             return
         self.mMark = [0, 0]
         time.sleep(0.1)
@@ -577,11 +574,11 @@ class AutoFishing(QObject):
 
     def SetFishingBobberPos(self):
         if self.mEmulatorBox is None:
-            self.MsgEmit("Chưa kết nối cửa sổ giả lập", True)
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập")
             return
 
         if self.mAdbDevice is None:
-            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị", True)
+            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị")
             return
         self.mFishingRegion = [0, 0, 0, 0]
         time.sleep(0.1)
@@ -609,7 +606,7 @@ class AutoFishing(QObject):
         if self.mFishingRegion[0] < 0 or self.mFishingRegion[1] < 0 \
                 or self.mFishingRegion[0] + self.mFishingRegion[2] > self.mScreenSize.width \
                 or self.mFishingRegion[1] + self.mFishingRegion[3] > self.mScreenSize.height:
-            self.MsgEmit("Vị trí phao câu quá gần viền màn hình", False)
+            self.MsgEmit("Vị trí phao câu quá gần viền màn hình")
         self.StatusEmit(f'Vị trí phao câu đã cài đặt:\n{mMousePos}')
 
     def CheckRegionEmulator(self):
@@ -619,13 +616,13 @@ class AutoFishing(QObject):
         self.StatusEmit(f'Kích thước màn hình =\n{self.mScreenSize}')
         try:
             mEmulatorWindows = pyautogui.getWindowsWithTitle(self.mConfig.mWindowName)
-        except:
-            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}', False)
+        except (ValueError, Exception):
+            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}')
             return False
         if len(mEmulatorWindows) > 0:
             self.mEmulatorWindow = mEmulatorWindows[0]
         else:
-            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}', False)
+            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}')
             return False
         self.mEmulatorBox = self.mEmulatorWindow.box
         self.mEmulatorWindow.activate()
@@ -633,7 +630,7 @@ class AutoFishing(QObject):
         mEmulatorSize = self.mConfig.mEmulatorSize
         if abs(mEmulatorSize[0] - self.mEmulatorBox.width) > 100 or abs(
                 mEmulatorSize[1] - self.mEmulatorBox.height) > 100:
-            self.MsgEmit(f'Cửa sổ giả lập {self.mEmulatorBox.width}x{self.mEmulatorBox.height} không phù hợp', False)
+            self.MsgEmit(f'Cửa sổ giả lập {self.mEmulatorBox.width}x{self.mEmulatorBox.height} không phù hợp')
             return False
         if self.mEmulatorBox.top < 0:
             self.mEmulatorWindow.activate()
@@ -672,8 +669,8 @@ class AutoFishing(QObject):
     def StartAdbServer(self):
         self.StatusEmit("Đang khởi tạo adb-server")
         try:
-            subprocess.call(f'{self.mConfig.mAdbPath} devices', creationflags=CREATE_NO_WINDOW)
-        except:
+            subprocess.call(f'{self.mConfig.mAdbPath} devices', creationflags=0x08000000)
+        except (ValueError, Exception):
             self.StatusEmit('Khởi tạo adb-server thất bại')
             return False
         self.StatusEmit('Khởi tạo adb-server thành công')
@@ -685,17 +682,17 @@ class AutoFishing(QObject):
         try:
             self.mAdbClient = AdbClient(self.mConfig.mAdbHost, self.mConfig.mAdbPort)
             self.mAdbDevices = self.mAdbClient.devices()
-        except:
+        except (ValueError, Exception):
             mCheckStartServer = self.StartAdbServer()
             if mCheckStartServer is False:
-                self.MsgEmit('Không tìm thấy adb-server', False)
+                self.MsgEmit('Không tìm thấy adb-server')
                 return False
             else:
                 self.mAdbClient = AdbClient(self.mConfig.mAdbHost, self.mConfig.mAdbPort)
                 self.mAdbDevices = self.mAdbClient.devices()
         if len(self.mAdbDevices) == 0:
             self.mAdbClient = None
-            self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập', False)
+            self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập')
             return False
         else:
             for tempDevice in self.mAdbDevices:
@@ -726,24 +723,25 @@ class AutoFishing(QObject):
         self.mAutoFishRunning = True
 
         if self.mEmulatorBox is None:
-            self.MsgEmit("Chưa kết nối cửa sổ giả lập", True)
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập")
             return
 
         if self.mAdbDevice is None:
-            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị", True)
+            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị")
             return
 
         if self.mMark[0] == 0:
-            self.MsgEmit('Chưa xác định vị trí dấu chấm than', False)
+            self.MsgEmit('Chưa xác định vị trí dấu chấm than')
             return False
 
         if self.mConfig.mFishDetectionCheck is True:
             if self.mFishingRegion[0] == 0:
-                self.MsgEmit('Chưa xác định vùng câu', False)
+                self.MsgEmit('Chưa xác định vùng câu')
                 return False
 
         time.sleep(self.mConfig.mDelayTime)
         while self.mAutoFishRunning is True:
+            print(752, self.mAutoFishRunning)
             time.sleep(self.mConfig.mDelayTime)
             if self.mAutoFishRunning is False:
                 break
