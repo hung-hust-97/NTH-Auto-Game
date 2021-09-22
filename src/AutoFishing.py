@@ -21,7 +21,7 @@ class AutoFishing(QObject):
     mSignalUpdateStatus = pyqtSignal(str)
 
     def __init__(self):
-        QObject.__init__(self, parent=None)  # Kế thừa QObject
+        QObject.__init__(self, parent=None)
         self.mConfig = Config()
         self.mFishingNum = 0
         self.mAbsPullingRodPos = [0, 0]
@@ -53,7 +53,6 @@ class AutoFishing(QObject):
         self.mSaveTime = 0
 
     def __del__(self):
-        print(59, self.mAutoFishRunning)
         self.mCheckMouseRunning = False
         self.mAutoFishRunning = False
 

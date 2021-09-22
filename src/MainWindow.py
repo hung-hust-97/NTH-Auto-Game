@@ -12,13 +12,11 @@ from src.config import Config
 from src.AutoFishing import AutoFishing
 
 
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self):
-        super().__init__()
-        self.main_win = QMainWindow()
+        QMainWindow.__init__(self, parent=None)
         self.uic = Ui_MainWindow()
-        self.uic.setupUi(self.main_win)
-
+        self.uic.setupUi(self)
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
         self.mAutoFishingThread = None
@@ -27,22 +25,21 @@ class MainWindow(QWidget):
         self.OpenApp()
 
     def __del__(self):
-        print(29, self.mAutoFishing.mAutoFishRunning)
         self.mAutoFishing.mAutoFishRunning = False
         self.mAutoFishing.mCheckMouseRunning = False
 
     def closeEvent(self, event):
-        print("Ấdsasas")
-        # reply = QMessageBox.question(self, 'Thông báo', "Chắc chắn thoát?",
-        #                              QMessageBox.Yes | QMessageBox.No,
-        #                              QMessageBox.No)
-        # if reply == QMessageBox.Yes:
-        #     event.accept()
-        # else:
-        #     event.ignore()
+        reply = QMessageBox.question(self, 'Thông báo', "Chắc chắn thoát?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.mAutoFishing.mAutoFishRunning = False
+            self.mAutoFishing.mCheckMouseRunning = False
+            event.accept()
+        else:
+            event.ignore()
 
     def Show(self):
-        self.main_win.show()
+        self.show()
 
     def OpenApp(self):
         # Hien thi cac du lieu da luu trong config.ini
@@ -103,6 +100,12 @@ class MainWindow(QWidget):
         self.uic.lcdTime.setNumDigits(8)
         self.uic.lcdTime.setSegmentStyle(2)
         self.uic.lcdTime.display('00:00:00')
+        self.uic.lcdNumFish.setSegmentStyle(2)
+        self.uic.lcdNumFishing.setSegmentStyle(2)
+        self.uic.lcdRodX.setSegmentStyle(2)
+        self.uic.lcdRodY.setSegmentStyle(2)
+        self.uic.lcdMarkX.setSegmentStyle(2)
+        self.uic.lcdMarkY.setSegmentStyle(2)
 
         # Connect btn
         self.uic.btnConnectWindowTitle.clicked.connect(self.OnClickConnectWindowTitle)
@@ -259,17 +262,13 @@ class MainWindow(QWidget):
 
     def SlotShowMarkPosition(self, x: int, y: int):
         self.uic.lcdMarkX.display(str(x))
-        self.uic.lcdMarkX.setSegmentStyle(2)
         self.uic.lcdMarkY.display(y)
-        self.uic.lcdMarkY.setSegmentStyle(2)
 
     def SlotShowFishingNum(self):
         self.uic.lcdNumFishing.display(str(self.mAutoFishing.mFishingNum))
-        self.uic.lcdNumFishing.setSegmentStyle(2)
 
     def SlotShowNumFish(self):
         self.uic.lcdNumFish.display(str(self.mAutoFishing.mAllFish))
-        self.uic.lcdNumFish.setSegmentStyle(2)
 
         # font = QtGui.QFont()
         # font.setPointSize(10)
@@ -312,9 +311,7 @@ class MainWindow(QWidget):
 
     def SlotShowBobberPosition(self, x: int, y: int):
         self.uic.lcdRodX.display(str(x))
-        self.uic.lcdRodX.setSegmentStyle(2)
         self.uic.lcdRodY.display(y)
-        self.uic.lcdRodY.setSegmentStyle(2)
 
     def SlotShowImage(self):
         mMatImage = self.mAutoFishing.mImageShow.copy()
