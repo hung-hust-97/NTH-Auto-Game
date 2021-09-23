@@ -352,7 +352,6 @@ class MainWindow(QMainWindow):
 
     # Watchdog thread auto fishing
     def SlotCheckThread(self):
-        print("dog")
         if self.mAutoFishingThread.is_alive() is False:
             # Disable thread flag
             self.mAutoFishing.mAutoFishRunning = False

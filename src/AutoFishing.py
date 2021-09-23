@@ -363,82 +363,81 @@ class AutoFishing(QObject):
             time.sleep(0.5)
             # break point thread
             if self.mAutoFishRunning is False:
-                return False
+                return
 
         mStaticFrameGray = None
         if self.mConfig.mFishDetectionCheck is True:
             mStaticFrameGray, mStaticFrameRGB = self.ScreenshotFishingRegion()
             if mStaticFrameRGB is False:
-                return False
+                return
             self.mImageShow = mStaticFrameRGB
         self.StatusEmit("Đang đợi cá")
-        # Chụp ảnh màn hình vùng chứa pixel chấm than
-        mMarkRGB = self.ScreenshotWindowRegion([self.mMark[0] - 1, self.mMark[1] - 1, 3, 3])
-        if mMarkRGB is False:
-            return False
-        mPixelBase = mMarkRGB[1, 1]
+        mPixelBase = None
+        for i in range(10):
+            try:
+                mPixelBase = pyautogui.pixel(self.mMark[0], self.mMark[1])
+            except (ValueError, Exception):
+                time.sleep(0.01)
+                continue
+            break
+        if mPixelBase is None:
+            return
         time1 = time.time()
         time2 = time.time()
         mStopDetect = False
         mSkipFrame = 0
-
         while (time2 - time1) < self.mConfig.mWaitingFishTime:
             # break point thread
             if self.mAutoFishRunning is False:
-                return False
+                return
 
             if self.mConfig.mFishDetectionCheck is True and mStopDetect is False:
                 mCurrentFrameGray, mCurrentFrameRGB = self.ScreenshotFishingRegion()
                 if mCurrentFrameGray is False:
-                    return False
+                    return
                 mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
                 if mSizeFish != 0:
                     mSkipFrame += 1
                 if mSkipFrame == 5:
                     mStopDetect = True
                     if mSizeFish < self.mConfig.mFishSize:
-                        return True
-            # Chụp ảnh màn hình vùng chứa pixel chấm than
-            mMarkRGBCurr = self.ScreenshotWindowRegion([self.mMark[0] - 1, self.mMark[1] - 1, 3, 3])
-            if mMarkRGBCurr is False:
-                time2 = time.time()
-                time.sleep(0.005)
+                        return
+            try:
+                mMarkRGBCurr = pyautogui.pixel(self.mMark[0], self.mMark[1])
+            except (ValueError, Exception):
+                time.sleep(0.001)
                 continue
-            mPixelCurr = mMarkRGBCurr[1, 1]
-            mDiffRgb = self.ComparePixel(mPixelCurr, mPixelBase)
-
-            if self.mConfig.mShowFishCheck is True:
-                if self.mConfig.mFishDetectionCheck is False:
-                    mImageW = self.mImageShow.shape[0]
-                    mImageH = self.mImageShow.shape[1]
-                    mRegion = [self.mMark[0] - 20, self.mMark[1] - 20, 40, 40]
-                    mTempImage = self.ScreenshotWindowRegion(mRegion)
-                    mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
-                    mTempImage = cv2.rectangle(mTempImage, (0, 0), (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
-                                               self.mConfig.mTextColor, 1, cv2.LINE_AA)
-                    mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
-                    self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
-                else:
-                    if mStopDetect is True:
-                        mImageW = self.mImageShow.shape[0]
-                        mImageH = self.mImageShow.shape[1]
-                        mRegion = [self.mMark[0] - 20, self.mMark[1] - 20, 40, 40]
-                        mTempImage = self.ScreenshotWindowRegion(mRegion)
-                        mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
-                        mTempImage = cv2.rectangle(mTempImage, (0, 0),
-                                                   (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
-                                                   self.mConfig.mTextColor, 1, cv2.LINE_AA)
-                        mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
-                        self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
-                self.mSignalUpdateImageShow.emit()
-
+            mDiffRgb = self.ComparePixel(mMarkRGBCurr, mPixelBase)
+            # if self.mConfig.mShowFishCheck is True:
+            #     if self.mConfig.mFishDetectionCheck is False:
+            #         mImageW = self.mImageShow.shape[0]
+            #         mImageH = self.mImageShow.shape[1]
+            #         mRegion = [self.mMark[0] - 20, self.mMark[1] - 20, 40, 40]
+            #         mTempImage = self.ScreenshotWindowRegion(mRegion)
+            #         mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
+            #         mTempImage = cv2.rectangle(mTempImage, (0, 0), (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
+            #                                    self.mConfig.mTextColor, 1, cv2.LINE_AA)
+            #         mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
+            #         self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
+            #     else:
+            #         if mStopDetect is True:
+            #             mImageW = self.mImageShow.shape[0]
+            #             mImageH = self.mImageShow.shape[1]
+            #             mRegion = [self.mMark[0] - 20, self.mMark[1] - 20, 40, 40]
+            #             mTempImage = self.ScreenshotWindowRegion(mRegion)
+            #             mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
+            #             mTempImage = cv2.rectangle(mTempImage, (0, 0),
+            #                                        (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
+            #                                        self.mConfig.mTextColor, 1, cv2.LINE_AA)
+            #             mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
+            #             self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
+            #     self.mSignalUpdateImageShow.emit()
             if mDiffRgb > self.mConfig.mDifferentColor:
-                return True
+                return
             time2 = time.time()
             time.sleep(0.005)
-
         self.StatusEmit("Không phát hiện dấu chấm than")
-        return False
+        return
 
     def PullFishingRod(self):
         if self.mConfig.mFreeMouseCheck is False:
@@ -449,9 +448,9 @@ class AutoFishing(QObject):
                                 interval=0.1,
                                 button='left')
             except (ValueError, Exception):
-                return False
+                return
             self.StatusEmit("Đang kéo cần câu")
-            return True
+            return
         else:
             time1 = time.time()
             self.AdbClick(self.mConfig.mPullingRodPos[0],
@@ -461,17 +460,17 @@ class AutoFishing(QObject):
             if timeDelay > 0.5:
                 self.mCheckAdbDelay += 1
                 if self.mCheckAdbDelay <= 3:
-                    return True
+                    return
                 self.mAutoFishRunning = False
                 self.MsgEmit(
                     f'Độ trễ truyền lệnh điều khiển giả lập qua Adb Server quá cao trên 0.5 giây\nTắt chế độ "Chuột tự do" để không bị kéo hụt cá')
                 self.mCheckAdbDelay = 0
-            return True
+            return
 
     def FishPreservation(self):
         time.sleep(0.1)
         if self.mAutoFishRunning is False:
-            return False
+            return
         time1 = time.time()
         time2 = time.time()
         while (time2 - time1) < int(self.mConfig.mPullingFishTime):
@@ -487,7 +486,7 @@ class AutoFishing(QObject):
 
             if mBackpackPos is not None:
                 self.StatusEmit("Câu thất bại")
-                return True
+                return
 
             mPreservationPos = self.FindImage(self.mConfig.mPreservationImgPath,
                                               self.mAbsPreservationRegion,
@@ -501,13 +500,11 @@ class AutoFishing(QObject):
                 self.FishCount()
                 self.AdbClick(self.mConfig.mPreservationPos[0],
                               self.mConfig.mPreservationPos[1])
-                return True
+                return
             time.sleep(0.1)
             time2 = time.time()
-            if self.mAutoFishRunning is False:
-                return False
         self.StatusEmit("Kiểm tra kết quả bị lỗi")
-        return False
+        return
 
     def FishCount(self):
         time.sleep(0.2)
@@ -740,34 +737,31 @@ class AutoFishing(QObject):
 
         time.sleep(self.mConfig.mDelayTime)
         while self.mAutoFishRunning is True:
-            print(752, self.mAutoFishRunning)
             time.sleep(self.mConfig.mDelayTime)
             if self.mAutoFishRunning is False:
                 break
             mOutputCastRod = self.CastFishingRod()
+            if self.mAutoFishRunning is False:
+                break
             if mOutputCastRod is False:
                 continue
-
             self.mFishingNum += 1
             self.mSignalUpdateFishingNum.emit()
-
             if self.mAutoFishRunning is False:
                 break
             mOutPutCheckRod = self.CheckRod()
             if self.mAutoFishRunning is False:
                 break
             if mOutPutCheckRod is True:
-                mCheckMarkRgb = self.CheckMark()
+                self.CheckMark()
                 if self.mAutoFishRunning is False:
                     break
-                if mCheckMarkRgb is True:
-                    mPullingRod = self.PullFishingRod()
-                    if self.mAutoFishRunning is False:
-                        break
-                    if mPullingRod is True:
-                        self.FishPreservation()
-                        if self.mAutoFishRunning is False:
-                            break
-                        self.mSignalUpdateFishNum.emit()
+                self.PullFishingRod()
+                if self.mAutoFishRunning is False:
+                    break
+                self.FishPreservation()
+                if self.mAutoFishRunning is False:
+                    break
+                self.mSignalUpdateFishNum.emit()
             gc.collect()
         return False

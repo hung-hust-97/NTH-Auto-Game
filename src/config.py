@@ -88,7 +88,7 @@ class Config(metaclass=SingletonMeta):
         self.mAdbAddress = "None"
         self.mFacebook = "https://www.facebook.com/groups/kayty"
         self.mYoutube = "https://www.youtube.com/channel/UCHMv61r6ZZwiJdNGUlLt5NQ"
-        self.mAuthor = 'AutoFishing by nth'
+        self.mAuthor = 'Tác giả: Auto Game'
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
