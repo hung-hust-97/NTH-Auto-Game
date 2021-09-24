@@ -142,7 +142,7 @@ class AutoFishing(QObject):
                       self.mConfig.mOKButton[1])
 
     def CheckRod(self):
-        time.sleep(self.mConfig.mDelayTime + 1.5)
+        time.sleep(self.mConfig.mDelayTime + 3)
         mCheck = 0
         while mCheck < 5:
             # break point thread auto fishing
@@ -151,11 +151,7 @@ class AutoFishing(QObject):
             mBackpackPos = self.FindImage(self.mConfig.mBackpackImgPath,
                                           self.mAbsBackPackRegion,
                                           self.mConfig.mConfidence)
-            if mBackpackPos is False:
-                time.sleep(0.2)
-                mCheck += 1
-                continue
-            if mBackpackPos is not None:
+            if mBackpackPos is not None and mBackpackPos is not False:
                 self.FixRod()
                 return False
             time.sleep(0.2)
@@ -207,11 +203,7 @@ class AutoFishing(QObject):
             mPreservationButtonPos = self.FindImage(self.mConfig.mPreservationImgPath,
                                                     self.mAbsPreservationRegion,
                                                     self.mConfig.mConfidence)
-            if mPreservationButtonPos is False:
-                mCheck += 1
-                time.sleep(0.2)
-                continue
-            if mPreservationButtonPos is not None:
+            if mPreservationButtonPos is not None and mPreservationButtonPos is not False:
                 self.AdbClick(self.mConfig.mPreservationPos[0],
                               self.mConfig.mPreservationPos[1])
                 return
@@ -228,19 +220,14 @@ class AutoFishing(QObject):
             mBackpackPos = self.FindImage(self.mConfig.mBackpackImgPath,
                                           self.mAbsBackPackRegion,
                                           self.mConfig.mConfidence)
-            if mBackpackPos is False:
-                mCheck += 1
-                time.sleep(0.2)
-                continue
-            if mBackpackPos is not None:
+            if mBackpackPos is not None and mBackpackPos is not False:
                 self.AdbClick(self.mConfig.mCastingRodPos[0],
                               self.mConfig.mCastingRodPos[1])
                 self.StatusEmit("Đã thả cần câu")
                 return True
             mCheck += 1
             time.sleep(0.2)
-
-        self.StatusEmit("Không tìm thấy ba lô. Hãy thu cần về và thử lại")
+        self.StatusEmit("Không tìm thấy nút ba lô. Đóng ba lô")
         self.CloseBackPack()
 
         mCheck = 0
@@ -251,12 +238,7 @@ class AutoFishing(QObject):
             mPreservationButtonPos = self.FindImage(self.mConfig.mPreservationImgPath,
                                                     self.mAbsPreservationRegion,
                                                     self.mConfig.mConfidence)
-            if mPreservationButtonPos is False:
-                mCheck += 1
-                time.sleep(0.2)
-                continue
-
-            if mPreservationButtonPos is not None:
+            if mPreservationButtonPos is not None and mPreservationButtonPos is not False:
                 self.AdbClick(self.mConfig.mPreservationPos[0],
                               self.mConfig.mPreservationPos[1])
                 return False
@@ -463,7 +445,7 @@ class AutoFishing(QObject):
                     return
                 self.mAutoFishRunning = False
                 self.MsgEmit(
-                    f'Độ trễ truyền lệnh điều khiển giả lập qua Adb Server quá cao trên 0.5 giây\nTắt chế độ "Chuột tự do" để không bị kéo hụt cá')
+                    'Độ trễ Adb Server cao trên 0.5 giây\nTắt chế độ "Không chiếm chuột" để không bị kéo hụt cá')
                 self.mCheckAdbDelay = 0
             return
 
@@ -473,7 +455,7 @@ class AutoFishing(QObject):
             return
         time1 = time.time()
         time2 = time.time()
-        while (time2 - time1) < int(self.mConfig.mPullingFishTime):
+        while (time2 - time1) < self.mConfig.mPullingFishTime:
             # check point break auto fishing thread
             if self.mAutoFishRunning is False:
                 return
@@ -491,11 +473,7 @@ class AutoFishing(QObject):
             mPreservationPos = self.FindImage(self.mConfig.mPreservationImgPath,
                                               self.mAbsPreservationRegion,
                                               self.mConfig.mConfidence)
-            if mPreservationPos is False:
-                time.sleep(0.1)
-                continue
-
-            if mPreservationPos is not None:
+            if mPreservationPos is not None and mPreservationPos is not False:
                 self.StatusEmit("Câu thành công")
                 self.FishCount()
                 self.AdbClick(self.mConfig.mPreservationPos[0],
@@ -507,7 +485,7 @@ class AutoFishing(QObject):
         return
 
     def FishCount(self):
-        time.sleep(0.2)
+        time.sleep(0.5)
         mFishImagePos = self.ConvertCoordinates([self.mConfig.mFishImgRegion[0], self.mConfig.mFishImgRegion[1]])
         mFishImageRegion = [mFishImagePos[0], mFishImagePos[1], self.mConfig.mFishImgRegion[2],
                             self.mConfig.mFishImgRegion[3]]
@@ -529,12 +507,7 @@ class AutoFishing(QObject):
             self.mGrayFish += 1
         else:
             pass
-
-        # Debug vi tri xac dinh mau sac ca
-        # mImageShow = cv2.circle(mImageShow, (mPixelCheckTypeFishPosition[0], mPixelCheckTypeFishPosition[1]), 3,
-        #                         TEXT_COLOR, 1, cv2.LINE_AA)
         self.mImageShow = mFishImage.copy()
-
         # Hiện ảnh cá câu được lên app auto
         if self.mConfig.mShowFishCheck is True:
             self.mSignalUpdateImageShow.emit()
@@ -744,6 +717,7 @@ class AutoFishing(QObject):
             if self.mAutoFishRunning is False:
                 break
             if mOutputCastRod is False:
+                gc.collect()
                 continue
             self.mFishingNum += 1
             self.mSignalUpdateFishingNum.emit()

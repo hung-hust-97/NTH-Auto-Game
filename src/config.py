@@ -70,7 +70,7 @@ class Config(metaclass=SingletonMeta):
                                      f'{self.__mDataPath}backpack960.png',
                                      f'{self.__mDataPath}backpack640.png',
                                      f'{self.__mDataPath}backpack480.png']
-        self.mBackpackImgPath = self.mListBackpackImgPath[0]
+        self.mBackpackImgPath = self.mListBackpackImgPath[1]
 
         self.mListPreservationImgPath = [f'{self.__mDataPath}preservation1280.png',
                                          f'{self.__mDataPath}preservation960.png',

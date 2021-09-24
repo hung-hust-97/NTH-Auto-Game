@@ -22,6 +22,7 @@ class MainWindow(QMainWindow):
         self.mAutoFishingThread = None
         self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mTimer = QTimer()
+        self.mTimer.setObjectName("AutoFishingTimer")
         self.OpenApp()
 
     def __del__(self):
@@ -172,6 +173,10 @@ class MainWindow(QMainWindow):
             return False
 
     def OnClickStart(self):
+        # Apply and save all config
+        if self.SaveConfig() is False:
+            return
+
         # Hide button
         self.uic.btnConnectWindowTitle.setDisabled(True)
         self.uic.btnConnectAdb.setDisabled(True)
@@ -202,17 +207,13 @@ class MainWindow(QMainWindow):
         self.mAutoFishing.mCheckMouseRunning = False
         self.mAutoFishing.mAutoFishRunning = False
 
-        # Apply and save all config
-        if self.SaveConfig() is False:
-            return
-
         # Set image on graphic label
         if self.mConfig.mShowFishCheck is False:
             self.uic.lblShowFish.setPixmap(
                 QtGui.QPixmap(self.mConfig.mLogoImgPath).scaled(200, 200))
 
         # Define thread start fishing
-        self.mAutoFishingThread = threading.Thread(target=self.mAutoFishing.StartAuto)
+        self.mAutoFishingThread = threading.Thread(name="AutoFishing", target=self.mAutoFishing.StartAuto)
 
         # Set time fishing
         self.mAutoFishing.mStartTime = time.time()
@@ -241,7 +242,7 @@ class MainWindow(QMainWindow):
 
     def OnClickGetMarkPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
-        threading.Thread(target=self.mAutoFishing.SetPixelPos).start()
+        threading.Thread(name="SetMarkPosition", target=self.mAutoFishing.SetPixelPos).start()
 
     def ShowListEmulatorSize(self):
         for mSize in self.mConfig.mListEmulatorSize:
@@ -307,7 +308,7 @@ class MainWindow(QMainWindow):
     def OnClickGetBobberPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
         time.sleep(0.1)
-        threading.Thread(target=self.mAutoFishing.SetFishingBobberPos).start()
+        threading.Thread(name="SetBobberPosition", target=self.mAutoFishing.SetFishingBobberPos).start()
 
     def SlotShowBobberPosition(self, x: int, y: int):
         self.uic.lcdRodX.display(str(x))
