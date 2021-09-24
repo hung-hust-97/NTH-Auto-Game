@@ -395,10 +395,10 @@ class MainWindow(QMainWindow):
             self.mAutoFishing.mSaveTime += int(time.time() - self.mAutoFishing.mStartTime)
 
     def SlotOpenFacebook(self):
-        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mFacebookImgPath))
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mFacebook))
 
     def SlotOpenYoutube(self):
-        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeImgPath))
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutube))
 
     def SaveConfig(self):
         if (self.uic.txtPullingFishTime.toPlainText()).isnumeric() is False:
