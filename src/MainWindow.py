@@ -1,14 +1,15 @@
 import time
 import threading
 import subprocess
+import base64
 
 import cv2
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QWidget
-from PyQt5.QtCore import Qt, QTimer, QUrl, QSize
+from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtCore import Qt, QTimer, QUrl, QSize, QCoreApplication, QByteArray
 from PyQt5 import QtGui
 
 from ui.UiMainWindow import Ui_MainWindow
-from src.config import Config
+from src.config import *
 from src.AutoFishing import AutoFishing
 
 
@@ -19,6 +20,8 @@ class MainWindow(QMainWindow):
         self.uic.setupUi(self)
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
+
+        self.mLogo = self.Base64ToQImage(self.mConfig.mAppLogo)
         self.mAutoFishingThread = None
         self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mTimer = QTimer()
@@ -43,6 +46,8 @@ class MainWindow(QMainWindow):
         self.show()
 
     def OpenApp(self):
+        self.setWindowTitle(QCoreApplication.translate("MainWindow", self.mConfig.mAppTitle))
+
         # Hien thi cac du lieu da luu trong config.ini
         self.uic.txtEmulatorName.setText(self.mConfig.mWindowName)
         self.uic.txtEmulatorName.setAlignment(Qt.AlignLeft)
@@ -89,7 +94,7 @@ class MainWindow(QMainWindow):
         # self.uic.btnGetMarkPosition.setStyleSheet(BUTTON_COLOR)
 
         # Show logo
-        self.uic.lblShowFish.setPixmap(QtGui.QPixmap(self.mConfig.mLogoImgPath).scaled(200, 200))
+        self.uic.lblShowFish.setPixmap(QtGui.QPixmap.fromImage(self.mLogo).scaled(200, 200))
         self.uic.btnYoutube.setIcon(QtGui.QIcon(self.mConfig.mYoutubeImgPath))
         self.uic.btnYoutube.setIconSize(QSize(40, 40))
         self.uic.btnYoutube.setFlat(True)
@@ -136,7 +141,7 @@ class MainWindow(QMainWindow):
         self.uic.btnPauseFishing.setDisabled(True)
 
         # Show Author
-        self.SlotShowStatus(self.mConfig.mAuthor)
+        self.SlotShowStatus(self.mConfig.mLicenseText)
 
         # Show status bar
         self.uic.statusbar.showMessage("Phần mềm miễn phí, không dùng cho mục đích thương mại")
@@ -209,8 +214,7 @@ class MainWindow(QMainWindow):
 
         # Set image on graphic label
         if self.mConfig.mShowFishCheck is False:
-            self.uic.lblShowFish.setPixmap(
-                QtGui.QPixmap(self.mConfig.mLogoImgPath).scaled(200, 200))
+            self.uic.lblShowFish.setPixmap(QtGui.QPixmap.fromImage(self.mLogo).scaled(200, 200))
 
         # Define thread start fishing
         self.mAutoFishingThread = threading.Thread(name="AutoFishing", target=self.mAutoFishing.StartAuto)
@@ -341,8 +345,8 @@ class MainWindow(QMainWindow):
         self.uic.lcdTime.display(f'{str_h}:{str_m}:{str_s}')
 
     def SlotShowStatus(self, mText: str):
-        if mText == self.mConfig.mAuthor:
-            self.uic.lblStatus.setText(self.mConfig.mAuthor)
+        if mText == self.mConfig.mLicenseText:
+            self.uic.lblStatus.setText(self.mConfig.mLicenseText)
         elif self.uic.btnStartFishing.isEnabled() is False and self.uic.btnPauseFishing.isEnabled() is False:
             self.uic.lblStatus.setText(self.mWaitStatus)
         else:
@@ -383,22 +387,21 @@ class MainWindow(QMainWindow):
 
             self.uic.txtShutdownTime.setText(str(self.mConfig.mShutdownTime))
             self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
-            self.uic.lblShowFish.setPixmap(
-                QtGui.QPixmap(self.mConfig.mLogoImgPath).scaled(200, 200))
+            self.uic.lblShowFish.setPixmap(QtGui.QPixmap.fromImage(self.mLogo).scaled(200, 200))
 
             self.uic.btnPauseFishing.setDisabled(True)
             self.uic.btnStartFishing.setDisabled(False)
 
-            self.uic.lblStatus.setText(self.mConfig.mAuthor)
+            self.uic.lblStatus.setText(self.mConfig.mLicenseText)
 
             self.mTimer.stop()
             self.mAutoFishing.mSaveTime += int(time.time() - self.mAutoFishing.mStartTime)
 
     def SlotOpenFacebook(self):
-        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mFacebook))
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mFacebookLink))
 
     def SlotOpenYoutube(self):
-        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutube))
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeLink))
 
     def SaveConfig(self):
         if (self.uic.txtPullingFishTime.toPlainText()).isnumeric() is False:
@@ -462,3 +465,18 @@ class MainWindow(QMainWindow):
         mMsgBox.setWindowTitle("Thông báo")
         mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
         mMsgBox.exec()
+
+    @staticmethod
+    def Base64ToQImage(base64img: str):
+        image_64_decode = base64.b64decode(base64img)
+        image = QtGui.QImage()
+        image.loadFromData(image_64_decode, 'PNG')
+        return image
+
+    @staticmethod
+    def Base64ToQIcon(base64img: str):
+        image_64_decode = base64.b64decode(base64img)
+        image = QtGui.QImage()
+        image.loadFromData(image_64_decode, 'PNG')
+        icon = QtGui.QIcon(QtGui.QPixmap(image))
+        return icon

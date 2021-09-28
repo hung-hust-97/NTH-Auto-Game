@@ -12,3 +12,5 @@
 
 # Build app to file .exe for windows:
 pyinstaller main.py --onefile --noconsole --icon="data/iconapp.ico"
+pyinstaller main.py --onefile --noconsole --icon="data/katy.ico"
+pyinstaller main.py --onefile --noconsole --icon="data/dp.ico"

@@ -1,9 +1,13 @@
 import configparser
 import os
 from threading import Lock
+from src.Base64Image import *
 
 HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
+
+LICENSE_LUON_THI = "16d70385-fd7d-4212-bb06-949403f03ed4"
+LICENSE_DP_FISHING = "09556f22-41bc-452e-93a4-a6e028fc52ff"
 
 # Statics config cho size 960x540
 DEFAULT_EMULATOR_SIZE = [960, 540]
@@ -51,7 +55,6 @@ class Config(metaclass=SingletonMeta):
         self.__mConfig = self.__mConfigParser['CONFIG']
 
         self.mAdbPath = f'{self.__mCurrentPath}\\adb\\adb.exe'
-        self.mIconPath = f'{self.__mDataPath}iconapp.ico'
         self.mWindowRatio = 1
         self.mAdbHost = "127.0.0.1"
         self.mAdbPort = 5037
@@ -65,37 +68,87 @@ class Config(metaclass=SingletonMeta):
         self.mFishSize = self.__mConfig.getint('fish_size')
         self.mFishingRodIndex = self.__mConfig.getint('fishing_rod_id')
         self.mDelayTime = self.__mConfig.getfloat('delay_time')
+        self.mLicense = self.__mConfig.get('license')
 
         self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1280.png',
                                      f'{self.__mDataPath}backpack960.png',
                                      f'{self.__mDataPath}backpack640.png',
                                      f'{self.__mDataPath}backpack480.png']
-        self.mBackpackImgPath = self.mListBackpackImgPath[1]
 
         self.mListPreservationImgPath = [f'{self.__mDataPath}preservation1280.png',
                                          f'{self.__mDataPath}preservation960.png',
                                          f'{self.__mDataPath}preservation640.png',
                                          f'{self.__mDataPath}preservation480.png']
-        self.mPreservationImgPath = self.mListPreservationImgPath[0]
+
+        self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
+        self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
+        self.mListBlurArg = [19, 7, 5, 3]
+
+        self.mAppTitle = "Auto Fishing Free License"
+        self.mLicenseText = "Free License"
+        self.mFacebookLink = "https://www.facebook.com/nth.autogame"
+        self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
+        self.mAppLogo = LOGO_AUTO_FISHING
+        self.mIcon = ICON_AUTO_FISHING
+
+        if self.mLicense == LICENSE_LUON_THI:
+            self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1920.png',
+                                         f'{self.__mDataPath}backpack1280.png',
+                                         f'{self.__mDataPath}backpack960.png',
+                                         f'{self.__mDataPath}backpack640.png',
+                                         f'{self.__mDataPath}backpack480.png']
+
+            self.mListPreservationImgPath = [f'{self.__mDataPath}preservation1920.png',
+                                             f'{self.__mDataPath}preservation1280.png',
+                                             f'{self.__mDataPath}preservation960.png',
+                                             f'{self.__mDataPath}preservation640.png',
+                                             f'{self.__mDataPath}preservation480.png']
+
+            self.mListEmulatorSize = [[1920, 1080], [1280, 720], [960, 540], [640, 360], [480, 270]]
+            self.mListStrEmulatorSize = ["1920x1080", "1280x720", "960x540", "640x360", "480x270"]
+            self.mListBlurArg = [30, 19, 7, 5, 3]
+
+            self.mAppTitle = "Auto Lươn Thị Pre"
+            self.mLicenseText = "License by Lươn Thị"
+            self.mFacebookLink = "https://www.facebook.com/groups/kayty"
+            self.mYoutubeLink = "https://www.youtube.com/channel/UCHMv61r6ZZwiJdNGUlLt5NQ"
+            self.mAppLogo = LOGO_KAYTY
+            self.mIcon = ICON_KAYTY
+
+        if self.mLicense == LICENSE_DP_FISHING:
+            self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1280.png',
+                                         f'{self.__mDataPath}backpack960.png',
+                                         f'{self.__mDataPath}backpack640.png',
+                                         f'{self.__mDataPath}backpack480.png']
+
+            self.mListPreservationImgPath = [f'{self.__mDataPath}preservation1280.png',
+                                             f'{self.__mDataPath}preservation960.png',
+                                             f'{self.__mDataPath}preservation640.png',
+                                             f'{self.__mDataPath}preservation480.png']
+
+            self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
+            self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
+            self.mListBlurArg = [19, 7, 5, 3]
+
+            self.mAppTitle = "DP Fishing VN"
+            self.mLicenseText = "License by DP Fishing VN"
+            self.mFacebookLink = "https://www.facebook.com/groups/1010940139728287"
+            self.mYoutubeLink = "https://www.youtube.com/channel/UCFytKXnx94hS5Jkd34C4MXw"
+            self.mAppLogo = LOGO_DP_FISHING
+            self.mIcon = ICON_DP_FISHING
+
         self.mYoutubeImgPath = f'{self.__mDataPath}youtube.png'
         self.mFacebookImgPath = f'{self.__mDataPath}facebook.png'
-        self.mLogoImgPath = f'{self.__mDataPath}image.png'
-        self.mEmulatorSize = DEFAULT_EMULATOR_SIZE
         self.mDifferentColor = 10
         self.mConfidence = 0.7
         self.mShutdownCheckBox = False
         self.mShutdownTime = 0
         self.mAdbAddress = "None"
-        self.mFacebook = "https://www.facebook.com/groups/kayty"
-        self.mYoutube = "https://www.youtube.com/channel/UCHMv61r6ZZwiJdNGUlLt5NQ"
-        self.mAuthor = 'Tác giả: Auto Game'
-
-        self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
-        self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
-        self.mListBlurArg = [19, 7, 5, 3]
-        self.mBlur = 13
 
         # Cac gia tri nay se thay doi theo size cua emulator
+        self.mBackpackImgPath = self.mListBackpackImgPath[self.mEmulatorSizeId]
+        self.mPreservationImgPath = self.mListPreservationImgPath[self.mEmulatorSizeId]
+        self.mBlur = self.mListBlurArg[self.mEmulatorSizeId]
         self.mListFishingRodPosition = LIST_FISHING_ROD_POS
         self.mRadiusFishingRegion = RADIUS_FISHING_REGION
         self.mOpenBackPack = OPEN_BACKPACK_POS
@@ -111,11 +164,11 @@ class Config(metaclass=SingletonMeta):
         self.mCheckTypeFishPos = CHECK_TYPE_FISH_POS
         self.mFishImgRegion = FISH_IMG_REGION
         self.mFontScale = FONT_SCALE_DEFAULT
+        self.mEmulatorSize = DEFAULT_EMULATOR_SIZE
 
         # Cac tham so detect ca
         self.mMaxContour = MAX_CONTOUR
         self.mMinContour = MIN_CONTOUR
-
 
         # RGB in QT
         self.mVioletColorRGB = [231, 147, 232]
@@ -252,6 +305,7 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['fish_size'] = str(self.mFishSize)
         mNewConfig['CONFIG']['fishing_rod_id'] = str(self.mFishingRodIndex)
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)
+        mNewConfig['CONFIG']['license'] = self.__mConfig.get("license")
 
         with open(self.__mConfigPath, 'w') as mConfigFile:
             mNewConfig.write(mConfigFile)

@@ -7,10 +7,9 @@ from src.config import Config
 
 def main():
     mConfig = Config()
-    mIconPath = mConfig.mIconPath
     app = QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon(mIconPath))
     main_win = MainWindow()
+    app.setWindowIcon(main_win.Base64ToQIcon(mConfig.mIcon))
     main_win.Show()
     sys.exit(app.exec())
 
