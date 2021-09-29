@@ -94,8 +94,11 @@ class AutoFishing(QObject):
             mDiffTotal += abs(int(mPixel1[i]) - int(mPixel2[i]))
         return mDiffTotal / len(mPixel1)
 
-    @staticmethod
-    def FindImage(mImagePath: str, mRegion: list, mConfidence: float):
+    def FindImage(self, mImagePath: str, mRegion: list, mConfidence: float):
+        if self.mConfig.mDebugMode is True:
+            self.mImageShow = self.ScreenshotWindowRegion(mRegion)
+            self.mSignalUpdateImageShow.emit()
+
         try:
             mLocate = pyautogui.locateOnScreen(mImagePath, grayscale=True,
                                                region=(mRegion[0],
@@ -318,9 +321,11 @@ class AutoFishing(QObject):
             if cv2.contourArea(mContour) > self.mConfig.mMaxContour * self.mConfig.mWindowRatio:
                 continue
             mFishArea = int(cv2.contourArea(mContour))
-            cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
+            cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), self.mConfig.mTextColor, self.mConfig.mThickness,
+                          cv2.LINE_AA)
             cv2.putText(mCurrFrameRGB, str(mFishArea), (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, self.mConfig.mFontScale, self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, self.mConfig.mFontScale, self.mConfig.mTextColor,
+                        self.mConfig.mThickness, cv2.LINE_AA)
             break
         self.mImageShow = mCurrFrameRGB.copy()
         if self.mConfig.mShowFishCheck is True:

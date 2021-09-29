@@ -324,12 +324,18 @@ class MainWindow(QMainWindow):
 
     def SlotShowImage(self):
         mMatImage = self.mAutoFishing.mImageShow.copy()
-        mMatImage = cv2.resize(mMatImage, (200, 200), interpolation=cv2.INTER_AREA)
-        mQImage = QtGui.QImage(mMatImage.data,
-                               mMatImage.shape[1],
-                               mMatImage.shape[0],
-                               QtGui.QImage.Format_RGB888).rgbSwapped()
-        mQPixmap = QtGui.QPixmap.fromImage(mQImage).scaled(200, 200)
+        width = mMatImage.shape[1]
+        height = mMatImage.shape[0]
+        if width > height:
+            height = int(height * 200 / width)
+            width = 200
+        else:
+            width = int(height * 200 / width)
+            height = 200
+
+        mMatImage = cv2.resize(mMatImage, (width, height), interpolation = cv2.INTER_AREA)
+        mQImage = QtGui.QImage(mMatImage.data, width, height, QtGui.QImage.Format_RGB888).rgbSwapped()
+        mQPixmap = QtGui.QPixmap.fromImage(mQImage).scaled(200, 200, Qt.KeepAspectRatio, Qt.FastTransformation)
         self.uic.lblShowFish.setPixmap(mQPixmap)
 
     def SlotShowTime(self):

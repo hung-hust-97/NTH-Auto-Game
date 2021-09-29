@@ -12,17 +12,17 @@ LICENSE_DP_FISHING = "09556f22-41bc-452e-93a4-a6e028fc52ff"
 # Statics config cho size 960x540
 DEFAULT_EMULATOR_SIZE = [960, 540]
 RADIUS_FISHING_REGION = 150
-OPEN_BACKPACK_POS = [915, 290]
+OPEN_BACKPACK_POS = [925, 275]
 CLOSE_BACKPACK_POS = [400, 300]
 TOOLS_POS = [690, 60]
 CASTING_ROD_POS = [765, 330]
 PULLING_ROD_POS = [840, 430]
-PRESERVATION_BUTTON_POS = [750, 440]
+PRESERVATION_BUTTON_POS = [750, 425]
 CONFIRM_BUTTON_POS = [485, 410]
 OK_BUTTON_POS = [485, 410]
 LIST_FISHING_ROD_POS = [[0, 0], [580, 260], [730, 260], [880, 260], [580, 450], [730, 450], [880, 450]]
-PRESERVATION_REC = [320, 160]
-BACKPACK_REC = [100, 100]
+PRESERVATION_REC = [280, 80]
+BACKPACK_REC = [40, 40]
 CHECK_TYPE_FISH_POS = [770, 220]
 FISH_IMG_REGION = [625, 42, 295, 295]
 FONT_SCALE_DEFAULT = 1
@@ -69,6 +69,7 @@ class Config(metaclass=SingletonMeta):
         self.mFishingRodIndex = self.__mConfig.getint('fishing_rod_id')
         self.mDelayTime = self.__mConfig.getfloat('delay_time')
         self.mLicense = self.__mConfig.get('license')
+        self.mDebugMode = self.__mConfig.getboolean('debug_mode')
 
         self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1280.png',
                                      f'{self.__mDataPath}backpack960.png',
@@ -311,6 +312,7 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['fishing_rod_id'] = str(self.mFishingRodIndex)
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)
         mNewConfig['CONFIG']['license'] = self.__mConfig.get("license")
+        mNewConfig['CONFIG']['debug_mode'] = self.__mConfig.get('debug_mode')
 
         with open(self.__mConfigPath, 'w') as mConfigFile:
             mNewConfig.write(mConfigFile)
