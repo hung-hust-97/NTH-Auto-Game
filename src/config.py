@@ -6,7 +6,7 @@ from src.Base64Image import *
 HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
 
-LICENSE_LUON_THI = "16d70385-fd7d-4212-bb06-949403f03ed4"
+LICENSE_KAYTY = "16d70385-fd7d-4212-bb06-949403f03ed4"
 LICENSE_DP_FISHING = "09556f22-41bc-452e-93a4-a6e028fc52ff"
 
 # Statics config cho size 960x540
@@ -91,7 +91,7 @@ class Config(metaclass=SingletonMeta):
         self.mAppLogo = LOGO_AUTO_FISHING
         self.mIcon = ICON_AUTO_FISHING
 
-        if self.mLicense == LICENSE_LUON_THI:
+        if self.mLicense == LICENSE_KAYTY:
             self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1920.png',
                                          f'{self.__mDataPath}backpack1280.png',
                                          f'{self.__mDataPath}backpack960.png',
@@ -143,6 +143,7 @@ class Config(metaclass=SingletonMeta):
         self.mConfidence = 0.7
         self.mShutdownCheckBox = False
         self.mShutdownTime = 0
+        self.mThickness = 1
         self.mAdbAddress = "None"
 
         # Cac gia tri nay se thay doi theo size cua emulator
@@ -230,6 +231,10 @@ class Config(metaclass=SingletonMeta):
 
         self.mFontScale = FONT_SCALE_DEFAULT * self.mWindowRatio
         self.mMaxContour = MAX_CONTOUR * self.mWindowRatio
+
+        if self.mWindowRatio > 1:
+            self.mThickness = 2
+
         self.__mMutex.release()
 
     def SetDelayTime(self, mDelayTime: float):

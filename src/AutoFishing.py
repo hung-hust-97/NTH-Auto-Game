@@ -285,16 +285,16 @@ class AutoFishing(QObject):
         mFishArea = 0
         mCurrFrameRGB = cv2.circle(mCurrFrameRGB, (mImgCenterX, mImgCenterY),
                                    int(self.mConfig.mRadiusFishingRegion * 3 // 4),
-                                   self.mConfig.mTextColor, 1)
+                                   self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
         mCurrFrameRGB = cv2.circle(mCurrFrameRGB, (mImgCenterX, mImgCenterY),
                                    self.mConfig.mRadiusFishingRegion * 1 // 4,
-                                   self.mConfig.mTextColor, 1)
+                                   self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
         cv2.putText(mCurrFrameRGB, str(mBackGroundColor),
                     (int(10 * self.mConfig.mFontScale),
                      int(40 * self.mConfig.mFontScale)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     self.mConfig.mFontScale,
-                    self.mConfig.mTextColor, 1)
+                    self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
         for mContour in mContours:
             # break point thread
             if self.mAutoFishRunning is False:
@@ -318,9 +318,9 @@ class AutoFishing(QObject):
             if cv2.contourArea(mContour) > self.mConfig.mMaxContour * self.mConfig.mWindowRatio:
                 continue
             mFishArea = int(cv2.contourArea(mContour))
-            cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), self.mConfig.mTextColor, 1)
+            cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
             cv2.putText(mCurrFrameRGB, str(mFishArea), (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, self.mConfig.mFontScale, self.mConfig.mTextColor, 1)
+                        cv2.FONT_HERSHEY_SIMPLEX, self.mConfig.mFontScale, self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
             break
         self.mImageShow = mCurrFrameRGB.copy()
         if self.mConfig.mShowFishCheck is True:
@@ -398,7 +398,7 @@ class AutoFishing(QObject):
             #         mTempImage = self.ScreenshotWindowRegion(mRegion)
             #         mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
             #         mTempImage = cv2.rectangle(mTempImage, (0, 0), (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
-            #                                    self.mConfig.mTextColor, 1, cv2.LINE_AA)
+            #                                    self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
             #         mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
             #         self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
             #     else:
@@ -410,7 +410,7 @@ class AutoFishing(QObject):
             #             mTempImage = cv2.circle(mTempImage, (20, 20), 1, (0, 0, 255), 2, cv2.LINE_AA)
             #             mTempImage = cv2.rectangle(mTempImage, (0, 0),
             #                                        (mTempImage.shape[0] - 1, mTempImage.shape[1] - 1),
-            #                                        self.mConfig.mTextColor, 1, cv2.LINE_AA)
+            #                                        self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
             #             mTempImage = cv2.resize(mTempImage, (mImageW // 4, mImageH // 4), interpolation=cv2.INTER_AREA)
             #             self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
             #     self.mSignalUpdateImageShow.emit()

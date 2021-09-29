@@ -158,7 +158,11 @@ class MainWindow(QMainWindow):
             self.uic.listAdbAddress.addItem("None")
             return
 
-        self.mAutoFishing.AdbServerConnect()
+        if self.mAutoFishing.AdbServerConnect() is False:
+            self.UpdateListAdbAddress()
+            self.SaveConfig()
+            return
+
         self.UpdateListAdbAddress()
         self.SaveConfig()
         self.SlotShowMsgBox("Kết nối cửa sổ giả lập thành công\nChọn địa chỉ ADB của giả lập và kết nối")
