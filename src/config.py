@@ -2,6 +2,8 @@ import configparser
 import os
 from threading import Lock
 from src.Base64Image import *
+import datetime
+import logging as log
 
 HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
@@ -45,41 +47,42 @@ class SingletonMeta(type):
 
 class Config(metaclass=SingletonMeta):
     def __init__(self):
+        self.mDateTime = str(datetime.datetime.now()).replace(":", "-").replace(" ", "_").split(".")[0]
         self.__mMutex = Lock()
+        self.mCurrentPath = os.getcwd()
+        self.mDataPath = f'{self.mCurrentPath}\\data\\'
+        self.mConfigPath = f'{self.mCurrentPath}\\config\\config.ini'
+        self.mConfigParser = configparser.ConfigParser()
+        self.mConfigParser.read(self.mConfigPath)
+        self.mConfig = self.mConfigParser['CONFIG']
 
-        self.__mCurrentPath = os.getcwd()
-        self.__mDataPath = f'{self.__mCurrentPath}\\data\\'
-        self.__mConfigPath = f'{self.__mCurrentPath}\\config\\config.ini'
-        self.__mConfigParser = configparser.ConfigParser()
-        self.__mConfigParser.read(self.__mConfigPath)
-        self.__mConfig = self.__mConfigParser['CONFIG']
-
-        self.mAdbPath = f'{self.__mCurrentPath}\\adb\\adb.exe'
+        self.mLogPath = f'{self.mCurrentPath}\\log\\{self.mDateTime}.log'
+        self.mAdbPath = f'{self.mCurrentPath}\\adb\\adb.exe'
         self.mWindowRatio = 1
         self.mAdbHost = "127.0.0.1"
         self.mAdbPort = 5037
-        self.mWindowName = self.__mConfig['window_name']
-        self.mEmulatorSizeId = self.__mConfig.getint('emulator_size_id')
-        self.mFreeMouseCheck = self.__mConfig.getboolean('free_mouse')
-        self.mWaitingFishTime = self.__mConfig.getint('waiting_fish_time')
-        self.mPullingFishTime = self.__mConfig.getint('pulling_fish_time')
-        self.mFishDetectionCheck = self.__mConfig.getboolean('fish_detection')
-        self.mShowFishCheck = self.__mConfig.getboolean('show_fish')
-        self.mFishSize = self.__mConfig.getint('fish_size')
-        self.mFishingRodIndex = self.__mConfig.getint('fishing_rod_id')
-        self.mDelayTime = self.__mConfig.getfloat('delay_time')
-        self.mLicense = self.__mConfig.get('license')
-        self.mDebugMode = self.__mConfig.getboolean('debug_mode')
+        self.mWindowName = self.mConfig['window_name']
+        self.mEmulatorSizeId = self.mConfig.getint('emulator_size_id')
+        self.mFreeMouseCheck = self.mConfig.getboolean('free_mouse')
+        self.mWaitingFishTime = self.mConfig.getint('waiting_fish_time')
+        self.mPullingFishTime = self.mConfig.getint('pulling_fish_time')
+        self.mFishDetectionCheck = self.mConfig.getboolean('fish_detection')
+        self.mShowFishCheck = self.mConfig.getboolean('show_fish')
+        self.mFishSize = self.mConfig.getint('fish_size')
+        self.mFishingRodIndex = self.mConfig.getint('fishing_rod_id')
+        self.mDelayTime = self.mConfig.getfloat('delay_time')
+        self.mLicense = self.mConfig.get('license')
+        self.mDebugMode = self.mConfig.getboolean('debug_mode')
 
-        self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1280.png',
-                                     f'{self.__mDataPath}backpack960.png',
-                                     f'{self.__mDataPath}backpack640.png',
-                                     f'{self.__mDataPath}backpack480.png']
+        self.mListBackpackImgPath = [f'{self.mDataPath}backpack1280.png',
+                                     f'{self.mDataPath}backpack960.png',
+                                     f'{self.mDataPath}backpack640.png',
+                                     f'{self.mDataPath}backpack480.png']
 
-        self.mListPreservationImgPath = [f'{self.__mDataPath}preservation1280.png',
-                                         f'{self.__mDataPath}preservation960.png',
-                                         f'{self.__mDataPath}preservation640.png',
-                                         f'{self.__mDataPath}preservation480.png']
+        self.mListPreservationImgPath = [f'{self.mDataPath}preservation1280.png',
+                                         f'{self.mDataPath}preservation960.png',
+                                         f'{self.mDataPath}preservation640.png',
+                                         f'{self.mDataPath}preservation480.png']
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
@@ -93,21 +96,21 @@ class Config(metaclass=SingletonMeta):
         self.mIcon = ICON_AUTO_FISHING
 
         if self.mLicense == LICENSE_KAYTY:
-            self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1920.png',
-                                         f'{self.__mDataPath}backpack1280.png',
-                                         f'{self.__mDataPath}backpack960.png',
-                                         f'{self.__mDataPath}backpack640.png',
-                                         f'{self.__mDataPath}backpack480.png']
+            self.mListBackpackImgPath = [f'{self.mDataPath}backpack1920.png',
+                                         f'{self.mDataPath}backpack1280.png',
+                                         f'{self.mDataPath}backpack960.png',
+                                         f'{self.mDataPath}backpack640.png',
+                                         f'{self.mDataPath}backpack480.png']
 
-            self.mListPreservationImgPath = [f'{self.__mDataPath}preservation1920.png',
-                                             f'{self.__mDataPath}preservation1280.png',
-                                             f'{self.__mDataPath}preservation960.png',
-                                             f'{self.__mDataPath}preservation640.png',
-                                             f'{self.__mDataPath}preservation480.png']
+            self.mListPreservationImgPath = [f'{self.mDataPath}preservation1920.png',
+                                             f'{self.mDataPath}preservation1280.png',
+                                             f'{self.mDataPath}preservation960.png',
+                                             f'{self.mDataPath}preservation640.png',
+                                             f'{self.mDataPath}preservation480.png']
 
             self.mListEmulatorSize = [[1920, 1080], [1280, 720], [960, 540], [640, 360], [480, 270]]
             self.mListStrEmulatorSize = ["1920x1080", "1280x720", "960x540", "640x360", "480x270"]
-            self.mListBlurArg = [30, 19, 7, 5, 3]
+            self.mListBlurArg = [31, 19, 7, 5, 3]
 
             self.mAppTitle = "Auto Lươn Thị Pre"
             self.mLicenseText = "License by Lươn Thị"
@@ -117,15 +120,15 @@ class Config(metaclass=SingletonMeta):
             self.mIcon = ICON_KAYTY
 
         if self.mLicense == LICENSE_DP_FISHING:
-            self.mListBackpackImgPath = [f'{self.__mDataPath}backpack1280.png',
-                                         f'{self.__mDataPath}backpack960.png',
-                                         f'{self.__mDataPath}backpack640.png',
-                                         f'{self.__mDataPath}backpack480.png']
+            self.mListBackpackImgPath = [f'{self.mDataPath}backpack1280.png',
+                                         f'{self.mDataPath}backpack960.png',
+                                         f'{self.mDataPath}backpack640.png',
+                                         f'{self.mDataPath}backpack480.png']
 
-            self.mListPreservationImgPath = [f'{self.__mDataPath}preservation1280.png',
-                                             f'{self.__mDataPath}preservation960.png',
-                                             f'{self.__mDataPath}preservation640.png',
-                                             f'{self.__mDataPath}preservation480.png']
+            self.mListPreservationImgPath = [f'{self.mDataPath}preservation1280.png',
+                                             f'{self.mDataPath}preservation960.png',
+                                             f'{self.mDataPath}preservation640.png',
+                                             f'{self.mDataPath}preservation480.png']
 
             self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
             self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
@@ -138,8 +141,8 @@ class Config(metaclass=SingletonMeta):
             self.mAppLogo = LOGO_DP_FISHING
             self.mIcon = ICON_DP_FISHING
 
-        self.mYoutubeImgPath = f'{self.__mDataPath}youtube.png'
-        self.mFacebookImgPath = f'{self.__mDataPath}facebook.png'
+        self.mYoutubeImgPath = f'{self.mDataPath}youtube.png'
+        self.mFacebookImgPath = f'{self.mDataPath}facebook.png'
         self.mDifferentColor = 10
         self.mConfidence = 0.7
         self.mShutdownCheckBox = False
@@ -151,7 +154,7 @@ class Config(metaclass=SingletonMeta):
         self.mBackpackImgPath = self.mListBackpackImgPath[self.mEmulatorSizeId]
         self.mPreservationImgPath = self.mListPreservationImgPath[self.mEmulatorSizeId]
         self.mBlur = self.mListBlurArg[self.mEmulatorSizeId]
-        self.mListFishingRodPosition = LIST_FISHING_ROD_POS
+        self.mListFishingRodPosition = [[0, 0], [580, 260], [730, 260], [880, 260], [580, 450], [730, 450], [880, 450]]
         self.mRadiusFishingRegion = RADIUS_FISHING_REGION
         self.mOpenBackPack = OPEN_BACKPACK_POS
         self.mCloseBackPack = CLOSE_BACKPACK_POS
@@ -231,10 +234,35 @@ class Config(metaclass=SingletonMeta):
                                int(FISH_IMG_REGION[3] * self.mWindowRatio)]
 
         self.mFontScale = FONT_SCALE_DEFAULT * self.mWindowRatio
+        self.mMinContour = MIN_CONTOUR * self.mWindowRatio
         self.mMaxContour = MAX_CONTOUR * self.mWindowRatio
 
         if self.mWindowRatio > 1:
             self.mThickness = 2
+
+        log.info(f'mEmulatorSizeId = {self.mEmulatorSizeId}')
+        log.info(f'mEmulatorSize = {self.mEmulatorSize}')
+        log.info(f'mPreservationImgPath = {self.mPreservationImgPath}')
+        log.info(f'mBackpackImgPath = {self.mBackpackImgPath}')
+        log.info(f'mBlur = {self.mBlur}')
+        log.info(f'mWindowRatio = {self.mWindowRatio}')
+        log.info(f'mRadiusFishingRegion = {self.mRadiusFishingRegion}')
+        log.info(f'mOpenBackPack = {self.mOpenBackPack}')
+        log.info(f'mCloseBackPack = {self.mCloseBackPack}')
+        log.info(f'mCastingRodPos = {self.mCastingRodPos}')
+        log.info(f'mPullingRodPos = {self.mPullingRodPos}')
+        log.info(f'mPreservationPos = {self.mPreservationPos}')
+        log.info(f'mConfirm = {self.mConfirm}')
+        log.info(f'mOKButton = {self.mOKButton}')
+        for i in range(1, len(self.mListFishingRodPosition)):
+            log.info(f'mListFishingRodPosition{i} = {self.mListFishingRodPosition[i]}')
+        log.info(f'mPreservationRec = {self.mPreservationRec}')
+        log.info(f'mBackpackRec = {self.mBackpackRec}')
+        log.info(f'mCheckTypeFishPos = {self.mCheckTypeFishPos}')
+        log.info(f'mFishImgRegion = {self.mFishImgRegion}')
+        log.info(f'mFontScale = {self.mFontScale}')
+        log.info(f'mMinContour = {self.mMinContour}')
+        log.info(f'mMaxContour = {self.mMaxContour}')
 
         self.__mMutex.release()
 
@@ -311,8 +339,8 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['fish_size'] = str(self.mFishSize)
         mNewConfig['CONFIG']['fishing_rod_id'] = str(self.mFishingRodIndex)
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)
-        mNewConfig['CONFIG']['license'] = self.__mConfig.get("license")
-        mNewConfig['CONFIG']['debug_mode'] = self.__mConfig.get('debug_mode')
+        mNewConfig['CONFIG']['license'] = self.mConfig.get("license")
+        mNewConfig['CONFIG']['debug_mode'] = self.mConfig.get('debug_mode')
 
-        with open(self.__mConfigPath, 'w') as mConfigFile:
+        with open(self.mConfigPath, 'w') as mConfigFile:
             mNewConfig.write(mConfigFile)

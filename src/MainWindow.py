@@ -11,6 +11,7 @@ from PyQt5 import QtGui
 from ui.UiMainWindow import Ui_MainWindow
 from src.config import *
 from src.AutoFishing import AutoFishing
+import logging as log
 
 
 class MainWindow(QMainWindow):
@@ -182,9 +183,18 @@ class MainWindow(QMainWindow):
             return False
 
     def OnClickStart(self):
+        log.info('****************************************************************************')
         # Apply and save all config
         if self.SaveConfig() is False:
             return
+        log.info(f'mWindowName = {self.mConfig.mWindowName}')
+        log.info(f'mFreeMouseCheck = {self.mConfig.mFreeMouseCheck}')
+        log.info(f'mWaitingFishTime = {self.mConfig.mWaitingFishTime}')
+        log.info(f'mPullingFishTime = {self.mConfig.mPullingFishTime}')
+        log.info(f'mFishDetectionCheck = {self.mConfig.mFishDetectionCheck}')
+        log.info(f'mShowFishCheck = {self.mConfig.mShowFishCheck}')
+        log.info(f'mFishingRodIndex = {self.mConfig.mFishingRodIndex}')
+        log.info(f'mDelayTime = {self.mConfig.mDelayTime}')
 
         # Hide button
         self.uic.btnConnectWindowTitle.setDisabled(True)
@@ -238,6 +248,7 @@ class MainWindow(QMainWindow):
         self.uic.btnPauseFishing.setDisabled(False)
 
     def OnClickPause(self):
+        log.info('****************************************************************************')
         # Disable Pause button
         self.uic.btnPauseFishing.setDisabled(True)
 
@@ -267,6 +278,7 @@ class MainWindow(QMainWindow):
         self.uic.txtShutdownTime.setText(str(int(mCountDownTime) + 1))
         self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
         if mCountDownTime < 0:
+            log.info(f'Shutting down PC')
             subprocess.call(["shutdown", "/s"], creationflags=0x08000000)
 
     def SlotShowMarkPosition(self, x: int, y: int):
@@ -368,6 +380,7 @@ class MainWindow(QMainWindow):
     # Watchdog thread auto fishing
     def SlotCheckThread(self):
         if self.mAutoFishingThread.is_alive() is False:
+            log.info(f'Auto Fishing Thread is not alive')
             # Disable thread flag
             self.mAutoFishing.mAutoFishRunning = False
 

@@ -9,6 +9,7 @@ import win32api
 from src.config import Config
 from PyQt5.QtCore import pyqtSignal, QObject
 import subprocess
+import logging as log
 
 
 class AutoFishing(QObject):
@@ -107,6 +108,7 @@ class AutoFishing(QObject):
                                                        mRegion[3]),
                                                confidence=mConfidence)
         except (ValueError, Exception):
+            log.info(f'Error {mImagePath} {mRegion}')
             return False
         return mLocate
 
@@ -121,28 +123,34 @@ class AutoFishing(QObject):
     def CloseBackPack(self):
         self.AdbClick(self.mConfig.mCloseBackPack[0],
                       self.mConfig.mCloseBackPack[1])
+        log.info(f'Clicked {self.mConfig.mCloseBackPack}')
         return True
 
     def OpenTools(self):
         self.AdbClick(self.mConfig.mTools[0],
                       self.mConfig.mTools[1])
+        log.info(f'Clicked {self.mConfig.mTools}')
         return True
 
     def OpenBackPack(self):
         self.AdbClick(self.mConfig.mOpenBackPack[0],
                       self.mConfig.mOpenBackPack[1])
+        log.info(f'Clicked {self.mConfig.mOpenBackPack}')
 
     def FixClick(self):
         self.AdbClick(self.mConfig.mListFishingRodPosition[self.mConfig.mFishingRodIndex][0],
                       self.mConfig.mListFishingRodPosition[self.mConfig.mFishingRodIndex][1])
+        log.info(f'Clicked {self.mConfig.mListFishingRodPosition[self.mConfig.mFishingRodIndex]}')
 
     def FixConfirm(self):
         self.AdbClick(self.mConfig.mConfirm[0],
                       self.mConfig.mConfirm[1])
+        log.info(f'Clicked {self.mConfig.mConfirm}')
 
     def ClickOk(self):
         self.AdbClick(self.mConfig.mOKButton[0],
                       self.mConfig.mOKButton[1])
+        log.info(f'Clicked {self.mConfig.mOKButton}')
 
     def CheckRod(self):
         time.sleep(self.mConfig.mDelayTime + 3)
@@ -159,9 +167,11 @@ class AutoFishing(QObject):
                 return False
             time.sleep(0.2)
             mCheck += 1
+        log.info(f'Done')
         return True
 
     def FixRod(self):
+        log.info(f'')
         self.StatusEmit("Cần câu bị hỏng. Auto đang sửa cần\n"
                         "Nếu không đúng hỏng cần, hãy cài đặt độ trễ từ 1 giây trở lên")
         self.OpenBackPack()
@@ -209,6 +219,7 @@ class AutoFishing(QObject):
             if mPreservationButtonPos is not None and mPreservationButtonPos is not False:
                 self.AdbClick(self.mConfig.mPreservationPos[0],
                               self.mConfig.mPreservationPos[1])
+                log.info(f'Click preservation button {self.mConfig.mPreservationPos}')
                 return
             mCheck += 1
             time.sleep(0.2)
@@ -227,10 +238,12 @@ class AutoFishing(QObject):
                 self.AdbClick(self.mConfig.mCastingRodPos[0],
                               self.mConfig.mCastingRodPos[1])
                 self.StatusEmit("Đã thả cần câu")
+                log.info(f'Clicked {self.mConfig.mCastingRodPos}')
                 return True
             mCheck += 1
             time.sleep(0.2)
         self.StatusEmit("Không tìm thấy nút ba lô. Đóng ba lô")
+        log.info(f'Cannot find backpack')
         self.CloseBackPack()
 
         mCheck = 0
@@ -244,6 +257,7 @@ class AutoFishing(QObject):
             if mPreservationButtonPos is not None and mPreservationButtonPos is not False:
                 self.AdbClick(self.mConfig.mPreservationPos[0],
                               self.mConfig.mPreservationPos[1])
+                log.info(f'Click preservation button {self.mConfig.mPreservationPos}')
                 return False
             mCheck += 1
             time.sleep(0.2)
@@ -315,10 +329,10 @@ class AutoFishing(QObject):
             if mRadius > self.mConfig.mRadiusFishingRegion * 3 / 4:
                 continue
             # loại box nhỏ tránh nhiễu
-            if cv2.contourArea(mContour) < self.mConfig.mMinContour * self.mConfig.mWindowRatio:
+            if cv2.contourArea(mContour) < self.mConfig.mMinContour:
                 continue
             # loai box qua to
-            if cv2.contourArea(mContour) > self.mConfig.mMaxContour * self.mConfig.mWindowRatio:
+            if cv2.contourArea(mContour) > self.mConfig.mMaxContour:
                 continue
             mFishArea = int(cv2.contourArea(mContour))
             cv2.rectangle(mCurrFrameRGB, (x, y), (x + w, y + h), self.mConfig.mTextColor, self.mConfig.mThickness,
@@ -359,6 +373,7 @@ class AutoFishing(QObject):
                 return
             self.mImageShow = mStaticFrameRGB
         self.StatusEmit("Đang đợi cá")
+        log.info(f'Waiting Mark')
         mPixelBase = None
         for i in range(10):
             try:
@@ -387,6 +402,7 @@ class AutoFishing(QObject):
                     mSkipFrame += 1
                 if mSkipFrame == 5:
                     mStopDetect = True
+                    log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
                         return
             try:
@@ -420,10 +436,12 @@ class AutoFishing(QObject):
             #             self.mImageShow[0:mTempImage.shape[0], 0: mTempImage.shape[1]] = mTempImage
             #     self.mSignalUpdateImageShow.emit()
             if mDiffRgb > self.mConfig.mDifferentColor:
+                log.info(f'Diff Rgb = {mDiffRgb}')
                 return
             time2 = time.time()
             time.sleep(0.005)
         self.StatusEmit("Không phát hiện dấu chấm than")
+        log.info(f'Cannot find mark')
         return
 
     def PullFishingRod(self):
@@ -437,6 +455,7 @@ class AutoFishing(QObject):
             except (ValueError, Exception):
                 return
             self.StatusEmit("Đang kéo cần câu")
+            log.info(f'Clicked {self.mAbsPullingRodPos}')
             return
         else:
             time1 = time.time()
@@ -444,6 +463,7 @@ class AutoFishing(QObject):
                           self.mConfig.mPullingRodPos[1])
             timeDelay = time.time() - time1
             self.StatusEmit(f'Đang kéo cần câu. Độ trễ giật cần {round(timeDelay, 2)} giây')
+            log.info(f'Clicked {self.mAbsPullingRodPos}. Delay = {round(timeDelay, 2)} sec')
             if timeDelay > 0.5:
                 self.mCheckAdbDelay += 1
                 if self.mCheckAdbDelay <= 3:
@@ -473,6 +493,7 @@ class AutoFishing(QObject):
 
             if mBackpackPos is not None:
                 self.StatusEmit("Câu thất bại")
+                log.info(f'Fishing fail')
                 return
 
             mPreservationPos = self.FindImage(self.mConfig.mPreservationImgPath,
@@ -483,10 +504,12 @@ class AutoFishing(QObject):
                 self.FishCount()
                 self.AdbClick(self.mConfig.mPreservationPos[0],
                               self.mConfig.mPreservationPos[1])
+                log.info(f'Fishing Success. Click preservation {self.mConfig.mPreservationPos}')
                 return
             time.sleep(0.1)
             time2 = time.time()
         self.StatusEmit("Kiểm tra kết quả bị lỗi")
+        log.info(f'Check fishing result error')
         return
 
     def FishCount(self):
@@ -496,6 +519,7 @@ class AutoFishing(QObject):
                             self.mConfig.mFishImgRegion[3]]
         mFishImage = self.ScreenshotWindowRegion(mFishImageRegion)
         if mFishImage is False:
+            log.info(f'Screen shot fish error, region = {mFishImageRegion}')
             return False
         self.mAllFish += 1
         mPixelCheckTypeFishPosition = [self.mConfig.mCheckTypeFishPos[0] - self.mConfig.mFishImgRegion[0],
@@ -504,13 +528,18 @@ class AutoFishing(QObject):
                                          mPixelCheckTypeFishPosition[0]]
         if self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mVioletColorBGR) < 10:
             self.mVioletFish += 1
+            log.info(f'VioletFish = {self.mVioletFish}')
         elif self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mBlueColorBGR) < 10:
             self.mBlueFish += 1
+            log.info(f'BlueFish = {self.mBlueFish}')
         elif self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mGreenColorBGR) < 10:
             self.mGreenFish += 1
+            log.info(f'GreenFish = {self.mGreenFish}')
         elif self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mGrayColorBGR) < 10:
             self.mGrayFish += 1
+            log.info(f'GrayFish = {self.mGrayFish}')
         else:
+            log.info(f'No fish')
             pass
         self.mImageShow = mFishImage.copy()
         # Hiện ảnh cá câu được lên app auto
@@ -545,6 +574,7 @@ class AutoFishing(QObject):
         self.mMark[0] = mMousePos.x
         self.mMark[1] = mMousePos.y
         self.StatusEmit(f'Vị trí dấu chấm than đã cài đặt:\n{mMousePos}')
+        log.info(f'Mark position = {mMousePos}')
 
     def SetFishingBobberPos(self):
         if self.mEmulatorBox is None:
@@ -582,29 +612,35 @@ class AutoFishing(QObject):
                 or self.mFishingRegion[1] + self.mFishingRegion[3] > self.mScreenSize.height:
             self.MsgEmit("Vị trí phao câu quá gần viền màn hình")
         self.StatusEmit(f'Vị trí phao câu đã cài đặt:\n{mMousePos}')
+        log.info(f'Bobber position = {mMousePos}')
 
     def CheckRegionEmulator(self):
         self.mScreenSize = pyautogui.size()
         self.mEmulatorBox = None
         self.mEmulatorWindow = None
         self.StatusEmit(f'Kích thước màn hình =\n{self.mScreenSize}')
+        log.info(f'Screen size = {self.mScreenSize}')
         try:
             mEmulatorWindows = pyautogui.getWindowsWithTitle(self.mConfig.mWindowName)
         except (ValueError, Exception):
             self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}')
+            log.info(f'Cannot find window name {self.mConfig.mWindowName}')
             return False
         if len(mEmulatorWindows) > 0:
             self.mEmulatorWindow = mEmulatorWindows[0]
         else:
             self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}')
+            log.info(f'Cannot find window name {self.mConfig.mWindowName}')
             return False
         self.mEmulatorBox = self.mEmulatorWindow.box
         self.mEmulatorWindow.activate()
         self.StatusEmit(f'Đã tìm thấy cửa sổ giả lập\n{self.mEmulatorBox}')
+        log.info(f'Found {self.mConfig.mWindowName}, size = {self.mEmulatorBox}')
         mEmulatorSize = self.mConfig.mEmulatorSize
         if abs(mEmulatorSize[0] - self.mEmulatorBox.width) > 100 or abs(
                 mEmulatorSize[1] - self.mEmulatorBox.height) > 100:
             self.MsgEmit(f'Cửa sổ giả lập {self.mEmulatorBox.width}x{self.mEmulatorBox.height} không phù hợp')
+            log.info(f'Emulator size {self.mEmulatorBox.width}x{self.mEmulatorBox.height} not suitable')
             return False
         if self.mEmulatorBox.top < 0:
             self.mEmulatorWindow.activate()
@@ -623,6 +659,7 @@ class AutoFishing(QObject):
             self.mEmulatorWindow.move(self.mScreenSize.width - (self.mEmulatorBox.left + self.mEmulatorBox.width), 0)
             # self.StatusEmit("Cửa sổ giả lập bị khuất về bên phải\nTự động di chuyển")
         self.mEmulatorBox = self.mEmulatorWindow.box
+        log.info(f'Emulator box {self.mEmulatorBox}')
 
         # Tọa độ tuyệt đối
         self.mAbsPullingRodPos = self.ConvertCoordinates(self.mConfig.mPullingRodPos)
@@ -631,17 +668,20 @@ class AutoFishing(QObject):
         self.mAbsBackPackRegion[1] = mAbsBackpackPos[1] - self.mConfig.mBackpackRec[1] // 2
         self.mAbsBackPackRegion[2] = self.mConfig.mBackpackRec[0]
         self.mAbsBackPackRegion[3] = self.mConfig.mBackpackRec[1]
+        log.info(f'Abs Pulling Rod Position = {self.mAbsBackPackRegion}')
 
         mAbsPreservationPos = self.ConvertCoordinates(self.mConfig.mPreservationPos)
         self.mAbsPreservationRegion[2] = self.mConfig.mPreservationRec[0]
         self.mAbsPreservationRegion[3] = self.mConfig.mPreservationRec[1]
         self.mAbsPreservationRegion[0] = mAbsPreservationPos[0] - self.mConfig.mPreservationRec[0] // 2
         self.mAbsPreservationRegion[1] = mAbsPreservationPos[1] - self.mConfig.mPreservationRec[1] // 2
+        log.info(f'Abs Preservation Region = {self.mAbsPreservationRegion}')
 
         return True
 
     def StartAdbServer(self):
         self.StatusEmit("Đang khởi tạo adb-server")
+        log.info(f'')
         try:
             subprocess.call(f'{self.mConfig.mAdbPath} devices', creationflags=0x08000000)
         except (ValueError, Exception):
@@ -669,6 +709,7 @@ class AutoFishing(QObject):
             self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập')
             return False
         else:
+            log.info(f'Complete')
             for tempDevice in self.mAdbDevices:
                 self.mListAdbDevicesSerial.append(tempDevice.serial)
         return True
@@ -679,7 +720,9 @@ class AutoFishing(QObject):
                 self.mAdbDevice = self.mAdbDevices[index]
                 break
         if self.mAdbDevice is None:
+            log.info(f'Device not found')
             return False
+        log.info(f'Connected {self.mAdbDevice.serial}')
         return True
 
     def AdbClick(self, mCoordinateX, mCoordinateY):
@@ -716,6 +759,7 @@ class AutoFishing(QObject):
         time.sleep(self.mConfig.mDelayTime)
         while self.mAutoFishRunning is True:
             time.sleep(self.mConfig.mDelayTime)
+            log.info('****************************************************************************')
             if self.mAutoFishRunning is False:
                 break
             mOutputCastRod = self.CastFishingRod()
