@@ -280,6 +280,8 @@ class MainWindow(QMainWindow):
         if mCountDownTime < 0:
             log.info(f'Shutting down PC')
             subprocess.call(["shutdown", "/s"], creationflags=0x08000000)
+            self.mAutoFishing.mCheckMouseRunning = False
+            self.mAutoFishing.mAutoFishRunning = False
 
     def SlotShowMarkPosition(self, x: int, y: int):
         self.uic.lcdMarkX.display(str(x))
