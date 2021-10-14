@@ -8,9 +8,6 @@ import logging as log
 HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
 
-LICENSE_KAYTY = "16d70385-fd7d-4212-bb06-949403f03ed4"
-LICENSE_DP_FISHING = "09556f22-41bc-452e-93a4-a6e028fc52ff"
-
 # Statics config cho size 960x540
 DEFAULT_EMULATOR_SIZE = [960, 540]
 RADIUS_FISHING_REGION = 150
@@ -88,58 +85,12 @@ class Config(metaclass=SingletonMeta):
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
         self.mListBlurArg = [19, 7, 5, 3]
 
-        self.mAppTitle = "Auto Fishing Free License"
-        self.mLicenseText = "Free License"
-        self.mFacebookLink = "https://www.facebook.com/nth.autogame"
+        self.mAppTitle = "NTH Auto Game Play Together"
+        self.mLicenseText = "Để cập nhật thông tin mới nhất và góp ý cho tác giả, vui lòng bấm vào biểu tượng Youtube hoặc Facebook tại đây"
+        self.mFacebookLink = "https://www.facebook.com/NTH-Auto-Game-106164441850257"
         self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
-        self.mAppLogo = LOGO_AUTO_FISHING
-        self.mIcon = ICON_AUTO_FISHING
-
-        if self.mLicense == LICENSE_KAYTY:
-            self.mListBackpackImgPath = [f'{self.mDataPath}backpack1920.png',
-                                         f'{self.mDataPath}backpack1280.png',
-                                         f'{self.mDataPath}backpack960.png',
-                                         f'{self.mDataPath}backpack640.png',
-                                         f'{self.mDataPath}backpack480.png']
-
-            self.mListPreservationImgPath = [f'{self.mDataPath}preservation1920.png',
-                                             f'{self.mDataPath}preservation1280.png',
-                                             f'{self.mDataPath}preservation960.png',
-                                             f'{self.mDataPath}preservation640.png',
-                                             f'{self.mDataPath}preservation480.png']
-
-            self.mListEmulatorSize = [[1920, 1080], [1280, 720], [960, 540], [640, 360], [480, 270]]
-            self.mListStrEmulatorSize = ["1920x1080", "1280x720", "960x540", "640x360", "480x270"]
-            self.mListBlurArg = [31, 19, 7, 5, 3]
-
-            self.mAppTitle = "Auto Lươn Thị Pre"
-            self.mLicenseText = "License by Lươn Thị"
-            self.mFacebookLink = "https://www.facebook.com/groups/kayty"
-            self.mYoutubeLink = "https://www.youtube.com/channel/UCHMv61r6ZZwiJdNGUlLt5NQ"
-            self.mAppLogo = LOGO_KAYTY
-            self.mIcon = ICON_KAYTY
-
-        if self.mLicense == LICENSE_DP_FISHING:
-            self.mListBackpackImgPath = [f'{self.mDataPath}backpack1280.png',
-                                         f'{self.mDataPath}backpack960.png',
-                                         f'{self.mDataPath}backpack640.png',
-                                         f'{self.mDataPath}backpack480.png']
-
-            self.mListPreservationImgPath = [f'{self.mDataPath}preservation1280.png',
-                                             f'{self.mDataPath}preservation960.png',
-                                             f'{self.mDataPath}preservation640.png',
-                                             f'{self.mDataPath}preservation480.png']
-
-            self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
-            self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
-            self.mListBlurArg = [19, 7, 5, 3]
-
-            self.mAppTitle = "DP Fishing VN"
-            self.mLicenseText = "License by DP Fishing VN"
-            self.mFacebookLink = "https://www.facebook.com/groups/1010940139728287"
-            self.mYoutubeLink = "https://www.youtube.com/channel/UCFytKXnx94hS5Jkd34C4MXw"
-            self.mAppLogo = LOGO_DP_FISHING
-            self.mIcon = ICON_DP_FISHING
+        self.mAppLogo = LOGO_NTH_AUTO_GAME
+        self.mIcon = ICON_NTH_AUTO_GAME
 
         self.mYoutubeImgPath = f'{self.mDataPath}youtube.png'
         self.mFacebookImgPath = f'{self.mDataPath}facebook.png'

@@ -12,3 +12,6 @@
 
 # Build app to file .exe for windows:
 pyinstaller main.py --onefile --noconsole --icon="data/AutoFishing.ico" --name=AutoFishing
+
+# Branch 2.x.x license NTH Auto Game 
+remove captcha
