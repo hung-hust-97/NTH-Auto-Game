@@ -2,10 +2,12 @@ import time
 import threading
 import subprocess
 import base64
+import urllib.request
+import sys
 
 import cv2
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
-from PyQt5.QtCore import Qt, QTimer, QUrl, QSize, QCoreApplication, QByteArray
+from PyQt5.QtCore import Qt, QTimer, QUrl, QSize, QCoreApplication, QByteArray, pyqtSignal
 from PyQt5 import QtGui
 
 from ui.UiMainWindow import Ui_MainWindow
@@ -27,11 +29,32 @@ class MainWindow(QMainWindow):
         self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mTimer = QTimer()
         self.mTimer.setObjectName("AutoFishingTimer")
-        self.OpenApp()
+
+        self.SlotOpenApp()
+        self.SlotCheckUpdate()
 
     def __del__(self):
         self.mAutoFishing.mAutoFishRunning = False
         self.mAutoFishing.mCheckMouseRunning = False
+
+    def SlotCheckUpdate(self):
+        listCurrentVersion = self.mConfig.mVersion.split('.')
+        intCurrentVersion = int(listCurrentVersion[0] + listCurrentVersion[1] + listCurrentVersion[2])
+
+        response = urllib.request.urlopen(
+            "https://drive.google.com/uc?export=download&id=1JMo9ghFQWGcjlOkSMGEyemC7OJt_MSfy")
+        data = response.read()
+        strNewVersion = str(data).split("'")[1]
+        listNewVersion = strNewVersion.split('.')
+        intNewVersion = int(listNewVersion[0] + listNewVersion[1] + listNewVersion[2])
+        if intNewVersion > intCurrentVersion:
+            mMsgBox = QMessageBox()
+            mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
+            reply = mMsgBox.question(self, 'Thông báo', f"Phiên bản đang sử dụng  {self.mConfig.mVersion}\nĐã có phiên bản mới {strNewVersion}\nĐồng ý truy cập fanpage để tải phiên bản mới?",
+                                         mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
+            if reply == mMsgBox.Yes:
+                self.SlotOpenFacebook()
+                sys.exit()
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Thông báo', "Chắc chắn thoát?",
@@ -46,7 +69,7 @@ class MainWindow(QMainWindow):
     def Show(self):
         self.show()
 
-    def OpenApp(self):
+    def SlotOpenApp(self):
         self.setWindowTitle(QCoreApplication.translate("MainWindow", self.mConfig.mAppTitle))
 
         # Hien thi cac du lieu da luu trong config.ini
@@ -347,7 +370,7 @@ class MainWindow(QMainWindow):
             width = int(height * 200 / width)
             height = 200
 
-        mMatImage = cv2.resize(mMatImage, (width, height), interpolation = cv2.INTER_AREA)
+        mMatImage = cv2.resize(mMatImage, (width, height), interpolation=cv2.INTER_AREA)
         mQImage = QtGui.QImage(mMatImage.data, width, height, QtGui.QImage.Format_RGB888).rgbSwapped()
         mQPixmap = QtGui.QPixmap.fromImage(mQImage).scaled(200, 200, Qt.KeepAspectRatio, Qt.FastTransformation)
         self.uic.lblShowFish.setPixmap(mQPixmap)

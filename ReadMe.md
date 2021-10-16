@@ -6,6 +6,7 @@
     pyinstaller
     PyQt5
     pywin32
+    urllib3
 
     SDK Platform-Tools Android for adb-server
     https://developer.android.com/studio/releases/platform-tools

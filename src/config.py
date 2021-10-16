@@ -70,6 +70,7 @@ class Config(metaclass=SingletonMeta):
         self.mDelayTime = self.mConfig.getfloat('delay_time')
         self.mLicense = self.mConfig.get('license')
         self.mDebugMode = self.mConfig.getboolean('debug_mode')
+        self.mVersion = self.mConfig.get('version')
 
         self.mListBackpackImgPath = [f'{self.mDataPath}backpack1280.png',
                                      f'{self.mDataPath}backpack960.png',
@@ -292,6 +293,7 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)
         mNewConfig['CONFIG']['license'] = self.mConfig.get("license")
         mNewConfig['CONFIG']['debug_mode'] = self.mConfig.get('debug_mode')
+        mNewConfig['CONFIG']['version'] = self.mConfig.get('version')
 
         with open(self.mConfigPath, 'w') as mConfigFile:
             mNewConfig.write(mConfigFile)
