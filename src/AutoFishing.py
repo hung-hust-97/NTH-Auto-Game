@@ -360,18 +360,19 @@ class AutoFishing(QObject):
         return mScreenShotMatGray, mScreenShotMatRGB
 
     def CheckMark(self):
-        for i in range(10):
-            time.sleep(0.5)
-            # break point thread
-            if self.mAutoFishRunning is False:
-                return
-
         mStaticFrameGray = None
         if self.mConfig.mFishDetectionCheck is True:
             mStaticFrameGray, mStaticFrameRGB = self.ScreenshotFishingRegion()
             if mStaticFrameRGB is False:
                 return
             self.mImageShow = mStaticFrameRGB
+
+        for i in range(self.mConfig.mWaitingFishTime * 2):
+            time.sleep(0.5)
+            # break point thread
+            if self.mAutoFishRunning is False:
+                return
+
         self.StatusEmit("Đang đợi cá")
         log.info(f'Waiting Mark')
         mPixelBase = None
@@ -388,7 +389,7 @@ class AutoFishing(QObject):
         time2 = time.time()
         mStopDetect = False
         mSkipFrame = 0
-        while (time2 - time1) < self.mConfig.mWaitingFishTime:
+        while (time2 - time1) < self.mConfig.mWaitingMarkTime:
             # break point thread
             if self.mAutoFishRunning is False:
                 return
@@ -480,7 +481,7 @@ class AutoFishing(QObject):
             return
         time1 = time.time()
         time2 = time.time()
-        while (time2 - time1) < self.mConfig.mPullingFishTime:
+        while (time2 - time1) < 15:
             # check point break auto fishing thread
             if self.mAutoFishRunning is False:
                 return

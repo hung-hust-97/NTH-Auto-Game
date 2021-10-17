@@ -61,8 +61,8 @@ class Config(metaclass=SingletonMeta):
         self.mWindowName = self.mConfig['window_name']
         self.mEmulatorSizeId = self.mConfig.getint('emulator_size_id')
         self.mFreeMouseCheck = self.mConfig.getboolean('free_mouse')
+        self.mWaitingMarkTime = self.mConfig.getint('waiting_mark_time')
         self.mWaitingFishTime = self.mConfig.getint('waiting_fish_time')
-        self.mPullingFishTime = self.mConfig.getint('pulling_fish_time')
         self.mFishDetectionCheck = self.mConfig.getboolean('fish_detection')
         self.mShowFishCheck = self.mConfig.getboolean('show_fish')
         self.mFishSize = self.mConfig.getint('fish_size')
@@ -248,14 +248,14 @@ class Config(metaclass=SingletonMeta):
         self.mFreeMouseCheck = mFreeMouse
         self.__mMutex.release()
 
+    def SetWaitingMarkTime(self, mWaitingMarkTime: int):
+        self.__mMutex.acquire()
+        self.mWaitingMarkTime = mWaitingMarkTime
+        self.__mMutex.release()
+
     def SetWaitingFishTime(self, mWaitingFishTime: int):
         self.__mMutex.acquire()
         self.mWaitingFishTime = mWaitingFishTime
-        self.__mMutex.release()
-
-    def SetPullingFishTime(self, mPullingFishTime: int):
-        self.__mMutex.acquire()
-        self.mPullingFishTime = mPullingFishTime
         self.__mMutex.release()
 
     def SetFishDetection(self, mFishDetectionCheck: bool):
@@ -284,8 +284,8 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['window_name'] = self.mWindowName
         mNewConfig['CONFIG']['emulator_size_id'] = str(self.mEmulatorSizeId)
         mNewConfig['CONFIG']['free_mouse'] = str(self.mFreeMouseCheck)
+        mNewConfig['CONFIG']['waiting_mark_time'] = str(self.mWaitingMarkTime)
         mNewConfig['CONFIG']['waiting_fish_time'] = str(self.mWaitingFishTime)
-        mNewConfig['CONFIG']['pulling_fish_time'] = str(self.mPullingFishTime)
         mNewConfig['CONFIG']['fish_detection'] = str(self.mFishDetectionCheck)
         mNewConfig['CONFIG']['show_fish'] = str(self.mShowFishCheck)
         mNewConfig['CONFIG']['fish_size'] = str(self.mFishSize)

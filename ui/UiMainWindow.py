@@ -75,7 +75,7 @@ class Ui_MainWindow(object):
         self.btnFacebook.setObjectName("btnFacebook")
         self.row6.addWidget(self.btnFacebook)
         self.gridLayoutWidget_2 = QtWidgets.QWidget(self.centralwidget)
-        self.gridLayoutWidget_2.setGeometry(QtCore.QRect(0, 340, 351, 71))
+        self.gridLayoutWidget_2.setGeometry(QtCore.QRect(0, 340, 354, 71))
         self.gridLayoutWidget_2.setObjectName("gridLayoutWidget_2")
         self.row4 = QtWidgets.QGridLayout(self.gridLayoutWidget_2)
         self.row4.setContentsMargins(2, 2, 2, 2)
@@ -202,6 +202,31 @@ class Ui_MainWindow(object):
         self.lblTimeWaitMark.setFont(font)
         self.lblTimeWaitMark.setObjectName("lblTimeWaitMark")
         self.col2_1_row1.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.lblTimeWaitMark)
+        self.txtWaitingMarkTime = QtWidgets.QTextEdit(self.gridLayoutWidget_4)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.txtWaitingMarkTime.sizePolicy().hasHeightForWidth())
+        self.txtWaitingMarkTime.setSizePolicy(sizePolicy)
+        self.txtWaitingMarkTime.setMinimumSize(QtCore.QSize(50, 25))
+        self.txtWaitingMarkTime.setMaximumSize(QtCore.QSize(50, 25))
+        font = QtGui.QFont()
+        font.setPointSize(7)
+        self.txtWaitingMarkTime.setFont(font)
+        self.txtWaitingMarkTime.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.txtWaitingMarkTime.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.txtWaitingMarkTime.setObjectName("txtWaitingMarkTime")
+        self.col2_1_row1.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.txtWaitingMarkTime)
+        self.lblTimePullingFish = QtWidgets.QLabel(self.gridLayoutWidget_4)
+        self.lblTimePullingFish.setMinimumSize(QtCore.QSize(80, 25))
+        self.lblTimePullingFish.setMaximumSize(QtCore.QSize(999, 25))
+        font = QtGui.QFont()
+        font.setPointSize(7)
+        font.setBold(False)
+        font.setWeight(50)
+        self.lblTimePullingFish.setFont(font)
+        self.lblTimePullingFish.setObjectName("lblTimePullingFish")
+        self.col2_1_row1.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.lblTimePullingFish)
         self.txtWaitingFishTime = QtWidgets.QTextEdit(self.gridLayoutWidget_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -216,32 +241,7 @@ class Ui_MainWindow(object):
         self.txtWaitingFishTime.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.txtWaitingFishTime.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.txtWaitingFishTime.setObjectName("txtWaitingFishTime")
-        self.col2_1_row1.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.txtWaitingFishTime)
-        self.lblTimePullingFish = QtWidgets.QLabel(self.gridLayoutWidget_4)
-        self.lblTimePullingFish.setMinimumSize(QtCore.QSize(80, 25))
-        self.lblTimePullingFish.setMaximumSize(QtCore.QSize(999, 25))
-        font = QtGui.QFont()
-        font.setPointSize(7)
-        font.setBold(False)
-        font.setWeight(50)
-        self.lblTimePullingFish.setFont(font)
-        self.lblTimePullingFish.setObjectName("lblTimePullingFish")
-        self.col2_1_row1.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.lblTimePullingFish)
-        self.txtPullingFishTime = QtWidgets.QTextEdit(self.gridLayoutWidget_4)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.txtPullingFishTime.sizePolicy().hasHeightForWidth())
-        self.txtPullingFishTime.setSizePolicy(sizePolicy)
-        self.txtPullingFishTime.setMinimumSize(QtCore.QSize(50, 25))
-        self.txtPullingFishTime.setMaximumSize(QtCore.QSize(50, 25))
-        font = QtGui.QFont()
-        font.setPointSize(7)
-        self.txtPullingFishTime.setFont(font)
-        self.txtPullingFishTime.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.txtPullingFishTime.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.txtPullingFishTime.setObjectName("txtPullingFishTime")
-        self.col2_1_row1.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.txtPullingFishTime)
+        self.col2_1_row1.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.txtWaitingFishTime)
         self.lblDelayTime = QtWidgets.QLabel(self.gridLayoutWidget_4)
         self.lblDelayTime.setMinimumSize(QtCore.QSize(80, 25))
         self.lblDelayTime.setMaximumSize(QtCore.QSize(999, 25))
@@ -696,19 +696,19 @@ class Ui_MainWindow(object):
         self.lblNumFishing.setText(_translate("MainWindow", "Lượt câu"))
         self.lblNumFish.setText(_translate("MainWindow", "Vật phẩm"))
         self.lblTime.setText(_translate("MainWindow", "Thời gian"))
-        self.lblTimeWaitMark.setText(_translate("MainWindow", "Chờ cá (giây)"))
+        self.lblTimeWaitMark.setText(_translate("MainWindow", "Chu kỳ câu (s)"))
+        self.txtWaitingMarkTime.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:7pt; font-weight:400; font-style:normal;\">\n"
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">40</span></p></body></html>"))
+        self.lblTimePullingFish.setText(_translate("MainWindow", "Chờ cá đến (s)"))
         self.txtWaitingFishTime.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:7pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">60</span></p></body></html>"))
-        self.lblTimePullingFish.setText(_translate("MainWindow", "Kéo cá (giây)"))
-        self.txtPullingFishTime.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:7pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">15</span></p></body></html>"))
-        self.lblDelayTime.setText(_translate("MainWindow", "Độ trễ (giây)"))
+"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">5</span></p></body></html>"))
+        self.lblDelayTime.setText(_translate("MainWindow", "Trễ thao tác (s)"))
         self.txtDelayTime.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
@@ -720,7 +720,7 @@ class Ui_MainWindow(object):
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:7pt; font-weight:400; font-style:normal;\">\n"
 "<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">1</span></p></body></html>"))
-        self.lblMinFishSize.setText(_translate("MainWindow", "Bỏ qua cá dưới"))
+        self.lblMinFishSize.setText(_translate("MainWindow", "Bỏ qua cá bé hơn"))
         self.txtMinFishSize.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

@@ -50,8 +50,9 @@ class MainWindow(QMainWindow):
         if intNewVersion > intCurrentVersion:
             mMsgBox = QMessageBox()
             mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
-            reply = mMsgBox.question(self, 'Thông báo', f"Phiên bản đang sử dụng  {self.mConfig.mVersion}\nĐã có phiên bản mới {strNewVersion}\nĐồng ý truy cập fanpage để tải phiên bản mới?",
-                                         mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
+            reply = mMsgBox.question(self, 'Thông báo',
+                                     f"Phiên bản đang sử dụng  {self.mConfig.mVersion}\nĐã có phiên bản mới {strNewVersion}\nĐồng ý truy cập fanpage để tải phiên bản mới?",
+                                     mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
             if reply == mMsgBox.Yes:
                 self.SlotOpenFacebook()
                 sys.exit()
@@ -80,13 +81,13 @@ class MainWindow(QMainWindow):
         self.uic.txtFishingRodPosition.setAlignment(Qt.AlignCenter)
         # self.uic.txtFishingRodPosition.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
-        self.uic.txtPullingFishTime.setText(str(self.mConfig.mPullingFishTime))
-        self.uic.txtPullingFishTime.setAlignment(Qt.AlignCenter)
-        # self.uic.txtPullingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
-
         self.uic.txtWaitingFishTime.setText(str(self.mConfig.mWaitingFishTime))
         self.uic.txtWaitingFishTime.setAlignment(Qt.AlignCenter)
         # self.uic.txtWaitingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
+
+        self.uic.txtWaitingMarkTime.setText(str(self.mConfig.mWaitingMarkTime))
+        self.uic.txtWaitingMarkTime.setAlignment(Qt.AlignCenter)
+        # self.uic.txtWaitingMarkTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtMinFishSize.setText(str(self.mConfig.mFishSize))
         self.uic.txtMinFishSize.setAlignment(Qt.AlignCenter)
@@ -188,7 +189,8 @@ class MainWindow(QMainWindow):
             return
 
         self.UpdateListAdbAddress()
-        self.SaveConfig()
+        if self.SaveConfig() is False:
+            return
         self.SlotShowMsgBox("Kết nối cửa sổ giả lập thành công\nChọn địa chỉ ADB của giả lập và kết nối")
         return
 
@@ -212,8 +214,8 @@ class MainWindow(QMainWindow):
             return
         log.info(f'mWindowName = {self.mConfig.mWindowName}')
         log.info(f'mFreeMouseCheck = {self.mConfig.mFreeMouseCheck}')
-        log.info(f'mWaitingFishTime = {self.mConfig.mWaitingFishTime}')
-        log.info(f'mPullingFishTime = {self.mConfig.mPullingFishTime}')
+        log.info(f'mWaitingFishTime = {self.mConfig.mWaitingMarkTime}')
+        log.info(f'mPullingFishTime = {self.mConfig.mWaitingFishTime}')
         log.info(f'mFishDetectionCheck = {self.mConfig.mFishDetectionCheck}')
         log.info(f'mShowFishCheck = {self.mConfig.mShowFishCheck}')
         log.info(f'mFishingRodIndex = {self.mConfig.mFishingRodIndex}')
@@ -227,8 +229,8 @@ class MainWindow(QMainWindow):
         self.uic.btnGetBobberPosition.setDisabled(True)
 
         # Hide text box
-        self.uic.txtPullingFishTime.setDisabled(True)
         self.uic.txtWaitingFishTime.setDisabled(True)
+        self.uic.txtWaitingMarkTime.setDisabled(True)
         self.uic.txtFishingRodPosition.setDisabled(True)
         self.uic.txtMinFishSize.setDisabled(True)
         self.uic.txtShutdownTime.setDisabled(True)
@@ -422,8 +424,8 @@ class MainWindow(QMainWindow):
             self.uic.cbFishDetection.setDisabled(False)
 
             # Show all text box
-            self.uic.txtPullingFishTime.setDisabled(False)
             self.uic.txtWaitingFishTime.setDisabled(False)
+            self.uic.txtWaitingMarkTime.setDisabled(False)
             self.uic.txtFishingRodPosition.setDisabled(False)
             self.uic.txtMinFishSize.setDisabled(False)
             self.uic.txtShutdownTime.setDisabled(False)
@@ -452,16 +454,16 @@ class MainWindow(QMainWindow):
         QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeLink))
 
     def SaveConfig(self):
-        if (self.uic.txtPullingFishTime.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Thời gian kéo cá sai định dạng")
+        if (self.uic.txtWaitingMarkTime.toPlainText()).isnumeric() is False:
+            self.SlotShowMsgBox("Thời gian chờ chấm than sai định dạng")
             return False
 
         if (self.uic.txtWaitingFishTime.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Thời gian chờ cá sai định dạng")
+            self.SlotShowMsgBox("Thời gian chờ cá đến sai định dạng")
             return False
 
         if (self.uic.txtFishingRodPosition.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Thời gian chờ cá sai định dạng")
+            self.SlotShowMsgBox("Vị trí cần câu cá sai định dạng")
             return False
 
         if int(self.uic.txtFishingRodPosition.toPlainText()) not in range(1, 7, 1):
@@ -485,8 +487,8 @@ class MainWindow(QMainWindow):
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
         self.mConfig.SetShutdownTime(int(self.uic.txtShutdownTime.toPlainText()))
         self.mConfig.SetFishingRod(int(self.uic.txtFishingRodPosition.toPlainText()))
-        self.mConfig.SetPullingFishTime(int(self.uic.txtPullingFishTime.toPlainText()))
         self.mConfig.SetWaitingFishTime(int(self.uic.txtWaitingFishTime.toPlainText()))
+        self.mConfig.SetWaitingMarkTime(int(self.uic.txtWaitingMarkTime.toPlainText()))
         self.mConfig.SetFishSize(int(self.uic.txtMinFishSize.toPlainText()))
 
         self.mConfig.SetShutdownCheckBox(self.uic.cbShutdownPC.isChecked())
