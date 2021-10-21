@@ -10,6 +10,7 @@ from src.config import Config
 from PyQt5.QtCore import pyqtSignal, QObject
 import subprocess
 import logging as log
+from src.Classification import Classification
 
 
 class AutoFishing(QObject):
@@ -24,10 +25,17 @@ class AutoFishing(QObject):
     def __init__(self):
         QObject.__init__(self, parent=None)
         self.mConfig = Config()
+        self.mCaptchaRecognition = Classification()
+
         self.mFishingNum = 0
         self.mAbsPullingRodPos = [0, 0]
         self.mAbsBackPackRegion = [0, 0, 0, 0]
         self.mAbsPreservationRegion = [0, 0, 0, 0]
+        self.mListAbsCaptchaRegion = [[0, 0, 0, 0],
+                                      [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+                                      [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],
+                                      [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+        self.mAbsOKCaptchaRegion = [0, 0, 0, 0]
         self.mMark = [0, 0]
         self.mScreenSize = [0, 0]
         self.mFishingRegion = [0, 0, 0, 0]
@@ -42,6 +50,8 @@ class AutoFishing(QObject):
         self.mEmulatorBox = None
         self.mImageShow = None
         self.mCheckAdbDelay = 0
+        self.mFixRodTime = 0
+        self.mCaptchaHandleTime = 0
 
         # Khai báo số cá các loại
         self.mAllFish = 0
@@ -163,15 +173,16 @@ class AutoFishing(QObject):
                                           self.mAbsBackPackRegion,
                                           self.mConfig.mConfidence)
             if mBackpackPos is not None and mBackpackPos is not False:
+                log.info(f'CheckRod False')
                 self.FixRod()
                 return False
             time.sleep(0.2)
             mCheck += 1
-        log.info(f'Done')
+        log.info(f'CheckRod True')
         return True
 
     def FixRod(self):
-        log.info(f'')
+        log.info(f'Fix Rod Start')
         self.StatusEmit("Cần câu bị hỏng. Auto đang sửa cần\n"
                         "Nếu không đúng hỏng cần, hãy cài đặt độ trễ từ 1 giây trở lên")
         self.OpenBackPack()
@@ -678,6 +689,24 @@ class AutoFishing(QObject):
         self.mAbsPreservationRegion[1] = mAbsPreservationPos[1] - self.mConfig.mPreservationRec[1] // 2
         log.info(f'Abs Preservation Region = {self.mAbsPreservationRegion}')
 
+        for i in range(len(self.mConfig.mListCaptchaRegion)):
+            mCaptchaCornerPos = [self.mConfig.mListCaptchaRegion[i][0],
+                                 self.mConfig.mListCaptchaRegion[i][1]]
+            mAbsCaptchaCornerPos = self.ConvertCoordinates(mCaptchaCornerPos)
+            self.mListAbsCaptchaRegion[i][0] = mAbsCaptchaCornerPos[0]
+            self.mListAbsCaptchaRegion[i][1] = mAbsCaptchaCornerPos[1]
+            self.mListAbsCaptchaRegion[i][2] = self.mConfig.mListCaptchaRegion[i][2]
+            self.mListAbsCaptchaRegion[i][3] = self.mConfig.mListCaptchaRegion[i][3]
+
+        log.info(f'List Abs Captcha Region = {self.mListAbsCaptchaRegion}')
+
+        mAbsOKCaptchaPos = self.ConvertCoordinates(self.mConfig.mOKCaptchaPos)
+        self.mAbsOKCaptchaRegion[2] = self.mConfig.mOKCaptchaRec[0]
+        self.mAbsOKCaptchaRegion[3] = self.mConfig.mOKCaptchaRec[1]
+        self.mAbsOKCaptchaRegion[0] = mAbsOKCaptchaPos[0] - self.mConfig.mOKCaptchaRec[0] // 2
+        self.mAbsOKCaptchaRegion[1] = mAbsOKCaptchaPos[1] - self.mConfig.mOKCaptchaRec[1] // 2
+        log.info(f'Abs OK Captcha Region = {self.mAbsOKCaptchaRegion}')
+
         return True
 
     def StartAdbServer(self):
@@ -739,7 +768,6 @@ class AutoFishing(QObject):
 
     def StartAuto(self):
         self.mAutoFishRunning = True
-
         if self.mEmulatorBox is None:
             self.MsgEmit("Chưa kết nối cửa sổ giả lập")
             return
@@ -759,15 +787,28 @@ class AutoFishing(QObject):
 
         time.sleep(self.mConfig.mDelayTime)
         while self.mAutoFishRunning is True:
+            gc.collect()
             time.sleep(self.mConfig.mDelayTime)
-            log.info('****************************************************************************')
+            log.info('********************************************************')
+            log.info(f'Fishing time {self.mFishingNum + 1}')
             if self.mAutoFishRunning is False:
                 break
+            mOutputCheckCaptcha = self.CheckCaptcha()
+            if mOutputCheckCaptcha is False:
+                self.CaptchaHandle()
+                self.mCaptchaHandleTime += 1
+                if self.mCaptchaHandleTime == 8:
+                    self.MsgEmit('Giải captcha sai 8 lần')
+                    self.mAutoFishRunning = False
+                    break
+                continue
+            else:
+                self.mCaptchaHandleTime = 0
+
             mOutputCastRod = self.CastFishingRod()
             if self.mAutoFishRunning is False:
                 break
             if mOutputCastRod is False:
-                gc.collect()
                 continue
             self.mFishingNum += 1
             self.mSignalUpdateFishingNum.emit()
@@ -777,6 +818,7 @@ class AutoFishing(QObject):
             if self.mAutoFishRunning is False:
                 break
             if mOutPutCheckRod is True:
+                self.mFixRodTime = 0
                 self.CheckMark()
                 if self.mAutoFishRunning is False:
                     break
@@ -787,5 +829,87 @@ class AutoFishing(QObject):
                 if self.mAutoFishRunning is False:
                     break
                 self.mSignalUpdateFishNum.emit()
-            gc.collect()
+            else:
+                self.mFixRodTime += 1
+                if self.mFixRodTime == 5:
+                    self.MsgEmit("Hết lượt câu")
+                    while True:
+                        if self.mAutoFishRunning is False:
+                            return False
+                        time.sleep(0.5)
         return False
+
+    def CheckCaptcha(self):
+        log.info('Check Captcha')
+        mCheck = 0
+        while mCheck < 3:
+            # break point thread auto fishing
+            if self.mAutoFishRunning is False:
+                return False
+            mOKCaptchaPos = self.FindImage(self.mConfig.mOKCaptchaImgPath,
+                                           self.mAbsOKCaptchaRegion,
+                                           self.mConfig.mConfidence)
+            if mOKCaptchaPos is not None and mOKCaptchaPos is not False:
+                return False
+            time.sleep(0.2)
+            mCheck += 1
+        return True
+
+    def CaptchaHandle(self):
+        if self.mAutoFishRunning is False:
+            return
+        log.info('Captcha Handle Start')
+        self.StatusEmit("Phát hiện Captcha. Đang xử lý ...")
+        mBigCaptchaImage = self.ScreenshotWindowRegion(self.mListAbsCaptchaRegion[0])
+        mBigCaptchaLabel, mBigCaptchaConfident = self.mCaptchaRecognition.Run(mBigCaptchaImage)
+        log.info(f'Big captcha info = {mBigCaptchaLabel}, {mBigCaptchaConfident} %')
+
+        if mBigCaptchaConfident < 90:
+            idTime = int(time.time())
+            fileName = f'{mBigCaptchaLabel}_{mBigCaptchaConfident}_{idTime}.jpg'
+            cv2.imwrite(f'log/new_captcha/{fileName}', mBigCaptchaImage)
+
+        if self.mConfig.mDebugMode is True:
+            self.mImageShow = mBigCaptchaImage
+            self.mSignalUpdateImageShow.emit()
+            idTime = time.time()
+            fileName = f'{mBigCaptchaLabel}_{mBigCaptchaConfident}_{idTime}.jpg'
+            cv2.imwrite(f'log/log_captcha/{fileName}', mBigCaptchaImage)
+        time.sleep(0.1)
+
+        for i in range(1, 10):
+            if self.mAutoFishRunning is False:
+                return
+            idTime = time.time()
+            mSmallCaptchaImage = self.ScreenshotWindowRegion(self.mListAbsCaptchaRegion[i])
+            mSmallCaptchaLabel, mSmallCaptchaConfident = self.mCaptchaRecognition.Run(mSmallCaptchaImage)
+            log.info(f'Small captcha info {i}= {mSmallCaptchaLabel}, {mSmallCaptchaConfident} %')
+
+            if mSmallCaptchaConfident > 90 and mSmallCaptchaLabel == mBigCaptchaLabel:
+                self.AdbClick((self.mConfig.mListCaptchaRegion[i][0] + self.mConfig.mListCaptchaRegion[i][2] // 2),
+                              (self.mConfig.mListCaptchaRegion[i][1] + self.mConfig.mListCaptchaRegion[i][3] // 2))
+
+            if mSmallCaptchaConfident < 90:
+                fileName = f'{mSmallCaptchaLabel}_{mSmallCaptchaConfident}_{idTime}.jpg'
+                cv2.imwrite(f'log/new_captcha/{fileName}', mSmallCaptchaImage)
+
+            if self.mConfig.mDebugMode is True:
+                self.mImageShow = mSmallCaptchaImage
+                self.mSignalUpdateImageShow.emit()
+                fileName = f'{mSmallCaptchaLabel}_{mSmallCaptchaConfident}_{idTime}.jpg'
+                cv2.imwrite(f'log/log_captcha/{fileName}', mSmallCaptchaImage)
+            time.sleep(0.1)
+
+        self.AdbClick(self.mConfig.mOKCaptchaPos[0], self.mConfig.mOKCaptchaPos[1])
+        time.sleep(0.5)
+
+        if self.CheckCaptcha() is False:
+            log.info("Click refresh")
+            self.AdbClick(self.mConfig.mRefreshCaptcha[0], self.mConfig.mRefreshCaptcha[1])
+            time.sleep(3)
+            return
+
+        self.AdbClick(self.mConfig.mOKCaptchaComplete[0], self.mConfig.mOKCaptchaComplete[1])
+        time.sleep(1)
+        log.info('Captcha Handle Complete')
+        return

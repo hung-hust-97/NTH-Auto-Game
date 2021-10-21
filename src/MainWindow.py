@@ -169,7 +169,7 @@ class MainWindow(QMainWindow):
         self.SlotShowStatus(self.mConfig.mLicenseText)
 
         # Show status bar
-        self.uic.statusbar.showMessage("Phần mềm hoàn toàn miễn phí. Tác giả NTH Auto Game")
+        self.uic.statusbar.showMessage("Phần mềm miễn phí. Tác giả NTH Auto Game")
 
     def OnClickConnectWindowTitle(self):
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
