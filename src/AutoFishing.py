@@ -25,8 +25,6 @@ class AutoFishing(QObject):
     def __init__(self):
         QObject.__init__(self, parent=None)
         self.mConfig = Config()
-        self.mCaptchaRecognition = Classification()
-
         self.mFishingNum = 0
         self.mAbsPullingRodPos = [0, 0]
         self.mAbsBackPackRegion = [0, 0, 0, 0]
@@ -856,12 +854,14 @@ class AutoFishing(QObject):
         return True
 
     def CaptchaHandle(self):
+        mCaptchaRecognition = Classification()
         if self.mAutoFishRunning is False:
             return
+
         log.info('Captcha Handle Start')
         self.StatusEmit("Phát hiện Captcha. Đang xử lý ...")
         mBigCaptchaImage = self.ScreenshotWindowRegion(self.mListAbsCaptchaRegion[0])
-        mBigCaptchaLabel, mBigCaptchaConfident = self.mCaptchaRecognition.Run(mBigCaptchaImage)
+        mBigCaptchaLabel, mBigCaptchaConfident = mCaptchaRecognition.Run(mBigCaptchaImage)
         log.info(f'Big captcha info = {mBigCaptchaLabel}, {mBigCaptchaConfident} %')
 
         if mBigCaptchaConfident < 90:
@@ -869,23 +869,26 @@ class AutoFishing(QObject):
             fileName = f'{mBigCaptchaLabel}_{mBigCaptchaConfident}_{idTime}.jpg'
             cv2.imwrite(f'log/new_captcha/{fileName}', mBigCaptchaImage)
 
+        self.mImageShow = mBigCaptchaImage
+        self.mSignalUpdateImageShow.emit()
+
         if self.mConfig.mDebugMode is True:
-            self.mImageShow = mBigCaptchaImage
-            self.mSignalUpdateImageShow.emit()
             idTime = time.time()
             fileName = f'{mBigCaptchaLabel}_{mBigCaptchaConfident}_{idTime}.jpg'
             cv2.imwrite(f'log/log_captcha/{fileName}', mBigCaptchaImage)
         time.sleep(0.1)
 
+        numMatchCaptcha = 0
         for i in range(1, 10):
             if self.mAutoFishRunning is False:
                 return
             idTime = time.time()
             mSmallCaptchaImage = self.ScreenshotWindowRegion(self.mListAbsCaptchaRegion[i])
-            mSmallCaptchaLabel, mSmallCaptchaConfident = self.mCaptchaRecognition.Run(mSmallCaptchaImage)
+            mSmallCaptchaLabel, mSmallCaptchaConfident = mCaptchaRecognition.Run(mSmallCaptchaImage)
             log.info(f'Small captcha info {i}= {mSmallCaptchaLabel}, {mSmallCaptchaConfident} %')
 
             if mSmallCaptchaConfident > 90 and mSmallCaptchaLabel == mBigCaptchaLabel:
+                numMatchCaptcha += 1
                 self.AdbClick((self.mConfig.mListCaptchaRegion[i][0] + self.mConfig.mListCaptchaRegion[i][2] // 2),
                               (self.mConfig.mListCaptchaRegion[i][1] + self.mConfig.mListCaptchaRegion[i][3] // 2))
 
@@ -893,20 +896,27 @@ class AutoFishing(QObject):
                 fileName = f'{mSmallCaptchaLabel}_{mSmallCaptchaConfident}_{idTime}.jpg'
                 cv2.imwrite(f'log/new_captcha/{fileName}', mSmallCaptchaImage)
 
+            self.mImageShow = mSmallCaptchaImage
+            self.mSignalUpdateImageShow.emit()
+
             if self.mConfig.mDebugMode is True:
-                self.mImageShow = mSmallCaptchaImage
-                self.mSignalUpdateImageShow.emit()
                 fileName = f'{mSmallCaptchaLabel}_{mSmallCaptchaConfident}_{idTime}.jpg'
                 cv2.imwrite(f'log/log_captcha/{fileName}', mSmallCaptchaImage)
             time.sleep(0.1)
 
         self.AdbClick(self.mConfig.mOKCaptchaPos[0], self.mConfig.mOKCaptchaPos[1])
-        time.sleep(0.5)
+        time.sleep(1)
 
-        if self.CheckCaptcha() is False:
+        if self.mAutoFishRunning is False:
+            return
+
+        if numMatchCaptcha == 0:
             log.info("Click refresh")
             self.AdbClick(self.mConfig.mRefreshCaptcha[0], self.mConfig.mRefreshCaptcha[1])
             time.sleep(3)
+            return
+
+        if self.mAutoFishRunning is False:
             return
 
         self.AdbClick(self.mConfig.mOKCaptchaComplete[0], self.mConfig.mOKCaptchaComplete[1])

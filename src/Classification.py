@@ -9,7 +9,7 @@ class Classification:
         self.mLabelList = ['Ao', 'Balo', 'CanCau', 'Cho', 'Ga', 'Giay', 'Heo', 'Khac', 'Kinh', 'Meo', 'Non', 'Quan',
                            'Tho', 'Toc', 'Trung', 'Xe']
         self.model = MobileNetv2((224, 224, 3), len(self.mLabelList))
-        self.model.load_weights("d:/AutoGameRelease/PlayTogether/AutoFishingGUI/NTHAutoGame/2.0.3/model/weights.h5")
+        self.model.load_weights("model/weights.h5")
 
     def Run(self, image):
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
