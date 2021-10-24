@@ -98,11 +98,11 @@ class Config(metaclass=SingletonMeta):
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
-        self.mListBlurArg = [19, 7, 5, 3]
+        self.mListBlurArg = [17, 5, 5, 3]
 
         self.mAppTitle = "NTH Auto Game Play Together"
-        self.mLicenseText = "Để cập nhật thông tin mới nhất và góp ý cho tác giả, vui lòng bấm vào biểu tượng Youtube hoặc Facebook tại đây"
-        self.mFacebookLink = "https://www.facebook.com/NTH-Auto-Game-106164441850257"
+        self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả.\n\nĐón xem review app trên kênh:\nKayTy Gaming - Gia tộc Lươn Thị."
+        self.mFacebookLink = "https://www.facebook.com/groups/4478925988809953"
         self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
         self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mAppLogo = LOGO_NTH_AUTO_GAME

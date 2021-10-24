@@ -303,7 +303,7 @@ class AutoFishing(QObject):
             mMaxThreshValue = 100
         # trời mưa 70-89 ở hồ home
         elif 70 < mBackGroundColor < 100:
-            mMinThreshValue = 25
+            mMinThreshValue = 20
             mMaxThreshValue = 100
         # buổi chiều nền biền 74, sáng ở camp 149, chiều ở cam 166
         elif 100 < mBackGroundColor < 170:
@@ -354,7 +354,7 @@ class AutoFishing(QObject):
             (x, y, w, h) = cv2.boundingRect(mContour)
 
             # Neu contour co height > 2.0 weight thi co the la cham than hoac troi mua
-            if h > 2 * w:
+            if h > 1.5 * w:
                 continue
 
             mContourCenterX = x + w // 2
@@ -453,7 +453,7 @@ class AutoFishing(QObject):
                 mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
                 if mSizeFish != 0:
                     mSkipFrame += 1
-                if mSkipFrame == 5:
+                if mSkipFrame == 10:
                     mStopDetect = True
                     log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
@@ -495,7 +495,7 @@ class AutoFishing(QObject):
                 # mPixelBaseLeft = mPixelCurrLeft
                 # mPixelBaseRight = mPixelCurrRight
                 mPixelBaseDay = mPixelCurrDay
-                time.sleep(0.001)
+                time.sleep(0.2)
                 time2 = time.time()
                 continue
 
@@ -1050,6 +1050,6 @@ class AutoFishing(QObject):
             return Flags.STOP_FISHING
 
         self.AdbClick(self.mConfig.mOKCaptchaComplete[0], self.mConfig.mOKCaptchaComplete[1])
-        time.sleep(1)
+        time.sleep(2)
         log.info('Captcha Handle Complete')
         return
