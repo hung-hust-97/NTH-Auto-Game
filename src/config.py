@@ -227,6 +227,8 @@ class Config(metaclass=SingletonMeta):
 
         if self.mWindowRatio > 1:
             self.mThickness = 2
+        else:
+            self.mThickness = 1
 
         log.info(f'mEmulatorSizeId = {self.mEmulatorSizeId}')
         log.info(f'mEmulatorSize = {self.mEmulatorSize}')
