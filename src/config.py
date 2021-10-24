@@ -34,6 +34,8 @@ OK_CAPTCHA_POS = [480, 460]
 OK_CAPTCHA_REC = [60, 60]
 OK_CAPTCHA_COMPLETE = [480, 400]
 REFRESH_CAPTCHA = [200, 470]
+MARK_PIXEL_DISTANCE = 14
+MARK_PIXEL_RADIUS = 50
 
 
 # Tương tự như C++ get con trỏ Object Config
@@ -102,13 +104,13 @@ class Config(metaclass=SingletonMeta):
         self.mLicenseText = "Để cập nhật thông tin mới nhất và góp ý cho tác giả, vui lòng bấm vào biểu tượng Youtube hoặc Facebook tại đây"
         self.mFacebookLink = "https://www.facebook.com/NTH-Auto-Game-106164441850257"
         self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
+        self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mAppLogo = LOGO_NTH_AUTO_GAME
         self.mIcon = ICON_NTH_AUTO_GAME
 
         self.mYoutubeImgPath = 'data/youtube.png'
         self.mFacebookImgPath = 'data/facebook.png'
 
-        self.mDifferentColor = 10
         self.mConfidence = 0.7
         self.mShutdownCheckBox = False
         self.mShutdownTime = 0
@@ -141,6 +143,8 @@ class Config(metaclass=SingletonMeta):
         self.mOKCaptchaRec = OK_CAPTCHA_REC.copy()
         self.mOKCaptchaComplete = OK_CAPTCHA_COMPLETE.copy()
         self.mRefreshCaptcha = REFRESH_CAPTCHA.copy()
+        self.mMarkPixelDist = MARK_PIXEL_DISTANCE
+        self.mMarkPixelRadius = MARK_PIXEL_RADIUS
 
         # Cac tham so detect ca
         self.mMaxContour = MAX_CONTOUR
@@ -194,6 +198,8 @@ class Config(metaclass=SingletonMeta):
                                    int(OK_CAPTCHA_COMPLETE[1] * self.mWindowRatio)]
         self.mRefreshCaptcha = [int(REFRESH_CAPTCHA[0] * self.mWindowRatio),
                                 int(REFRESH_CAPTCHA[1] * self.mWindowRatio)]
+        self.mMarkPixelDist = int(MARK_PIXEL_DISTANCE * self.mWindowRatio)
+        self.mMarkPixelRadius = int(MARK_PIXEL_RADIUS * self.mWindowRatio)
 
         for i in range(1, len(self.mListFishingRodPosition)):
             for j in range(2):

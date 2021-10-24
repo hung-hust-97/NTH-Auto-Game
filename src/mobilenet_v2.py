@@ -5,9 +5,6 @@
    Classification, Detection and Segmentation]
    (https://arxiv.org/abs/1801.04381)
 """
-import os
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv2D, GlobalAveragePooling2D, Dropout
@@ -166,7 +163,5 @@ def MobileNetv2(input_shape, k, alpha=1.0):
 
     x = Activation('softmax', name='softmax')(x)
     output = Reshape((k,))(x)
-
     model = Model(inputs, output)
-
     return model

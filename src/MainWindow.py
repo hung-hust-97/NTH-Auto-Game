@@ -7,16 +7,18 @@ import sys
 
 import cv2
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
-from PyQt5.QtCore import Qt, QTimer, QUrl, QSize, QCoreApplication, QByteArray, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QUrl, QSize, QCoreApplication, pyqtSignal
 from PyQt5 import QtGui
 
 from ui.UiMainWindow import Ui_MainWindow
-from src.config import *
+from src.config import Config
 from src.AutoFishing import AutoFishing
 import logging as log
 
 
 class MainWindow(QMainWindow):
+    mSignalUpdate = pyqtSignal(str)
+
     def __init__(self):
         QMainWindow.__init__(self, parent=None)
         self.uic = Ui_MainWindow()
@@ -24,38 +26,48 @@ class MainWindow(QMainWindow):
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
 
-        self.mLogo = self.Base64ToQImage(self.mConfig.mAppLogo)
+        self.mLogo = None
         self.mAutoFishingThread = None
-        self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mTimer = QTimer()
-        self.mTimer.setObjectName("AutoFishingTimer")
+
+        self.mSignalUpdate.connect(self.SlotUpdateNotice)
+        threading.Thread(target=self.SlotCheckUpdate).start()
 
         self.SlotOpenApp()
-        self.SlotCheckUpdate()
 
     def __del__(self):
         self.mAutoFishing.mAutoFishRunning = False
         self.mAutoFishing.mCheckMouseRunning = False
 
     def SlotCheckUpdate(self):
+        log.info('Checking update')
         listCurrentVersion = self.mConfig.mVersion.split('.')
         intCurrentVersion = int(listCurrentVersion[0] + listCurrentVersion[1] + listCurrentVersion[2])
-
-        response = urllib.request.urlopen(
-            "https://drive.google.com/uc?export=download&id=1JMo9ghFQWGcjlOkSMGEyemC7OJt_MSfy")
+        try:
+            response = urllib.request.urlopen(
+                "https://drive.google.com/uc?export=download&id=1JMo9ghFQWGcjlOkSMGEyemC7OJt_MSfy")
+        except (ValueError, Exception):
+            log.info('Check update fail')
+            return
         data = response.read()
         strNewVersion = str(data).split("'")[1]
         listNewVersion = strNewVersion.split('.')
         intNewVersion = int(listNewVersion[0] + listNewVersion[1] + listNewVersion[2])
         if intNewVersion > intCurrentVersion:
-            mMsgBox = QMessageBox()
-            mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
-            reply = mMsgBox.question(self, 'Thông báo',
-                                     f"Phiên bản đang sử dụng  {self.mConfig.mVersion}\nĐã có phiên bản mới {strNewVersion}\nĐồng ý truy cập fanpage để tải phiên bản mới?",
-                                     mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
-            if reply == mMsgBox.Yes:
-                self.SlotOpenFacebook()
-                sys.exit()
+            log.info(f'New update {strNewVersion}')
+            self.mSignalUpdate.emit(strNewVersion)
+        else:
+            log.info('No update')
+
+    def SlotUpdateNotice(self, strNewVersion: str):
+        mMsgBox = QMessageBox()
+        mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
+        reply = mMsgBox.question(self, 'Thông báo',
+                                 f"Phiên bản đang sử dụng  {self.mConfig.mVersion}\nĐã có phiên bản mới {strNewVersion}\nĐồng ý truy cập fanpage để tải phiên bản mới?",
+                                 mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
+        if reply == mMsgBox.Yes:
+            self.SlotOpenFacebook()
+            sys.exit()
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Thông báo', "Chắc chắn thoát?",
@@ -71,6 +83,9 @@ class MainWindow(QMainWindow):
         self.show()
 
     def SlotOpenApp(self):
+        log.info('Opening App')
+        self.mLogo = self.Base64ToQImage(self.mConfig.mAppLogo)
+
         self.setWindowTitle(QCoreApplication.translate("MainWindow", self.mConfig.mAppTitle))
 
         # Hien thi cac du lieu da luu trong config.ini
@@ -109,14 +124,6 @@ class MainWindow(QMainWindow):
         self.uic.cbFishDetection.setChecked(self.mConfig.mFishDetectionCheck)
         self.uic.cbShowFish.setChecked(self.mConfig.mShowFishCheck)
         self.uic.cbShutdownPC.setChecked(False)
-
-        # Set button color
-        # self.uic.btnConnectAdb.setStyleSheet(BUTTON_COLOR)
-        # self.uic.btnPauseFishing.setStyleSheet(BUTTON_COLOR)
-        # self.uic.btnConnectWindowTitle.setStyleSheet(BUTTON_COLOR)
-        # self.uic.btnStartFishing.setStyleSheet(BUTTON_COLOR)
-        # self.uic.btnGetBobberPosition.setStyleSheet(BUTTON_COLOR)
-        # self.uic.btnGetMarkPosition.setStyleSheet(BUTTON_COLOR)
 
         # Show logo
         self.uic.lblShowFish.setPixmap(QtGui.QPixmap.fromImage(self.mLogo).scaled(200, 200))
@@ -208,7 +215,7 @@ class MainWindow(QMainWindow):
             return False
 
     def OnClickStart(self):
-        log.info('****************************************************************************')
+        log.info('********************************************************')
         # Apply and save all config
         if self.SaveConfig() is False:
             return
@@ -258,7 +265,7 @@ class MainWindow(QMainWindow):
         # Define thread start fishing
         self.mAutoFishingThread = threading.Thread(name="AutoFishing", target=self.mAutoFishing.StartAuto)
 
-        # Set time fishing
+        # Set time start fishing
         self.mAutoFishing.mStartTime = time.time()
 
         self.mTimer.start(200)
@@ -397,7 +404,7 @@ class MainWindow(QMainWindow):
         if mText == self.mConfig.mLicenseText:
             self.uic.lblStatus.setText(self.mConfig.mLicenseText)
         elif self.uic.btnStartFishing.isEnabled() is False and self.uic.btnPauseFishing.isEnabled() is False:
-            self.uic.lblStatus.setText(self.mWaitStatus)
+            self.uic.lblStatus.setText(self.mConfig.mWaitStatus)
         else:
             self.uic.lblStatus.setText(mText)
         self.uic.lblStatus.setAlignment(Qt.AlignLeft)

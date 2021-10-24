@@ -3,6 +3,9 @@ from PyQt5.QtWidgets import QApplication
 import logging as log
 from src.MainWindow import MainWindow
 from src.config import Config
+import os
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 def main():
