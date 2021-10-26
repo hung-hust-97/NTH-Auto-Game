@@ -101,7 +101,7 @@ class Config(metaclass=SingletonMeta):
         self.mListBlurArg = [17, 5, 5, 3]
 
         self.mAppTitle = "NTH Auto Game Play Together"
-        self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả.\n\nĐón xem review app trên kênh:\nKayTy Gaming - Gia tộc Lươn Thị."
+        self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả"
         self.mFacebookLink = "https://www.facebook.com/groups/4478925988809953"
         self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
         self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"

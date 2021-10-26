@@ -13,6 +13,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 import subprocess
 import logging as log
 from src.common import Flags
+from src.StreamScreen import ScreenHandle
 
 
 class AutoFishing(QObject):
@@ -26,8 +27,9 @@ class AutoFishing(QObject):
 
     def __init__(self):
         QObject.__init__(self, parent=None)
-
         self.mConfig = Config()
+        self.mStreamScreen = ScreenHandle()
+
         self.mFishingNum = 0
         self.mAbsPullingRodPos = [0, 0]
         self.mAbsBackPackRegion = [0, 0, 0, 0]
@@ -708,6 +710,11 @@ class AutoFishing(QObject):
         log.info(f'Bobber position = {mMousePos}')
 
     def CheckRegionEmulator(self):
+        if self.mStreamScreen.SetWindowName(self.mConfig.mWindowName) is False:
+            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}')
+            log.info(f'Cannot find window name {self.mConfig.mWindowName}')
+            return False
+
         self.mScreenSize = pyautogui.size()
         self.mEmulatorBox = None
         self.mEmulatorWindow = None
@@ -981,7 +988,7 @@ class AutoFishing(QObject):
         log.info('Captcha Handle Start')
         self.StatusEmit("Phát hiện Captcha. Đang xử lý ...")
         mBigCaptchaImage = self.ScreenshotWindowRegion(self.mListAbsCaptchaRegion[0])
-        mBigCaptchaLabel, mBigCaptchaConfident = self.mCaptchaRecognition.Run(mBigCaptchaImage)
+        mBigCaptchaLabel, mBigCaptchaConfident = self.mCaptchaRecognition.Stream(mBigCaptchaImage)
         log.info(f'Big captcha info = {mBigCaptchaLabel}, {mBigCaptchaConfident} %')
 
         mShowCaptcha = mBigCaptchaImage.copy()
@@ -1009,7 +1016,7 @@ class AutoFishing(QObject):
 
             idTime = time.time()
             mSmallCaptchaImage = self.ScreenshotWindowRegion(self.mListAbsCaptchaRegion[i])
-            mSmallCaptchaLabel, mSmallCaptchaConfident = self.mCaptchaRecognition.Run(mSmallCaptchaImage)
+            mSmallCaptchaLabel, mSmallCaptchaConfident = self.mCaptchaRecognition.Stream(mSmallCaptchaImage)
             log.info(f'Small captcha info {i} = {mSmallCaptchaLabel}, {mSmallCaptchaConfident} %')
 
             mShowCaptcha = mSmallCaptchaImage.copy()
