@@ -157,7 +157,7 @@ class AutoFishing(QObject):
             mCheckBackpack = self.mScreenHandle.FindImage(self.mConfig.mBackpackImg,
                                                           self.mConfig.mBackpackRegion,
                                                           self.mConfig.mConfidence)
-            if mCheckBackpack is True:
+            if mCheckBackpack == Flags.TRUE:
                 if self.CheckCaptcha() == Flags.CAPTCHA_APPEAR:
                     log.info('CheckRod Captcha Appear')
                     return Flags.CAPTCHA_APPEAR
@@ -214,7 +214,7 @@ class AutoFishing(QObject):
             mCheckPreservation = self.mScreenHandle.FindImage(self.mConfig.mPreservationImg,
                                                               self.mConfig.mFishingResultRegion,
                                                               self.mConfig.mConfidence)
-            if mCheckPreservation is True:
+            if mCheckPreservation == Flags.TRUE:
                 self.AdbClick(self.mConfig.mPreservationPos[0],
                               self.mConfig.mPreservationPos[1])
                 log.info(f'Click preservation button {self.mConfig.mPreservationPos}')

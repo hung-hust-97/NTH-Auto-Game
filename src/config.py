@@ -4,6 +4,7 @@ from threading import Lock
 from src.Base64Image import *
 import datetime
 import logging as log
+from copy import deepcopy
 
 HIDE_TEXT_BOX_STYLE = "border: 0px; background-color: rgba(0, 0, 0, 10);"
 BUTTON_COLOR = "background-color: rgb(182, 227, 199)"
@@ -107,7 +108,7 @@ class Config(metaclass=SingletonMeta):
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
-        self.mListBlurArg = [17, 5, 5, 3]
+        self.mListBlurArg = [15, 5, 5, 3]
 
         self.mAppTitle = "NTH Auto Game Play Together"
         self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả"
@@ -131,38 +132,38 @@ class Config(metaclass=SingletonMeta):
         self.mPreservationImgPath = self.mListPreservationImgPath[self.mEmulatorSizeId]
         self.mOKCaptchaImgPath = self.mListOKCaptchaImgPath[self.mEmulatorSizeId]
         self.mBlur = self.mListBlurArg[self.mEmulatorSizeId]
-        self.mListFishingRodPosition = LIST_FISHING_ROD_POS.copy()
-        self.mListCaptchaRegion = LIST_CAPTCHA_REGION.copy()
+        self.mListFishingRodPosition = deepcopy(LIST_FISHING_ROD_POS)
+        self.mListCaptchaRegion = deepcopy(LIST_CAPTCHA_REGION)
         self.mRadiusFishingRegion = RADIUS_FISHING_REGION
-        self.mOpenBackPack = OPEN_BACKPACK_POS.copy()
-        self.mCloseBackPack = CLOSE_BACKPACK_POS.copy()
-        self.mTools = TOOLS_POS.copy()
-        self.mConfirm = CONFIRM_BUTTON_POS.copy()
-        self.mOKButton = OK_BUTTON_POS.copy()
+        self.mOpenBackPack = deepcopy(OPEN_BACKPACK_POS)
+        self.mCloseBackPack = deepcopy(CLOSE_BACKPACK_POS)
+        self.mTools = deepcopy(TOOLS_POS)
+        self.mConfirm = deepcopy(CONFIRM_BUTTON_POS)
+        self.mOKButton = deepcopy(OK_BUTTON_POS)
 
-        self.mPreservationPos = PRESERVATION_BUTTON_POS.copy()
-        self.mFishingResultRegion = FISHING_RESULT_REGION.copy()
+        self.mPreservationPos = deepcopy(PRESERVATION_BUTTON_POS)
+        self.mFishingResultRegion = deepcopy(FISHING_RESULT_REGION)
 
-        self.mCastingRodPos = CASTING_ROD_POS.copy()
-        self.mPullingRodPos = PULLING_ROD_POS.copy()
-        self.mBackpackRec = BACKPACK_REC.copy()
+        self.mCastingRodPos = deepcopy(CASTING_ROD_POS)
+        self.mPullingRodPos = deepcopy(PULLING_ROD_POS)
+        self.mBackpackRec = deepcopy(BACKPACK_REC)
         self.mBackpackRegion = [self.mOpenBackPack[0] - self.mBackpackRec[0] // 2,
                                 self.mOpenBackPack[1] - self.mBackpackRec[1] // 2,
                                 self.mBackpackRec[0],
                                 self.mBackpackRec[0]]
-        self.mCheckTypeFishPos = CHECK_TYPE_FISH_POS.copy()
-        self.mFishImgRegion = FISH_IMG_REGION.copy()
+        self.mCheckTypeFishPos = deepcopy(CHECK_TYPE_FISH_POS)
+        self.mFishImgRegion = deepcopy(FISH_IMG_REGION)
         self.mFontScale = FONT_SCALE_DEFAULT
-        self.mEmulatorSize = DEFAULT_EMULATOR_SIZE.copy()
+        self.mEmulatorSize = deepcopy(DEFAULT_EMULATOR_SIZE)
 
-        self.mOKCaptchaPos = OK_CAPTCHA_POS.copy()
-        self.mOKCaptchaRec = OK_CAPTCHA_REC.copy()
+        self.mOKCaptchaPos = deepcopy(OK_CAPTCHA_POS)
+        self.mOKCaptchaRec = deepcopy(OK_CAPTCHA_REC)
         self.mOKCaptchaRegion = [self.mOKCaptchaPos[0] - self.mOKCaptchaRec[0] // 2,
                                  self.mOKCaptchaPos[1] - self.mOKCaptchaRec[1] // 2,
                                  self.mOKCaptchaRec[0],
                                  self.mOKCaptchaRec[0]]
-        self.mOKCaptchaComplete = OK_CAPTCHA_COMPLETE.copy()
-        self.mRefreshCaptcha = REFRESH_CAPTCHA.copy()
+        self.mOKCaptchaComplete = deepcopy(OK_CAPTCHA_COMPLETE)
+        self.mRefreshCaptcha = deepcopy(REFRESH_CAPTCHA)
         self.mMarkPixelDist = MARK_PIXEL_DISTANCE
         self.mMarkPixelRadius = MARK_PIXEL_RADIUS
 
@@ -300,6 +301,9 @@ class Config(metaclass=SingletonMeta):
 
         for i in range(1, len(self.mListFishingRodPosition)):
             log.info(f'mListFishingRodPosition{i} = {self.mListFishingRodPosition[i]}')
+
+        for i in range(len(self.mListCaptchaRegion)):
+            log.info(f'mListCaptchaRegion{i} = {self.mListCaptchaRegion[i]}')
 
         log.info(f'mFishingResultRegion = {self.mFishingResultRegion}')
         log.info(f'mBackpackRec = {self.mBackpackRec}')
