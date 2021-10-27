@@ -13,7 +13,6 @@ from PyQt5 import QtGui
 from ui.UiMainWindow import Ui_MainWindow
 from src.config import Config
 from src.AutoFishing import AutoFishing
-from src.StreamScreen import ScreenHandle
 import logging as log
 
 

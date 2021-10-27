@@ -1,4 +1,5 @@
 import configparser
+import cv2
 from threading import Lock
 from src.Base64Image import *
 import datetime
@@ -16,10 +17,13 @@ TOOLS_POS = [690, 60]
 CASTING_ROD_POS = [765, 330]
 PULLING_ROD_POS = [840, 430]
 PRESERVATION_BUTTON_POS = [750, 425]
+FISHING_RESULT_REGION = [622, 90, 46, 14]
+# PRESERVATION_REC = [280, 80]
+
 CONFIRM_BUTTON_POS = [485, 410]
 OK_BUTTON_POS = [485, 410]
 LIST_FISHING_ROD_POS = [[0, 0], [580, 260], [730, 260], [880, 260], [580, 450], [730, 450], [880, 450]]
-PRESERVATION_REC = [280, 80]
+
 BACKPACK_REC = [40, 40]
 CHECK_TYPE_FISH_POS = [770, 220]
 FISH_IMG_REGION = [625, 42, 295, 295]
@@ -62,6 +66,7 @@ class Config(metaclass=SingletonMeta):
         self.mConfig = self.mConfigParser['CONFIG']
 
         self.mLogPath = f'log/{self.mDateTime}.log'
+        # self.mLogPath = f'log/log.log'
         self.mAdbPath = 'adb/adb.exe'
 
         self.mWindowRatio = 1
@@ -96,6 +101,10 @@ class Config(metaclass=SingletonMeta):
                                       'data/okcaptcha640.png',
                                       'data/okcaptcha480.png']
 
+        self.mBackpackImg = None
+        self.mOKCaptchaImg = None
+        self.mPreservationImg = None
+
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
         self.mListBlurArg = [17, 5, 5, 3]
@@ -128,19 +137,30 @@ class Config(metaclass=SingletonMeta):
         self.mOpenBackPack = OPEN_BACKPACK_POS.copy()
         self.mCloseBackPack = CLOSE_BACKPACK_POS.copy()
         self.mTools = TOOLS_POS.copy()
-        self.mCastingRodPos = CASTING_ROD_POS.copy()
-        self.mPullingRodPos = PULLING_ROD_POS.copy()
-        self.mPreservationPos = PRESERVATION_BUTTON_POS.copy()
         self.mConfirm = CONFIRM_BUTTON_POS.copy()
         self.mOKButton = OK_BUTTON_POS.copy()
-        self.mPreservationRec = PRESERVATION_REC.copy()
+
+        self.mPreservationPos = PRESERVATION_BUTTON_POS.copy()
+        self.mFishingResultRegion = FISHING_RESULT_REGION.copy()
+
+        self.mCastingRodPos = CASTING_ROD_POS.copy()
+        self.mPullingRodPos = PULLING_ROD_POS.copy()
         self.mBackpackRec = BACKPACK_REC.copy()
+        self.mBackpackRegion = [self.mOpenBackPack[0] - self.mBackpackRec[0] // 2,
+                                self.mOpenBackPack[1] - self.mBackpackRec[1] // 2,
+                                self.mBackpackRec[0],
+                                self.mBackpackRec[0]]
         self.mCheckTypeFishPos = CHECK_TYPE_FISH_POS.copy()
         self.mFishImgRegion = FISH_IMG_REGION.copy()
         self.mFontScale = FONT_SCALE_DEFAULT
         self.mEmulatorSize = DEFAULT_EMULATOR_SIZE.copy()
+
         self.mOKCaptchaPos = OK_CAPTCHA_POS.copy()
         self.mOKCaptchaRec = OK_CAPTCHA_REC.copy()
+        self.mOKCaptchaRegion = [self.mOKCaptchaPos[0] - self.mOKCaptchaRec[0] // 2,
+                                 self.mOKCaptchaPos[1] - self.mOKCaptchaRec[1] // 2,
+                                 self.mOKCaptchaRec[0],
+                                 self.mOKCaptchaRec[0]]
         self.mOKCaptchaComplete = OK_CAPTCHA_COMPLETE.copy()
         self.mRefreshCaptcha = REFRESH_CAPTCHA.copy()
         self.mMarkPixelDist = MARK_PIXEL_DISTANCE
@@ -176,24 +196,19 @@ class Config(metaclass=SingletonMeta):
 
         self.mWindowRatio = self.mEmulatorSize[0] / DEFAULT_EMULATOR_SIZE[0]
         self.mRadiusFishingRegion = int(RADIUS_FISHING_REGION * self.mWindowRatio)
-        self.mOpenBackPack = [int(OPEN_BACKPACK_POS[0] * self.mWindowRatio),
-                              int(OPEN_BACKPACK_POS[1] * self.mWindowRatio)]
-        self.mCloseBackPack = [int(CLOSE_BACKPACK_POS[0] * self.mWindowRatio),
-                               int(CLOSE_BACKPACK_POS[1] * self.mWindowRatio)]
+
         self.mTools = [int(TOOLS_POS[0] * self.mWindowRatio),
                        int(TOOLS_POS[1] * self.mWindowRatio)]
         self.mCastingRodPos = [int(CASTING_ROD_POS[0] * self.mWindowRatio),
                                int(CASTING_ROD_POS[1] * self.mWindowRatio)]
         self.mPullingRodPos = [int(PULLING_ROD_POS[0] * self.mWindowRatio),
                                int(PULLING_ROD_POS[1] * self.mWindowRatio)]
-        self.mPreservationPos = [int(PRESERVATION_BUTTON_POS[0] * self.mWindowRatio),
-                                 int(PRESERVATION_BUTTON_POS[1] * self.mWindowRatio)]
+
         self.mConfirm = [int(CONFIRM_BUTTON_POS[0] * self.mWindowRatio),
                          int(CONFIRM_BUTTON_POS[1] * self.mWindowRatio)]
         self.mOKButton = [int(OK_BUTTON_POS[0] * self.mWindowRatio),
                           int(OK_BUTTON_POS[1] * self.mWindowRatio)]
-        self.mOKCaptchaPos = [int(OK_CAPTCHA_POS[0] * self.mWindowRatio),
-                              int(OK_CAPTCHA_POS[1] * self.mWindowRatio)]
+
         self.mOKCaptchaComplete = [int(OK_CAPTCHA_COMPLETE[0] * self.mWindowRatio),
                                    int(OK_CAPTCHA_COMPLETE[1] * self.mWindowRatio)]
         self.mRefreshCaptcha = [int(REFRESH_CAPTCHA[0] * self.mWindowRatio),
@@ -209,12 +224,31 @@ class Config(metaclass=SingletonMeta):
             for j in range(4):
                 self.mListCaptchaRegion[i][j] = int(LIST_CAPTCHA_REGION[i][j] * self.mWindowRatio)
 
-        self.mPreservationRec = [int(PRESERVATION_REC[0] * self.mWindowRatio),
-                                 int(PRESERVATION_REC[1] * self.mWindowRatio)]
+        self.mPreservationPos = [int(PRESERVATION_BUTTON_POS[0] * self.mWindowRatio),
+                                 int(PRESERVATION_BUTTON_POS[1] * self.mWindowRatio)]
+        for i in range(4):
+            self.mFishingResultRegion[i] = int(FISHING_RESULT_REGION[i] * self.mWindowRatio)
+
+        self.mOpenBackPack = [int(OPEN_BACKPACK_POS[0] * self.mWindowRatio),
+                              int(OPEN_BACKPACK_POS[1] * self.mWindowRatio)]
+        self.mCloseBackPack = [int(CLOSE_BACKPACK_POS[0] * self.mWindowRatio),
+                               int(CLOSE_BACKPACK_POS[1] * self.mWindowRatio)]
         self.mBackpackRec = [int(BACKPACK_REC[0] * self.mWindowRatio),
                              int(BACKPACK_REC[1] * self.mWindowRatio)]
+        self.mBackpackRegion = [self.mOpenBackPack[0] - self.mBackpackRec[0] // 2,
+                                self.mOpenBackPack[1] - self.mBackpackRec[1] // 2,
+                                self.mBackpackRec[0],
+                                self.mBackpackRec[0]]
+
+        self.mOKCaptchaPos = [int(OK_CAPTCHA_POS[0] * self.mWindowRatio),
+                              int(OK_CAPTCHA_POS[1] * self.mWindowRatio)]
         self.mOKCaptchaRec = [int(OK_CAPTCHA_REC[0] * self.mWindowRatio),
                               int(OK_CAPTCHA_REC[1] * self.mWindowRatio)]
+        self.mOKCaptchaRegion = [self.mOKCaptchaPos[0] - self.mOKCaptchaRec[0] // 2,
+                                 self.mOKCaptchaPos[1] - self.mOKCaptchaRec[1] // 2,
+                                 self.mOKCaptchaRec[0],
+                                 self.mOKCaptchaRec[0]]
+
         self.mCheckTypeFishPos = [int(CHECK_TYPE_FISH_POS[0] * self.mWindowRatio),
                                   int(CHECK_TYPE_FISH_POS[1] * self.mWindowRatio)]
 
@@ -224,6 +258,25 @@ class Config(metaclass=SingletonMeta):
         self.mFontScale = FONT_SCALE_DEFAULT * self.mWindowRatio
         self.mMinContour = MIN_CONTOUR * self.mWindowRatio
         self.mMaxContour = MAX_CONTOUR * self.mWindowRatio
+
+        self.mListBackpackImgPath = ['data/backpack1280.png',
+                                     'data/backpack960.png',
+                                     'data/backpack640.png',
+                                     'data/backpack480.png']
+
+        self.mListPreservationImgPath = ['data/preservation1280.png',
+                                         'data/preservation960.png',
+                                         'data/preservation640.png',
+                                         'data/preservation480.png']
+
+        self.mListOKCaptchaImgPath = ['data/okcaptcha1280.png',
+                                      'data/okcaptcha960.png',
+                                      'data/okcaptcha640.png',
+                                      'data/okcaptcha480.png']
+
+        self.mBackpackImg = cv2.imread(self.mBackpackImgPath, cv2.IMREAD_GRAYSCALE)
+        self.mPreservationImg = cv2.imread(self.mPreservationImgPath, cv2.IMREAD_GRAYSCALE)
+        self.mOKCaptchaImg = cv2.imread(self.mOKCaptchaImgPath, cv2.IMREAD_GRAYSCALE)
 
         if self.mWindowRatio > 1:
             self.mThickness = 2
@@ -248,7 +301,7 @@ class Config(metaclass=SingletonMeta):
         for i in range(1, len(self.mListFishingRodPosition)):
             log.info(f'mListFishingRodPosition{i} = {self.mListFishingRodPosition[i]}')
 
-        log.info(f'mPreservationRec = {self.mPreservationRec}')
+        log.info(f'mFishingResultRegion = {self.mFishingResultRegion}')
         log.info(f'mBackpackRec = {self.mBackpackRec}')
         log.info(f'mCheckTypeFishPos = {self.mCheckTypeFishPos}')
         log.info(f'mFishImgRegion = {self.mFishImgRegion}')

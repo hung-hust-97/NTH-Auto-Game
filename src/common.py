@@ -9,3 +9,11 @@ class Flags(Enum):
     CHECK_ROD_BROK = -3
 
     STOP_FISHING = -100
+
+    FIND_IMG_ERROR = -99
+
+    TRUE = 1
+    FALSE = 0
+
+    REGION_SCREEN_SHOT_ERROR = -98
+    PIXEL_SCREEN_SHOT_ERROR = -97
