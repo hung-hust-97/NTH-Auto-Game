@@ -32,7 +32,7 @@
       <x>0</x>
       <y>440</y>
       <width>351</width>
-      <height>61</height>
+      <height>64</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="row6">
@@ -70,6 +70,11 @@
          <width>16777215</width>
          <height>60</height>
         </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+        </font>
        </property>
        <property name="text">
         <string>TextLabel</string>
@@ -191,7 +196,7 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>8</pointsize>
+         <pointsize>7</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -214,7 +219,7 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>8</pointsize>
+         <pointsize>7</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -237,7 +242,7 @@
        </property>
        <property name="font">
         <font>
-         <pointsize>8</pointsize>
+         <pointsize>7</pointsize>
          <weight>75</weight>
          <bold>true</bold>
         </font>
@@ -360,7 +365,7 @@
       <x>0</x>
       <y>50</y>
       <width>351</width>
-      <height>220</height>
+      <height>223</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="row2" rowstretch="0" columnstretch="0">
@@ -429,13 +434,13 @@
              <property name="minimumSize">
               <size>
                <width>90</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>999</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
@@ -495,13 +500,13 @@ p, li { white-space: pre-wrap; }
              <property name="minimumSize">
               <size>
                <width>80</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>999</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
@@ -561,13 +566,13 @@ p, li { white-space: pre-wrap; }
              <property name="minimumSize">
               <size>
                <width>80</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>999</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
@@ -625,13 +630,13 @@ p, li { white-space: pre-wrap; }
              <property name="minimumSize">
               <size>
                <width>80</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>999</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
@@ -691,13 +696,13 @@ p, li { white-space: pre-wrap; }
              <property name="minimumSize">
               <size>
                <width>80</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>999</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
@@ -706,7 +711,7 @@ p, li { white-space: pre-wrap; }
               </font>
              </property>
              <property name="text">
-              <string>Bỏ qua cá bé hơn</string>
+              <string>Bỏ cá bé hơn</string>
              </property>
             </widget>
            </item>
@@ -761,13 +766,13 @@ p, li { white-space: pre-wrap; }
              <property name="minimumSize">
               <size>
                <width>90</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>90</width>
-               <height>25</height>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
@@ -828,47 +833,17 @@ p, li { white-space: pre-wrap; }
             <number>0</number>
            </property>
            <item>
-            <widget class="QCheckBox" name="cbFreeMouse">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>999</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="sizeIncrement">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>7</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Không chiếm chuột</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QCheckBox" name="cbFishDetection">
              <property name="minimumSize">
               <size>
                <width>80</width>
-               <height>20</height>
+               <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>9999</width>
-               <height>20</height>
+               <height>30</height>
               </size>
              </property>
              <property name="font">
@@ -878,30 +853,6 @@ p, li { white-space: pre-wrap; }
              </property>
              <property name="text">
               <string>Lọc bóng cá</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="cbShowFish">
-             <property name="minimumSize">
-              <size>
-               <width>80</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>9999</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>7</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>Hiển thị quá trình câu</string>
              </property>
             </widget>
            </item>
@@ -1116,7 +1067,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="font">
           <font>
-           <pointsize>7</pointsize>
+           <pointsize>6</pointsize>
           </font>
          </property>
         </widget>
@@ -1131,7 +1082,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="font">
           <font>
-           <pointsize>7</pointsize>
+           <pointsize>6</pointsize>
           </font>
          </property>
         </widget>
@@ -1165,7 +1116,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="font">
           <font>
-           <pointsize>7</pointsize>
+           <pointsize>6</pointsize>
           </font>
          </property>
         </widget>
@@ -1180,7 +1131,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="font">
           <font>
-           <pointsize>7</pointsize>
+           <pointsize>6</pointsize>
            <weight>50</weight>
            <bold>false</bold>
           </font>
@@ -1358,6 +1309,11 @@ p, li { white-space: pre-wrap; }
          <height>23</height>
         </size>
        </property>
+       <property name="font">
+        <font>
+         <pointsize>7</pointsize>
+        </font>
+       </property>
       </widget>
      </item>
      <item row="0" column="1">
@@ -1412,6 +1368,11 @@ p, li { white-space: pre-wrap; }
            <width>16777215</width>
            <height>23</height>
           </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>7</pointsize>
+          </font>
          </property>
         </widget>
        </item>
@@ -1484,7 +1445,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>8</pointsize>
         </font>
        </property>
        <property name="verticalScrollBarPolicy">
@@ -1497,8 +1458,8 @@ p, li { white-space: pre-wrap; }
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;60&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;60&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -1524,7 +1485,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>8</pointsize>
         </font>
        </property>
        <property name="verticalScrollBarPolicy">
@@ -1537,8 +1498,8 @@ p, li { white-space: pre-wrap; }
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;60&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;60&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -1564,7 +1525,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>8</pointsize>
         </font>
        </property>
        <property name="verticalScrollBarPolicy">
@@ -1577,8 +1538,8 @@ p, li { white-space: pre-wrap; }
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;60&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;60&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>
@@ -1604,7 +1565,7 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="font">
         <font>
-         <pointsize>10</pointsize>
+         <pointsize>8</pointsize>
         </font>
        </property>
        <property name="verticalScrollBarPolicy">
@@ -1617,8 +1578,8 @@ p, li { white-space: pre-wrap; }
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;60&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;60&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </item>

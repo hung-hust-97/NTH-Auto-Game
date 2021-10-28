@@ -19,7 +19,6 @@ CASTING_ROD_POS = [765, 330]
 PULLING_ROD_POS = [840, 430]
 PRESERVATION_BUTTON_POS = [750, 425]
 FISHING_RESULT_REGION = [622, 90, 46, 14]
-# PRESERVATION_REC = [280, 80]
 
 CONFIRM_BUTTON_POS = [485, 410]
 OK_BUTTON_POS = [485, 410]
@@ -75,11 +74,9 @@ class Config(metaclass=SingletonMeta):
         self.mAdbPort = 5037
         self.mWindowName = self.mConfig['window_name']
         self.mEmulatorSizeId = self.mConfig.getint('emulator_size_id')
-        self.mFreeMouseCheck = self.mConfig.getboolean('free_mouse')
         self.mWaitingMarkTime = self.mConfig.getint('waiting_mark_time')
         self.mWaitingFishTime = self.mConfig.getint('waiting_fish_time')
         self.mFishDetectionCheck = self.mConfig.getboolean('fish_detection')
-        self.mShowFishCheck = self.mConfig.getboolean('show_fish')
         self.mFishSize = self.mConfig.getint('fish_size')
         self.mFishingRodIndex = self.mConfig.getint('fishing_rod_id')
         self.mDelayTime = self.mConfig.getfloat('delay_time')
@@ -108,9 +105,9 @@ class Config(metaclass=SingletonMeta):
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
-        self.mListBlurArg = [15, 5, 5, 3]
+        self.mListBlurArg = [13, 5, 3, 3]
 
-        self.mAppTitle = "NTH Auto Game Play Together"
+        self.mAppTitle = "NTH Auto Game " + self.mVersion
         self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả"
         self.mFacebookLink = "https://www.facebook.com/groups/4478925988809953"
         self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
@@ -340,11 +337,6 @@ class Config(metaclass=SingletonMeta):
         self.mWindowName = mWindowName
         self.__mMutex.release()
 
-    def SetFreeMouse(self, mFreeMouse: bool):
-        self.__mMutex.acquire()
-        self.mFreeMouseCheck = mFreeMouse
-        self.__mMutex.release()
-
     def SetWaitingMarkTime(self, mWaitingMarkTime: int):
         self.__mMutex.acquire()
         self.mWaitingMarkTime = mWaitingMarkTime
@@ -358,11 +350,6 @@ class Config(metaclass=SingletonMeta):
     def SetFishDetection(self, mFishDetectionCheck: bool):
         self.__mMutex.acquire()
         self.mFishDetectionCheck = mFishDetectionCheck
-        self.__mMutex.release()
-
-    def SetShowFishShadow(self, mShowFishCheck: bool):
-        self.__mMutex.acquire()
-        self.mShowFishCheck = mShowFishCheck
         self.__mMutex.release()
 
     def SetFishSize(self, mFishSize: int):
@@ -380,11 +367,9 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG'] = {}
         mNewConfig['CONFIG']['window_name'] = self.mWindowName
         mNewConfig['CONFIG']['emulator_size_id'] = str(self.mEmulatorSizeId)
-        mNewConfig['CONFIG']['free_mouse'] = str(self.mFreeMouseCheck)
         mNewConfig['CONFIG']['waiting_mark_time'] = str(self.mWaitingMarkTime)
         mNewConfig['CONFIG']['waiting_fish_time'] = str(self.mWaitingFishTime)
         mNewConfig['CONFIG']['fish_detection'] = str(self.mFishDetectionCheck)
-        mNewConfig['CONFIG']['show_fish'] = str(self.mShowFishCheck)
         mNewConfig['CONFIG']['fish_size'] = str(self.mFishSize)
         mNewConfig['CONFIG']['fishing_rod_id'] = str(self.mFishingRodIndex)
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)

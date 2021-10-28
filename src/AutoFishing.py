@@ -1,12 +1,11 @@
 import math
 import time
-# import pyautogui
 import gc
 import cv2
 import threading
+from copy import deepcopy
 
 from ppadb.client import Client as AdbClient
-# import numpy
 import win32api
 from src.config import Config
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -49,6 +48,7 @@ class AutoFishing(QObject):
         self.mFixRodTime = 0
         self.mCaptchaHandleTime = 0
         self.mCaptchaRecognition = None
+        self.mListPixelCoordinate = []
 
         # Khai báo số cá các loại
         self.mAllFish = 0
@@ -143,7 +143,7 @@ class AutoFishing(QObject):
 
     def CheckRod(self):
         time.sleep(self.mConfig.mDelayTime)
-        for i in range(6):
+        for i in range(5):
             # break point thread auto fishing
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
@@ -170,8 +170,8 @@ class AutoFishing(QObject):
 
     def FixRod(self):
         log.info(f'Fix Rod Start')
-        self.StatusEmit("Cần câu bị hỏng. Auto đang sửa cần\n"
-                        "Nếu không đúng hỏng cần, hãy cài đặt độ trễ từ 1 giây trở lên")
+        self.StatusEmit("Hỏng cần câu. Đang sửa ...\n"
+                        "Nếu gặp lỗi, hãy cài đặt độ trễ cao hơn")
         self.OpenBackPack()
         if self.mAutoFishRunning is False:
             return Flags.STOP_FISHING
@@ -203,24 +203,6 @@ class AutoFishing(QObject):
         if self.mAutoFishRunning is False:
             return Flags.STOP_FISHING
         self.CloseBackPack()
-        if self.mAutoFishRunning is False:
-            return Flags.STOP_FISHING
-        time.sleep(self.mConfig.mDelayTime)
-        mCheck = 0
-        while mCheck < 5:
-            # check point break auto fishing thread
-            if self.mAutoFishRunning is False:
-                return
-            mCheckPreservation = self.mScreenHandle.FindImage(self.mConfig.mPreservationImg,
-                                                              self.mConfig.mFishingResultRegion,
-                                                              self.mConfig.mConfidence)
-            if mCheckPreservation == Flags.TRUE:
-                self.AdbClick(self.mConfig.mPreservationPos[0],
-                              self.mConfig.mPreservationPos[1])
-                log.info(f'Click preservation button {self.mConfig.mPreservationPos}')
-                return
-            mCheck += 1
-            time.sleep(0.2)
         return
 
     def CastFishingRod(self):
@@ -239,8 +221,8 @@ class AutoFishing(QObject):
                 log.info(f'Clicked {self.mConfig.mCastingRodPos}')
                 return True
             mCheck += 1
-            time.sleep(0.2)
-        self.StatusEmit("Không tìm thấy nút ba lô. Đóng ba lô")
+            time.sleep(0.1)
+        self.StatusEmit("Không tìm thấy nút ba lô")
         log.info(f'Cannot find backpack')
         self.CloseBackPack()
 
@@ -258,10 +240,10 @@ class AutoFishing(QObject):
                 log.info(f'Click preservation button {self.mConfig.mPreservationPos}')
                 return False
             mCheck += 1
-            time.sleep(0.2)
+            time.sleep(0.1)
 
         self.FixConfirm()
-        time.sleep(self.mConfig.mDelayTime + 0.5)
+        time.sleep(self.mConfig.mDelayTime)
         self.ClickOk()
         return False
 
@@ -351,8 +333,8 @@ class AutoFishing(QObject):
             break
 
         self.mImageShow = mCurrFrameRGB.copy()
-        if self.mConfig.mShowFishCheck is True:
-            self.mSignalUpdateImageShow.emit()
+
+        self.mSignalUpdateImageShow.emit()
         return mFishArea
 
     def CheckMark(self):
@@ -372,24 +354,22 @@ class AutoFishing(QObject):
 
         self.StatusEmit("Đang đợi cá")
         log.info(f'Waiting Mark')
-        mPixelBase = None
+        mPixelBaseMark = None
         # mPixelBaseTop = None
         # mPixelBaseLeft = None
         # mPixelBaseRight = None
-        mPixelBaseDay = None
+        mPixelBaseWeather = None
 
-        for i in range(10):
-            mPixelBase = self.mScreenHandle.PixelScreenShot(self.mMark)
-            # mPixelBaseTop = pyautogui.pixel(self.mMark[0],
-            #                                 self.mMark[1] - self.mConfig.mMarkPixelDist)
-            # mPixelBaseLeft = pyautogui.pixel(self.mMark[0] - self.mConfig.mMarkPixelDist,
-            #                                  self.mMark[1])
-            # mPixelBaseRight = pyautogui.pixel(self.mMark[0] + self.mConfig.mMarkPixelDist,
-            #                                   self.mMark[1])
-            mPixelBaseDay = self.mScreenHandle.PixelScreenShot([20, 20])
-            if mPixelBase is None or mPixelBaseDay is None:
+        for i in range(3):
+            mListPixelBase = self.mScreenHandle.PixelScreenShot(self.mListPixelCoordinate)
+            if mListPixelBase is None:
                 time.sleep(0.001)
                 continue
+            mPixelBaseMark = deepcopy(mListPixelBase[0])
+            # mPixelBaseTop = deepcopy(mListPixelBase[1])
+            # mPixelBaseLeft = deepcopy(mListPixelBase[2])
+            # mPixelBaseRight = deepcopy(mListPixelBase[3])
+            mPixelBaseWeather = deepcopy(mListPixelBase[1])
             break
 
         time1 = time.time()
@@ -397,7 +377,7 @@ class AutoFishing(QObject):
         mStopDetect = False
         mSkipFrame = 0
         while (time2 - time1) < self.mConfig.mWaitingMarkTime:
-            # t = time.time()
+            t = time.time()
             # break point thread
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
@@ -410,89 +390,66 @@ class AutoFishing(QObject):
                 mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
                 if mSizeFish != 0:
                     mSkipFrame += 1
-                if mSkipFrame == 10:
+                if mSkipFrame == 5:
                     mStopDetect = True
                     log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
                         return
 
-            mPixelCurr = self.mScreenHandle.PixelScreenShot(self.mMark)
-            mPixelCurrDay = self.mScreenHandle.PixelScreenShot([20, 20])
-            # mPixelCurrTop = pyautogui.pixel(self.mMark[0],
-            #                                 self.mMark[1] - self.mConfig.mMarkPixelDist)
-            # mPixelCurrLeft = pyautogui.pixel(self.mMark[0] - self.mConfig.mMarkPixelDist,
-            #                                  self.mMark[1])
-            # mPixelCurrRight = pyautogui.pixel(self.mMark[0] + self.mConfig.mMarkPixelDist,
-            #                                   self.mMark[1])
-            if mPixelBase is None or mPixelBaseDay is None:
+            mListPixelCurr = self.mScreenHandle.PixelScreenShot(self.mListPixelCoordinate)
+            if mListPixelCurr is None:
                 time.sleep(0.001)
-                time2 = time.time()
                 continue
-            mDiffRgb = self.ComparePixel(mPixelCurr, mPixelBase)
-            mDiffRgbDay = self.ComparePixel(mPixelCurrDay, mPixelBaseDay)
+            mPixelCurrMark = deepcopy(mListPixelCurr[0])
+            # mPixelCurrTop = deepcopy(mListPixelCurr[1])
+            # mPixelCurrLeft = deepcopy(mListPixelCurr[2])
+            # mPixelCurrRight = deepcopy(mListPixelCurr[3])
+            mPixelCurrWeather = deepcopy(mListPixelCurr[1])
+
+            mDiffRgbMark = self.ComparePixel(mPixelCurrMark, mPixelBaseMark)
+            mDiffRgbWeather = self.ComparePixel(mPixelCurrWeather, mPixelBaseWeather)
             # mDiffRgbTop = self.ComparePixel(mPixelCurrTop, mPixelBaseTop)
             # mDiffRgbLeft = self.ComparePixel(mPixelCurrLeft, mPixelBaseLeft)
             # mDiffRgbRight = self.ComparePixel(mPixelCurrRight, mPixelBaseRight)
 
             # print('*********************************')
-            # print(f'__________mDiffRgb = {mDiffRgb}')
+            # print(f'__________mDiffRgb = {mDiffRgbMark}')
             # print(f'++++mDiffRgbTop = {mDiffRgbTop}')
             # print(f'++++mDiffRgbLeft = {mDiffRgbLeft}')
             # print(f'++++mDiffRgbRight = {mDiffRgbRight}')
-            # temp = self.ScreenshotWindowRegion([self.mEmulatorBox.left, self.mEmulatorBox.top,
-            #                                     40, self.mEmulatorBox.height * 2 // 5])
-            # cv2.imshow("temp", mPixelCurrDay)
-            # cv2.waitKey(1)
-            # print(mPixelCurrDay)
+            # print(f'++++mDiffRgbWeather = {mDiffRgbWeather}')
 
-            if mDiffRgb > 30 and mDiffRgbDay > 30:
-                mPixelBase = mPixelCurr
+            if mDiffRgbMark > 30 and mDiffRgbWeather > 30:
+                mPixelBaseMark = mPixelCurrMark
                 # mPixelBaseTop = mPixelCurrTop
                 # mPixelBaseLeft = mPixelCurrLeft
                 # mPixelBaseRight = mPixelCurrRight
-                mPixelBaseDay = mPixelCurrDay
+                mPixelBaseWeather = mPixelCurrWeather
                 time.sleep(0.2)
                 time2 = time.time()
                 continue
 
-            # if mDiffRgbLeft > 30:
+            # if mDiffRgbTop > 30 or mDiffRgbLeft > 30 or mDiffRgbRight > 30:
             #     time.sleep(0.001)
             #     time2 = time.time()
             #     continue
 
-            if mDiffRgb > 50:
-                log.info(f'mDiffRgb = {mDiffRgb}')
+            if mDiffRgbMark > 50:
+                log.info(f'mDiffRgb = {mDiffRgbMark}')
                 return
 
             time2 = time.time()
-            time.sleep(0.001)
-            # print(time.time() - t)
+            time.sleep(0.025)
+            print("FPS: ", 1/(time.time() - t))
         self.StatusEmit("Không phát hiện dấu chấm than")
         log.info(f'Cannot find mark')
         return
 
     def PullFishingRod(self):
-        if self.mConfig.mFreeMouseCheck is False:
-            self.mScreenHandle.SendKey(0x44)
-            self.StatusEmit("Đang kéo cần câu")
-            log.info(f'Send key 0x44')
-            return
-        else:
-            time1 = time.time()
-            self.AdbClick(self.mConfig.mPullingRodPos[0],
-                          self.mConfig.mPullingRodPos[1])
-            timeDelay = time.time() - time1
-            self.StatusEmit(f'Đang kéo cần câu. Độ trễ giật cần {round(timeDelay, 2)} giây')
-            log.info(f'Clicked {self.mConfig.mPullingRodPos}. Delay = {round(timeDelay, 2)} sec')
-            if timeDelay > 0.5:
-                self.mCheckAdbDelay += 1
-                if self.mCheckAdbDelay <= 3:
-                    return
-                self.mAutoFishRunning = False
-                self.MsgEmit(
-                    'Độ trễ Adb Server cao trên 0.5 giây\nTắt chế độ "Không chiếm chuột" để không bị kéo hụt cá')
-                self.mCheckAdbDelay = 0
-            return
+        self.mScreenHandle.SendKey()
+        self.StatusEmit("Đang kéo cần câu")
+        log.info('PullFishingRod')
+        return
 
     def FishPreservation(self):
         time.sleep(0.1)
@@ -512,7 +469,6 @@ class AutoFishing(QObject):
                 log.info(f'Fishing fail')
                 return
 
-            time.sleep(0.1)
             mCheckPreservation = self.mScreenHandle.FindImage(self.mConfig.mPreservationImg,
                                                               self.mConfig.mFishingResultRegion,
                                                               self.mConfig.mConfidence)
@@ -530,7 +486,7 @@ class AutoFishing(QObject):
         return
 
     def FishCount(self):
-        time.sleep(0.5)
+        time.sleep(0.05)
         mFishImage = self.mScreenHandle.RegionScreenshot(self.mConfig.mFishImgRegion)
         if mFishImage is None:
             return False
@@ -556,8 +512,8 @@ class AutoFishing(QObject):
             pass
         self.mImageShow = mFishImage.copy()
         # Hiện ảnh cá câu được lên app auto
-        if self.mConfig.mShowFishCheck is True:
-            self.mSignalUpdateImageShow.emit()
+
+        self.mSignalUpdateImageShow.emit()
 
     def SetPixelPos(self):
         if self.mEmulatorBox is None:
@@ -593,11 +549,11 @@ class AutoFishing(QObject):
                 #                         1, (0, 0, 255), 1, cv2.LINE_AA)
                 # mTempImage = cv2.circle(mTempImage,
                 #                         (self.mConfig.mMarkPixelRadius - self.mConfig.mMarkPixelDist,
-                #                          self.mConfig.mMarkPixelRadius + self.mConfig.mMarkPixelDist // 2),
+                #                          self.mConfig.mMarkPixelRadius),
                 #                         1, (0, 0, 255), 1, cv2.LINE_AA)
                 # mTempImage = cv2.circle(mTempImage,
                 #                         (self.mConfig.mMarkPixelRadius + self.mConfig.mMarkPixelDist,
-                #                          self.mConfig.mMarkPixelRadius + self.mConfig.mMarkPixelDist // 2),
+                #                          self.mConfig.mMarkPixelRadius),
                 #                         1, (0, 0, 255), 1, cv2.LINE_AA)
                 mTempImage = cv2.rectangle(mTempImage,
                                            (self.mConfig.mMarkPixelRadius - self.mConfig.mMarkPixelDist // 2,
@@ -613,6 +569,19 @@ class AutoFishing(QObject):
 
         self.StatusEmit(f'Vị trí chấm than trên cửa sổ game:\n{self.mMark}')
         log.info(f'Mark position in game = {self.mMark}')
+
+        # Chống phá auto, thời tiết
+        # mPixelTopCoordinate = [self.mMark[0], self.mMark[1] - self.mConfig.mMarkPixelDist]
+        # mPixelLeftCoordinate = [self.mMark[0] - self.mConfig.mMarkPixelDist, self.mMark[1]]
+        # mPixelRightCoordinate = [self.mMark[0] + self.mConfig.mMarkPixelDist, self.mMark[1]]
+        mPixelWeather = [20, 20]
+        self.mListPixelCoordinate.append(self.mMark)
+        # self.mListPixelCoordinate.append(mPixelTopCoordinate)
+        # self.mListPixelCoordinate.append(mPixelLeftCoordinate)
+        # self.mListPixelCoordinate.append(mPixelRightCoordinate)
+        self.mListPixelCoordinate.append(mPixelWeather)
+
+        self.MsgEmit('Từ phiên bản 2.1.0 trở đi\nYêu cầu cài đặt phím tắt KÉO CẦN trên giả lập là PHÍM CÁCH (Space)')
 
     def SetFishingBobberPos(self):
         if self.mEmulatorBox is None:
@@ -658,22 +627,29 @@ class AutoFishing(QObject):
         log.info(f'Fishing region in game = {self.mFishingRegion}')
 
     def CheckRegionEmulator(self):
-        mCheckWindowsApp = self.mScreenHandle.SetWindowApplication(self.mConfig.mWindowName,
-                                                                   self.mConfig.mEmulatorSize[0],
-                                                                   self.mConfig.mEmulatorSize[1])
-        if mCheckWindowsApp is False:
+        hwnd1 = self.mScreenHandle.CheckWindowApplication(self.mConfig.mWindowName)
+        hwnd2 = self.mScreenHandle.CheckWindowApplication(f'({self.mConfig.mWindowName})')
+        if hwnd1 is False and hwnd2 is False:
             self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}')
             log.info(f'Cannot find window name {self.mConfig.mWindowName}')
             return False
 
-        # debug
-        # self.mScreenHandle.WindowScreenShot()
+        mTrueName = self.mConfig.mWindowName
+        mTrueHWND = hwnd1
+        if hwnd2 is not False:
+            mTrueName = f'({self.mConfig.mWindowName})'
+            mTrueHWND = hwnd2
 
-        self.mScreenHandle.ActivateWindow()
+        self.mScreenHandle.ActivateWindow(mTrueHWND)
+
+        self.mScreenHandle.SetWindowApplication(mTrueName,
+                                                self.mConfig.mEmulatorSize[0],
+                                                self.mConfig.mEmulatorSize[1])
+
         self.mEmulatorBox = self.mScreenHandle.GetWindowBox()
         self.StatusEmit(f'Đã tìm thấy cửa sổ giả lập\n{self.mEmulatorBox}')
 
-        log.info(f'Found {self.mConfig.mWindowName}, box = {self.mEmulatorBox}')
+        log.info(f'Found {mTrueName}, box = {self.mEmulatorBox}')
         mEmulatorSize = self.mConfig.mEmulatorSize
 
         if abs(mEmulatorSize[0] - self.mEmulatorBox[2]) > 100 or abs(
@@ -750,18 +726,19 @@ class AutoFishing(QObject):
             return
 
         if self.mAdbDevice is None:
-            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị")
+            self.MsgEmit("Chưa kết nối địa chỉ Adb của giả lập")
             return
 
         if self.mMark[0] == 0:
-            self.MsgEmit('Chưa xác định vị trí dấu chấm than')
+            self.MsgEmit('Vị trí chấm than không đúng')
             return False
 
         if self.mConfig.mFishDetectionCheck is True:
             if self.mFishingRegion[0] == 0:
-                self.MsgEmit('Chưa xác định vùng câu')
+                self.MsgEmit('Vị trí phao câu không đúng')
                 return False
-        time.sleep(0.5)
+
+        time.sleep(0.1)
         while self.mAutoFishRunning is True:
             gc.collect()
             time.sleep(self.mConfig.mDelayTime)
@@ -781,7 +758,7 @@ class AutoFishing(QObject):
                     return Flags.STOP_FISHING
                 self.mCaptchaHandleTime += 1
                 if self.mCaptchaHandleTime == 8:
-                    self.MsgEmit('Giải captcha sai 8 lần')
+                    self.MsgEmit('Giải captcha sai 8 lần liên tiếp. Thoát game để tránh bị ban 24h câu')
                     self.mAutoFishRunning = False
                     break
                 else:
@@ -863,7 +840,7 @@ class AutoFishing(QObject):
                                                          self.mConfig.mConfidence)
             if mCheckCaptcha == Flags.TRUE:
                 return Flags.CAPTCHA_APPEAR
-            time.sleep(0.1)
+            time.sleep(0.05)
             mCheck += 1
         return Flags.CAPTCHA_NONE
 

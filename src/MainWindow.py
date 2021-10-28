@@ -120,9 +120,7 @@ class MainWindow(QMainWindow):
         self.ShowListEmulatorSize()
         self.uic.listAdbAddress.addItem(self.mConfig.mAdbAddress)
 
-        self.uic.cbFreeMouse.setChecked(self.mConfig.mFreeMouseCheck)
         self.uic.cbFishDetection.setChecked(self.mConfig.mFishDetectionCheck)
-        self.uic.cbShowFish.setChecked(self.mConfig.mShowFishCheck)
         self.uic.cbShutdownPC.setChecked(False)
 
         # Show logo
@@ -220,11 +218,9 @@ class MainWindow(QMainWindow):
         if self.SaveConfig() is False:
             return
         log.info(f'mWindowName = {self.mConfig.mWindowName}')
-        log.info(f'mFreeMouseCheck = {self.mConfig.mFreeMouseCheck}')
         log.info(f'mWaitingFishTime = {self.mConfig.mWaitingMarkTime}')
         log.info(f'mPullingFishTime = {self.mConfig.mWaitingFishTime}')
         log.info(f'mFishDetectionCheck = {self.mConfig.mFishDetectionCheck}')
-        log.info(f'mShowFishCheck = {self.mConfig.mShowFishCheck}')
         log.info(f'mFishingRodIndex = {self.mConfig.mFishingRodIndex}')
         log.info(f'mDelayTime = {self.mConfig.mDelayTime}')
 
@@ -249,18 +245,12 @@ class MainWindow(QMainWindow):
         self.uic.listEmulatorSize.setDisabled(True)
 
         # Hide check box
-        self.uic.cbShowFish.setDisabled(True)
-        self.uic.cbFreeMouse.setDisabled(True)
         self.uic.cbShutdownPC.setDisabled(True)
         self.uic.cbFishDetection.setDisabled(True)
 
         # All thread flag = False
         self.mAutoFishing.mCheckMouseRunning = False
         self.mAutoFishing.mAutoFishRunning = False
-
-        # Set image on graphic label
-        if self.mConfig.mShowFishCheck is False:
-            self.uic.lblShowFish.setPixmap(QtGui.QPixmap.fromImage(self.mLogo).scaled(200, 200))
 
         # Define thread start fishing
         self.mAutoFishingThread = threading.Thread(name="AutoFishing", target=self.mAutoFishing.StartAuto)
@@ -425,8 +415,6 @@ class MainWindow(QMainWindow):
             self.uic.btnGetBobberPosition.setDisabled(False)
 
             # Show all check box
-            self.uic.cbShowFish.setDisabled(False)
-            self.uic.cbFreeMouse.setDisabled(False)
             self.uic.cbShutdownPC.setDisabled(False)
             self.uic.cbFishDetection.setDisabled(False)
 
@@ -485,10 +473,15 @@ class MainWindow(QMainWindow):
             self.SlotShowMsgBox("Hẹn giờ tắt PC sai định dạng")
             return False
 
+        mDelayTime = 0
         try:
             mDelayTime = float(self.uic.txtDelayTime.toPlainText())
         except ValueError:
-            self.SlotShowMsgBox("Độ trễ sửa cần sai định dạng")
+            self.SlotShowMsgBox("Độ trễ thao tác sai định dạng")
+            return False
+
+        if mDelayTime < 0.3:
+            self.SlotShowMsgBox("Độ trễ thao tác phải cao hơn 0.3 giây")
             return False
 
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
@@ -499,9 +492,7 @@ class MainWindow(QMainWindow):
         self.mConfig.SetFishSize(int(self.uic.txtMinFishSize.toPlainText()))
 
         self.mConfig.SetShutdownCheckBox(self.uic.cbShutdownPC.isChecked())
-        self.mConfig.SetFreeMouse(self.uic.cbFreeMouse.isChecked())
         self.mConfig.SetFishDetection(self.uic.cbFishDetection.isChecked())
-        self.mConfig.SetShowFishShadow(self.uic.cbShowFish.isChecked())
 
         self.mConfig.SetDelayTime(mDelayTime)
 
