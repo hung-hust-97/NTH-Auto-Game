@@ -377,7 +377,7 @@ class AutoFishing(QObject):
         mStopDetect = False
         mSkipFrame = 0
         while (time2 - time1) < self.mConfig.mWaitingMarkTime:
-            t = time.time()
+            # t = time.time()
             # break point thread
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
@@ -440,7 +440,7 @@ class AutoFishing(QObject):
 
             time2 = time.time()
             time.sleep(0.025)
-            print("FPS: ", 1/(time.time() - t))
+            # print("FPS: ", 1/(time.time() - t))
         self.StatusEmit("Không phát hiện dấu chấm than")
         log.info(f'Cannot find mark')
         return

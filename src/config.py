@@ -28,7 +28,7 @@ BACKPACK_REC = [40, 40]
 CHECK_TYPE_FISH_POS = [770, 220]
 FISH_IMG_REGION = [625, 42, 295, 295]
 FONT_SCALE_DEFAULT = 1
-MAX_CONTOUR = 3500
+MAX_CONTOUR = 3000
 MIN_CONTOUR = 100
 LIST_CAPTCHA_REGION = [[255, 122, 120, 120],
                        [525, 112, 90, 90], [625, 112, 90, 90], [725, 112, 90, 90],
@@ -105,7 +105,7 @@ class Config(metaclass=SingletonMeta):
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
         self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
-        self.mListBlurArg = [13, 5, 3, 3]
+        self.mListBlurArg = [15, 5, 3, 3]
 
         self.mAppTitle = "NTH Auto Game " + self.mVersion
         self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả"
