@@ -14,6 +14,7 @@ from ui.UiMainWindow import Ui_MainWindow
 from src.config import Config
 from src.AutoFishing import AutoFishing
 from src.common import *
+from src.ReadMemory import *
 import logging as log
 
 
@@ -26,6 +27,7 @@ class MainWindow(QMainWindow):
         self.uic.setupUi(self)
         self.mConfig = Config()
         self.mAutoFishing = AutoFishing()
+        self.mReadMemory = ReadMemory()
 
         self.mLogo = None
         self.mAutoFishingThread = None
@@ -210,7 +212,13 @@ class MainWindow(QMainWindow):
         self.UpdateListAdbAddress()
         if self.SaveConfig() is False:
             return
-        self.SlotShowMsgBox(f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\nChọn địa chỉ ADB của giả lập và kết nối")
+
+        if self.mConfig.mCheatEngine is True:
+            threading.Thread(target=self.mReadMemory.ReadMemoryInit).start()
+            return
+
+        self.SlotShowMsgBox(
+            f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\nChọn địa chỉ ADB của giả lập và kết nối")
         return
 
     def OnClickConnectAdbAddress(self):

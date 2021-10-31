@@ -15,6 +15,7 @@ import win32gui
 
 from src.common import *
 from src.ScreenHandle import ScreenHandle
+from src.ReadMemory import ReadMemory
 
 
 class AutoFishing(QObject):
@@ -30,6 +31,7 @@ class AutoFishing(QObject):
         QObject.__init__(self, parent=None)
         self.mConfig = Config()
         self.mScreenHandle = ScreenHandle()
+        self.mReadMemory = ReadMemory()
 
         self.mFishingNum = 0
         self.mMark = [0, 0]
@@ -390,21 +392,30 @@ class AutoFishing(QObject):
                     log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
                         return
-
-            if (time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
-                time.sleep(0.02)
-                continue
-
-            mPixelCurrMark = self.mScreenHandle.PixelScreenShot(self.mMark)
-            if mPixelCurrMark is None:
-                # print("none pixel")
+            # mode cheat engine
+            if self.mConfig.mCheatEngine is True:
+                check = self.mReadMemory.GetData(self.mReadMemory.mRodAddress)
+                print(f'check = {check}')
+                if check == 4:
+                    return
                 time.sleep(0.001)
-                continue
-            mDiffRgbMark = self.ComparePixel(mPixelCurrMark, mPixelBaseMark)
-            if mDiffRgbMark > 50:
-                log.info(f'mDiffRgb = {mDiffRgbMark}')
-                return
-            time.sleep(0.015)
+
+            # Mode ko cheat engine
+            else:
+                if (time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
+                    time.sleep(0.02)
+                    continue
+
+                mPixelCurrMark = self.mScreenHandle.PixelScreenShot(self.mMark)
+                if mPixelCurrMark is None:
+                    # print("none pixel")
+                    time.sleep(0.001)
+                    continue
+                mDiffRgbMark = self.ComparePixel(mPixelCurrMark, mPixelBaseMark)
+                if mDiffRgbMark > 50:
+                    log.info(f'mDiffRgb = {mDiffRgbMark}')
+                    return
+                time.sleep(0.015)
         self.StatusEmit("Hết chu kỳ câu. Kéo cần")
         log.info(f'End fishing period. Pulling Rod')
         return
@@ -789,6 +800,13 @@ class AutoFishing(QObject):
             self.mConfig.mSendKeyCheck = True
         else:
             pass
+
+        if self.mConfig.mCheatEngine is True:
+            print(f'self.mReadMemory.mBaseAddress {self.mReadMemory.mBaseAddress}')
+            if self.mReadMemory.mBaseAddress == 0:
+                print("Fail Base Address")
+                return
+
         time.sleep(0.1)
         while self.mAutoFishRunning is True:
             gc.collect()
