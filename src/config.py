@@ -74,6 +74,8 @@ class Config(metaclass=SingletonMeta):
         self.mAdbPort = 5037
         self.mWindowName = self.mConfig['window_name']
         self.mEmulatorSizeId = self.mConfig.getint('emulator_size_id')
+        self.mSendKeyCheck = self.mConfig.getboolean('send_key')
+        self.mFishingPeriod = self.mConfig.getint('fishing_period')
         self.mWaitingMarkTime = self.mConfig.getint('waiting_mark_time')
         self.mWaitingFishTime = self.mConfig.getint('waiting_fish_time')
         self.mFishDetectionCheck = self.mConfig.getboolean('fish_detection')
@@ -86,31 +88,32 @@ class Config(metaclass=SingletonMeta):
 
         self.mListBackpackImgPath = ['data/backpack1280.png',
                                      'data/backpack960.png',
-                                     'data/backpack640.png',
-                                     'data/backpack480.png']
+                                     'data/backpack640.png']
 
         self.mListPreservationImgPath = ['data/preservation1280.png',
                                          'data/preservation960.png',
-                                         'data/preservation640.png',
-                                         'data/preservation480.png']
+                                         'data/preservation640.png']
 
         self.mListOKCaptchaImgPath = ['data/okcaptcha1280.png',
                                       'data/okcaptcha960.png',
-                                      'data/okcaptcha640.png',
-                                      'data/okcaptcha480.png']
+                                      'data/okcaptcha640.png']
 
         self.mBackpackImg = None
         self.mOKCaptchaImg = None
         self.mPreservationImg = None
+        self.mLdLogo = None
+        self.mNoxLogo = None
+        self.mMemuLogo = None
 
-        self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360], [480, 270]]
-        self.mListStrEmulatorSize = ["1280x720", "960x540", "640x360", "480x270"]
-        self.mListBlurArg = [15, 5, 3, 3]
+        self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360]]
+        self.mStrListEmulatorSize = ['1280x720 dpi 240', '960x540 dpi 160', '640x360 dpi 120']
+        self.mListBlurArg = [15, 5, 3]
 
         self.mAppTitle = "NTH Auto Game " + self.mVersion
         self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả"
         self.mFacebookLink = "https://www.facebook.com/groups/4478925988809953"
         self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
+        self.mMediaFire = "https://www.mediafire.com/folder/zpq42aonjn4bh/Auto_Game_PlayTogether"
         self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mAppLogo = LOGO_NTH_AUTO_GAME
         self.mIcon = ICON_NTH_AUTO_GAME
@@ -259,22 +262,22 @@ class Config(metaclass=SingletonMeta):
 
         self.mListBackpackImgPath = ['data/backpack1280.png',
                                      'data/backpack960.png',
-                                     'data/backpack640.png',
-                                     'data/backpack480.png']
+                                     'data/backpack640.png']
 
         self.mListPreservationImgPath = ['data/preservation1280.png',
                                          'data/preservation960.png',
-                                         'data/preservation640.png',
-                                         'data/preservation480.png']
+                                         'data/preservation640.png']
 
         self.mListOKCaptchaImgPath = ['data/okcaptcha1280.png',
                                       'data/okcaptcha960.png',
-                                      'data/okcaptcha640.png',
-                                      'data/okcaptcha480.png']
+                                      'data/okcaptcha640.png']
 
         self.mBackpackImg = cv2.imread(self.mBackpackImgPath, cv2.IMREAD_GRAYSCALE)
         self.mPreservationImg = cv2.imread(self.mPreservationImgPath, cv2.IMREAD_GRAYSCALE)
         self.mOKCaptchaImg = cv2.imread(self.mOKCaptchaImgPath, cv2.IMREAD_GRAYSCALE)
+        self.mNoxLogo = cv2.imread('data/noxlogo.png', cv2.IMREAD_GRAYSCALE)
+        self.mLdLogo = cv2.imread('data/ldlogo.png', cv2.IMREAD_GRAYSCALE)
+        self.mMemuLogo = cv2.imread('data/memulogo.png', cv2.IMREAD_GRAYSCALE)
 
         if self.mWindowRatio > 1:
             self.mThickness = 2
@@ -337,14 +340,19 @@ class Config(metaclass=SingletonMeta):
         self.mWindowName = mWindowName
         self.__mMutex.release()
 
-    def SetWaitingMarkTime(self, mWaitingMarkTime: int):
+    def SetFishingPeriod(self, mFishingPeriod: int):
         self.__mMutex.acquire()
-        self.mWaitingMarkTime = mWaitingMarkTime
+        self.mFishingPeriod = mFishingPeriod
         self.__mMutex.release()
 
     def SetWaitingFishTime(self, mWaitingFishTime: int):
         self.__mMutex.acquire()
         self.mWaitingFishTime = mWaitingFishTime
+        self.__mMutex.release()
+
+    def SetWaitingMarkTime(self, mWaitingMarkTime: int):
+        self.__mMutex.acquire()
+        self.mWaitingMarkTime = mWaitingMarkTime
         self.__mMutex.release()
 
     def SetFishDetection(self, mFishDetectionCheck: bool):
@@ -362,14 +370,21 @@ class Config(metaclass=SingletonMeta):
         self.mFishingRodIndex = mFishingRod
         self.__mMutex.release()
 
+    def SetSendKey(self, mSendKey: bool):
+        self.__mMutex.acquire()
+        self.mSendKeyCheck = mSendKey
+        self.__mMutex.release()
+
     def SaveConfig(self):
         mNewConfig = configparser.ConfigParser()
         mNewConfig['CONFIG'] = {}
         mNewConfig['CONFIG']['window_name'] = self.mWindowName
         mNewConfig['CONFIG']['emulator_size_id'] = str(self.mEmulatorSizeId)
-        mNewConfig['CONFIG']['waiting_mark_time'] = str(self.mWaitingMarkTime)
+        mNewConfig['CONFIG']['fishing_period'] = str(self.mFishingPeriod)
         mNewConfig['CONFIG']['waiting_fish_time'] = str(self.mWaitingFishTime)
+        mNewConfig['CONFIG']['waiting_mark_time'] = str(self.mWaitingMarkTime)
         mNewConfig['CONFIG']['fish_detection'] = str(self.mFishDetectionCheck)
+        mNewConfig['CONFIG']['send_key'] = str(self.mSendKeyCheck)
         mNewConfig['CONFIG']['fish_size'] = str(self.mFishSize)
         mNewConfig['CONFIG']['fishing_rod_id'] = str(self.mFishingRodIndex)
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)

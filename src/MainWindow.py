@@ -13,6 +13,7 @@ from PyQt5 import QtGui
 from ui.UiMainWindow import Ui_MainWindow
 from src.config import Config
 from src.AutoFishing import AutoFishing
+from src.common import *
 import logging as log
 
 
@@ -63,10 +64,10 @@ class MainWindow(QMainWindow):
         mMsgBox = QMessageBox()
         mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
         reply = mMsgBox.question(self, 'Thông báo',
-                                 f"Phiên bản đang sử dụng  {self.mConfig.mVersion}\nĐã có phiên bản mới {strNewVersion}\nĐồng ý truy cập fanpage để tải phiên bản mới?",
+                                 f"Phiên bản đang sử dụng  {self.mConfig.mVersion}\nĐã có phiên bản mới {strNewVersion}\nHãy chọn\nYes để tải phiên bản mới\nNo để sử dụng phiên bản hiện tại?",
                                  mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
         if reply == mMsgBox.Yes:
-            self.SlotOpenFacebook()
+            self.SlotOpenMediafire()
             sys.exit()
 
     def closeEvent(self, event):
@@ -96,6 +97,10 @@ class MainWindow(QMainWindow):
         self.uic.txtFishingRodPosition.setAlignment(Qt.AlignCenter)
         # self.uic.txtFishingRodPosition.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
+        self.uic.txtFishingPeriod.setText(str(self.mConfig.mFishingPeriod))
+        self.uic.txtFishingPeriod.setAlignment(Qt.AlignCenter)
+        # self.uic.txtFishingPeriod.setStyleSheet(HIDE_TEXT_BOX_STYLE)
+
         self.uic.txtWaitingFishTime.setText(str(self.mConfig.mWaitingFishTime))
         self.uic.txtWaitingFishTime.setAlignment(Qt.AlignCenter)
         # self.uic.txtWaitingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
@@ -120,6 +125,7 @@ class MainWindow(QMainWindow):
         self.ShowListEmulatorSize()
         self.uic.listAdbAddress.addItem(self.mConfig.mAdbAddress)
 
+        self.uic.cbKeyBoard.setChecked(self.mConfig.mSendKeyCheck)
         self.uic.cbFishDetection.setChecked(self.mConfig.mFishDetectionCheck)
         self.uic.cbShutdownPC.setChecked(False)
 
@@ -181,8 +187,16 @@ class MainWindow(QMainWindow):
         self.mConfig.SetEmulatorSize(self.uic.listEmulatorSize.currentIndex())
 
         if self.mAutoFishing.CheckRegionEmulator() is True:
-            self.SlotShowStatus("Kết nối cửa sổ giả lập thành công\n"
+            self.SlotShowStatus(f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\n"
                                 f"{self.mAutoFishing.mEmulatorBox}")
+            if self.mAutoFishing.mEmulatorType == LD:
+                self.uic.cbKeyBoard.setDisabled(True)
+                self.uic.cbKeyBoard.setChecked(False)
+            elif self.mAutoFishing.mEmulatorType == NOX:
+                self.uic.cbKeyBoard.setDisabled(True)
+                self.uic.cbKeyBoard.setChecked(True)
+            else:
+                self.uic.cbKeyBoard.setDisabled(False)
         else:
             self.uic.listAdbAddress.clear()
             self.uic.listAdbAddress.addItem("None")
@@ -196,7 +210,7 @@ class MainWindow(QMainWindow):
         self.UpdateListAdbAddress()
         if self.SaveConfig() is False:
             return
-        self.SlotShowMsgBox("Kết nối cửa sổ giả lập thành công\nChọn địa chỉ ADB của giả lập và kết nối")
+        self.SlotShowMsgBox(f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\nChọn địa chỉ ADB của giả lập và kết nối")
         return
 
     def OnClickConnectAdbAddress(self):
@@ -218,8 +232,10 @@ class MainWindow(QMainWindow):
         if self.SaveConfig() is False:
             return
         log.info(f'mWindowName = {self.mConfig.mWindowName}')
-        log.info(f'mWaitingFishTime = {self.mConfig.mWaitingMarkTime}')
+        log.info(f'mSendKeyCheck = {self.mConfig.mSendKeyCheck}')
+        log.info(f'mSendKeyCheck = {self.mConfig.mFishingPeriod}')
         log.info(f'mPullingFishTime = {self.mConfig.mWaitingFishTime}')
+        log.info(f'mWaitingFishTime = {self.mConfig.mWaitingMarkTime}')
         log.info(f'mFishDetectionCheck = {self.mConfig.mFishDetectionCheck}')
         log.info(f'mFishingRodIndex = {self.mConfig.mFishingRodIndex}')
         log.info(f'mDelayTime = {self.mConfig.mDelayTime}')
@@ -232,6 +248,7 @@ class MainWindow(QMainWindow):
         self.uic.btnGetBobberPosition.setDisabled(True)
 
         # Hide text box
+        self.uic.txtFishingPeriod.setDisabled(True)
         self.uic.txtWaitingFishTime.setDisabled(True)
         self.uic.txtWaitingMarkTime.setDisabled(True)
         self.uic.txtFishingRodPosition.setDisabled(True)
@@ -247,6 +264,7 @@ class MainWindow(QMainWindow):
         # Hide check box
         self.uic.cbShutdownPC.setDisabled(True)
         self.uic.cbFishDetection.setDisabled(True)
+        self.uic.cbKeyBoard.setDisabled(True)
 
         # All thread flag = False
         self.mAutoFishing.mCheckMouseRunning = False
@@ -283,12 +301,11 @@ class MainWindow(QMainWindow):
 
     def OnClickGetMarkPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
-        threading.Thread(name="SetMarkPosition", target=self.mAutoFishing.SetPixelPos).start()
+        threading.Thread(name="SetMarkPosition", target=self.mAutoFishing.SetMarkPos).start()
 
     def ShowListEmulatorSize(self):
-        for mSize in self.mConfig.mListEmulatorSize:
-            strSize = f'{mSize[0]}x{mSize[1]}'
-            self.uic.listEmulatorSize.addItem(strSize)
+        for mSize in self.mConfig.mStrListEmulatorSize:
+            self.uic.listEmulatorSize.addItem(mSize)
         self.uic.listEmulatorSize.setCurrentIndex(self.mConfig.mEmulatorSizeId)
 
     def ShowShutdownPCTime(self):
@@ -417,8 +434,11 @@ class MainWindow(QMainWindow):
             # Show all check box
             self.uic.cbShutdownPC.setDisabled(False)
             self.uic.cbFishDetection.setDisabled(False)
+            if self.mAutoFishing.mEmulatorType == MEMU or self.mAutoFishing.mEmulatorType == '':
+                self.uic.cbKeyBoard.setDisabled(False)
 
             # Show all text box
+            self.uic.txtFishingPeriod.setDisabled(False)
             self.uic.txtWaitingFishTime.setDisabled(False)
             self.uic.txtWaitingMarkTime.setDisabled(False)
             self.uic.txtFishingRodPosition.setDisabled(False)
@@ -445,16 +465,23 @@ class MainWindow(QMainWindow):
     def SlotOpenFacebook(self):
         QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mFacebookLink))
 
+    def SlotOpenMediafire(self):
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mMediaFire))
+
     def SlotOpenYoutube(self):
         QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeLink))
 
     def SaveConfig(self):
-        if (self.uic.txtWaitingMarkTime.toPlainText()).isnumeric() is False:
-            self.SlotShowMsgBox("Thời gian chờ chấm than sai định dạng")
+        if (self.uic.txtFishingPeriod.toPlainText()).isnumeric() is False:
+            self.SlotShowMsgBox("Chu kỳ câu sai định dạng")
             return False
 
         if (self.uic.txtWaitingFishTime.toPlainText()).isnumeric() is False:
             self.SlotShowMsgBox("Thời gian chờ cá đến sai định dạng")
+            return False
+
+        if (self.uic.txtWaitingMarkTime.toPlainText()).isnumeric() is False:
+            self.SlotShowMsgBox("Thời gian chờ chấm than sai định dạng")
             return False
 
         if (self.uic.txtFishingRodPosition.toPlainText()).isnumeric() is False:
@@ -487,11 +514,13 @@ class MainWindow(QMainWindow):
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
         self.mConfig.SetShutdownTime(int(self.uic.txtShutdownTime.toPlainText()))
         self.mConfig.SetFishingRod(int(self.uic.txtFishingRodPosition.toPlainText()))
-        self.mConfig.SetWaitingFishTime(int(self.uic.txtWaitingFishTime.toPlainText()))
+        self.mConfig.SetFishingPeriod(int(self.uic.txtFishingPeriod.toPlainText()))
         self.mConfig.SetWaitingMarkTime(int(self.uic.txtWaitingMarkTime.toPlainText()))
+        self.mConfig.SetWaitingFishTime(int(self.uic.txtWaitingFishTime.toPlainText()))
         self.mConfig.SetFishSize(int(self.uic.txtMinFishSize.toPlainText()))
 
         self.mConfig.SetShutdownCheckBox(self.uic.cbShutdownPC.isChecked())
+        self.mConfig.SetSendKey(self.uic.cbKeyBoard.isChecked())
         self.mConfig.SetFishDetection(self.uic.cbFishDetection.isChecked())
 
         self.mConfig.SetDelayTime(mDelayTime)

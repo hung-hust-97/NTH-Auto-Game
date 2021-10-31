@@ -3,7 +3,7 @@ import time
 import gc
 import cv2
 import threading
-from copy import deepcopy
+import pyautogui
 
 from ppadb.client import Client as AdbClient
 import win32api
@@ -13,7 +13,7 @@ import subprocess
 import logging as log
 import win32gui
 
-from src.common import Flags
+from src.common import *
 from src.ScreenHandle import ScreenHandle
 
 
@@ -48,7 +48,9 @@ class AutoFishing(QObject):
         self.mFixRodTime = 0
         self.mCaptchaHandleTime = 0
         self.mCaptchaRecognition = None
-        self.mListPixelCoordinate = []
+        self.mCheckBobberPos = False
+        self.mCheckMarkPos = False
+        self.mEmulatorType = ''
 
         # Khai báo số cá các loại
         self.mAllFish = 0
@@ -143,7 +145,7 @@ class AutoFishing(QObject):
 
     def CheckRod(self):
         time.sleep(self.mConfig.mDelayTime)
-        for i in range(5):
+        for i in range(6):
             # break point thread auto fishing
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
@@ -285,10 +287,10 @@ class AutoFishing(QObject):
         # Quét tất cả các đường biên
         mFishArea = 0
         mCurrFrameRGB = cv2.circle(mCurrFrameRGB, (mImgCenterX, mImgCenterY),
-                                   int(self.mConfig.mRadiusFishingRegion * 3 // 4),
+                                   (self.mConfig.mRadiusFishingRegion * 3) // 4,
                                    self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
         mCurrFrameRGB = cv2.circle(mCurrFrameRGB, (mImgCenterX, mImgCenterY),
-                                   self.mConfig.mRadiusFishingRegion * 1 // 4,
+                                   self.mConfig.mRadiusFishingRegion // 4,
                                    self.mConfig.mTextColor, self.mConfig.mThickness, cv2.LINE_AA)
 
         cv2.putText(mCurrFrameRGB, str(mBackGroundColor),
@@ -305,8 +307,8 @@ class AutoFishing(QObject):
             # toa do cua cac contour tim duoc
             (x, y, w, h) = cv2.boundingRect(mContour)
 
-            # Neu contour co height > 2.0 weight thi co the la cham than hoac troi mua
-            if h > 1.5 * w:
+            # neu height > 2 * weight, bo qua de tranh hat mua
+            if h > 2 * w:
                 continue
 
             mContourCenterX = x + w // 2
@@ -346,43 +348,36 @@ class AutoFishing(QObject):
             mStaticFrameGray = cv2.cvtColor(mStaticFrameRGB, cv2.COLOR_BGR2GRAY)
             self.mImageShow = mStaticFrameRGB
 
-        for i in range(self.mConfig.mWaitingFishTime * 2):
-            time.sleep(0.5)
-            # break point thread
-            if self.mAutoFishRunning is False:
-                return Flags.STOP_FISHING
-
-        self.StatusEmit("Đang đợi cá")
-        log.info(f'Waiting Mark')
+        self.StatusEmit("Đang câu cá")
+        log.info(f'Fishing')
         mPixelBaseMark = None
-        # mPixelBaseTop = None
-        # mPixelBaseLeft = None
-        # mPixelBaseRight = None
-        mPixelBaseWeather = None
 
         for i in range(3):
-            mListPixelBase = self.mScreenHandle.PixelScreenShot(self.mListPixelCoordinate)
-            if mListPixelBase is None:
+            mPixelBaseMark = self.mScreenHandle.PixelScreenShot(self.mMark)
+            if mPixelBaseMark is None:
                 time.sleep(0.001)
                 continue
-            mPixelBaseMark = deepcopy(mListPixelBase[0])
-            # mPixelBaseTop = deepcopy(mListPixelBase[1])
-            # mPixelBaseLeft = deepcopy(mListPixelBase[2])
-            # mPixelBaseRight = deepcopy(mListPixelBase[3])
-            mPixelBaseWeather = deepcopy(mListPixelBase[1])
             break
 
-        time1 = time.time()
-        time2 = time.time()
+        mBaseTime = time.time()
         mStopDetect = False
         mSkipFrame = 0
-        while (time2 - time1) < self.mConfig.mWaitingMarkTime:
-            # t = time.time()
-            # break point thread
+
+        fpsTime = time.time()
+        time.sleep(0.01)
+        while (time.time() - mBaseTime) < self.mConfig.mFishingPeriod:
+            # t1 = fpsTime
+            # fpsTime = time.time()
+            # print(f'FPS = {1 / (fpsTime - t1)}')
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
 
-            if self.mConfig.mFishDetectionCheck is True and mStopDetect is False:
+            if (time.time() - mBaseTime) < self.mConfig.mWaitingFishTime:
+                time.sleep(0.1)
+                continue
+
+            if self.mConfig.mFishDetectionCheck is True and mStopDetect is False and (
+                    time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
                 mCurrentFrameRGB = self.mScreenHandle.RegionScreenshot(self.mFishingRegion)
                 if mCurrentFrameRGB is None:
                     return
@@ -390,66 +385,52 @@ class AutoFishing(QObject):
                 mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
                 if mSizeFish != 0:
                     mSkipFrame += 1
-                if mSkipFrame == 5:
+                if mSkipFrame == 10:
                     mStopDetect = True
                     log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
                         return
 
-            mListPixelCurr = self.mScreenHandle.PixelScreenShot(self.mListPixelCoordinate)
-            if mListPixelCurr is None:
+            if (time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
+                time.sleep(0.02)
+                continue
+
+            mPixelCurrMark = self.mScreenHandle.PixelScreenShot(self.mMark)
+            if mPixelCurrMark is None:
+                # print("none pixel")
                 time.sleep(0.001)
                 continue
-            mPixelCurrMark = deepcopy(mListPixelCurr[0])
-            # mPixelCurrTop = deepcopy(mListPixelCurr[1])
-            # mPixelCurrLeft = deepcopy(mListPixelCurr[2])
-            # mPixelCurrRight = deepcopy(mListPixelCurr[3])
-            mPixelCurrWeather = deepcopy(mListPixelCurr[1])
-
             mDiffRgbMark = self.ComparePixel(mPixelCurrMark, mPixelBaseMark)
-            mDiffRgbWeather = self.ComparePixel(mPixelCurrWeather, mPixelBaseWeather)
-            # mDiffRgbTop = self.ComparePixel(mPixelCurrTop, mPixelBaseTop)
-            # mDiffRgbLeft = self.ComparePixel(mPixelCurrLeft, mPixelBaseLeft)
-            # mDiffRgbRight = self.ComparePixel(mPixelCurrRight, mPixelBaseRight)
-
-            # print('*********************************')
-            # print(f'__________mDiffRgb = {mDiffRgbMark}')
-            # print(f'++++mDiffRgbTop = {mDiffRgbTop}')
-            # print(f'++++mDiffRgbLeft = {mDiffRgbLeft}')
-            # print(f'++++mDiffRgbRight = {mDiffRgbRight}')
-            # print(f'++++mDiffRgbWeather = {mDiffRgbWeather}')
-
-            if mDiffRgbMark > 30 and mDiffRgbWeather > 30:
-                mPixelBaseMark = mPixelCurrMark
-                # mPixelBaseTop = mPixelCurrTop
-                # mPixelBaseLeft = mPixelCurrLeft
-                # mPixelBaseRight = mPixelCurrRight
-                mPixelBaseWeather = mPixelCurrWeather
-                time.sleep(0.2)
-                time2 = time.time()
-                continue
-
-            # if mDiffRgbTop > 30 or mDiffRgbLeft > 30 or mDiffRgbRight > 30:
-            #     time.sleep(0.001)
-            #     time2 = time.time()
-            #     continue
-
             if mDiffRgbMark > 50:
                 log.info(f'mDiffRgb = {mDiffRgbMark}')
                 return
-
-            time2 = time.time()
-            time.sleep(0.025)
-            # print("FPS: ", 1/(time.time() - t))
-        self.StatusEmit("Không phát hiện dấu chấm than")
-        log.info(f'Cannot find mark')
+            time.sleep(0.015)
+        self.StatusEmit("Hết chu kỳ câu. Kéo cần")
+        log.info(f'End fishing period. Pulling Rod')
         return
 
     def PullFishingRod(self):
-        self.mScreenHandle.SendKey()
-        self.StatusEmit("Đang kéo cần câu")
-        log.info('PullFishingRod')
-        return
+        if self.mConfig.mSendKeyCheck is True:
+            self.mScreenHandle.SendKey()
+            self.StatusEmit("Đang kéo cần câu")
+            log.info('PullFishingRod')
+            return
+        else:
+            time1 = time.time()
+            self.AdbClick(self.mConfig.mPullingRodPos[0],
+                          self.mConfig.mPullingRodPos[1])
+            timeDelay = time.time() - time1
+            self.StatusEmit(f'Đang kéo cần câu. Độ trễ giật cần {round(timeDelay, 2)} giây')
+            log.info(f'Clicked {self.mConfig.mPullingRodPos}. Delay = {round(timeDelay, 2)} sec')
+            if timeDelay > 0.5:
+                self.mCheckAdbDelay += 1
+                if self.mCheckAdbDelay <= 3:
+                    return
+                self.mAutoFishRunning = False
+                self.MsgEmit(
+                    'Kéo cần qua ADB bị trễ quá cao\nHãy chọn chế độ kéo cần bằng phím Space (KHÔNG hỗ trợ trên LD Player)')
+                self.mCheckAdbDelay = 0
+            return
 
     def FishPreservation(self):
         time.sleep(0.1)
@@ -515,12 +496,12 @@ class AutoFishing(QObject):
 
         self.mSignalUpdateImageShow.emit()
 
-    def SetPixelPos(self):
+    def SetMarkPos(self):
         if self.mEmulatorBox is None:
-            self.MsgEmit("Chưa kết nối cửa sổ giả lập")
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập\t\t")
             return
         if self.mAdbDevice is None:
-            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị")
+            self.MsgEmit("Chưa kết nối địa chỉ ADB của thiết bị")
             return
         self.mMark = [0, 0]
         time.sleep(0.1)
@@ -528,16 +509,19 @@ class AutoFishing(QObject):
             "Đưa chuột đến ĐỈNH của CHẤM THAN và bấm chuột\nChấm đỏ phải nằm trong CHẤM THAN")
         self.mCheckMouseRunning = True
         while self.mCheckMouseRunning is True:
+            # kiem tra xem cham than co nam ngoai cua so game khong?
+            self.mCheckMarkPos = False
             mAbsMousePos = win32gui.GetCursorPos()
-            self.mSignalSetPixelPos.emit(mAbsMousePos[0], mAbsMousePos[1])
 
             if mAbsMousePos[0] - self.mConfig.mMarkPixelRadius > self.mEmulatorBox[0] and \
-                    mAbsMousePos[0] + self.mConfig.mMarkPixelRadius < self.mEmulatorBox[2] + self.mEmulatorBox[0] and \
+                    mAbsMousePos[0] + self.mConfig.mMarkPixelRadius < self.mConfig.mEmulatorSize[0] + self.mEmulatorBox[
+                0] and \
                     mAbsMousePos[1] - self.mConfig.mMarkPixelRadius - self.mScreenHandle.mTopBar > self.mEmulatorBox[
                 1] and \
                     mAbsMousePos[1] + self.mConfig.mMarkPixelRadius < self.mEmulatorBox[1] + self.mEmulatorBox[3]:
                 self.mMark = self.ConvertCoordinates(mAbsMousePos)
-                # print(self.mMark)
+                self.mSignalSetPixelPos.emit(self.mMark[0], self.mMark[1])
+
                 mRegion = [self.mMark[0] - self.mConfig.mMarkPixelRadius, self.mMark[1] - self.mConfig.mMarkPixelRadius,
                            2 * self.mConfig.mMarkPixelRadius, 2 * self.mConfig.mMarkPixelRadius]
                 mTempImage = self.mScreenHandle.RegionScreenshot(mRegion)
@@ -563,25 +547,19 @@ class AutoFishing(QObject):
                                            (0, 0, 255), 1, cv2.LINE_AA)
                 self.mImageShow = mTempImage.copy()
                 self.mSignalUpdateImageShow.emit()
-            if self.CheckLeftMouseClick() is True:
-                self.mCheckMouseRunning = False
-            time.sleep(0.01)
+                self.mCheckMarkPos = True
+
+            for i in range(30):
+                if self.CheckLeftMouseClick() is True:
+                    self.mCheckMouseRunning = False
+                time.sleep(0.001)
+
+        if self.mCheckMarkPos is False:
+            self.MsgEmit('Lỗi vị trí chấm than đã lấy nằm ngoài cửa sổ giả lập')
+            self.mMark = [0, 0]
 
         self.StatusEmit(f'Vị trí chấm than trên cửa sổ game:\n{self.mMark}')
         log.info(f'Mark position in game = {self.mMark}')
-
-        # Chống phá auto, thời tiết
-        # mPixelTopCoordinate = [self.mMark[0], self.mMark[1] - self.mConfig.mMarkPixelDist]
-        # mPixelLeftCoordinate = [self.mMark[0] - self.mConfig.mMarkPixelDist, self.mMark[1]]
-        # mPixelRightCoordinate = [self.mMark[0] + self.mConfig.mMarkPixelDist, self.mMark[1]]
-        mPixelWeather = [20, 20]
-        self.mListPixelCoordinate.append(self.mMark)
-        # self.mListPixelCoordinate.append(mPixelTopCoordinate)
-        # self.mListPixelCoordinate.append(mPixelLeftCoordinate)
-        # self.mListPixelCoordinate.append(mPixelRightCoordinate)
-        self.mListPixelCoordinate.append(mPixelWeather)
-
-        self.MsgEmit('Từ phiên bản 2.1.0 trở đi\nYêu cầu cài đặt phím tắt KÉO CẦN trên giả lập là PHÍM CÁCH (Space)')
 
     def SetFishingBobberPos(self):
         if self.mEmulatorBox is None:
@@ -589,74 +567,129 @@ class AutoFishing(QObject):
             return
 
         if self.mAdbDevice is None:
-            self.MsgEmit("Chưa kết nối địa chỉ Adb của thiết bị")
+            self.MsgEmit("Chưa kết nối địa chỉ ADB của thiết bị")
             return
         self.mFishingRegion = [0, 0, 0, 0]
-        time.sleep(0.1)
 
         self.StatusEmit("Di chuyển chuột đến phao câu và Click")
         self.mCheckMouseRunning = True
+
         while self.mCheckMouseRunning is True:
+            # kiem tra xem vi tri phao cau co qua gan vien gia lap?
+            self.mCheckBobberPos = False
             mAbsMousePos = win32gui.GetCursorPos()
-            self.mSignalSetFishingBobberPos.emit(mAbsMousePos[0], mAbsMousePos[1])
 
             if mAbsMousePos[0] - self.mConfig.mRadiusFishingRegion > self.mEmulatorBox[0] and \
-                    mAbsMousePos[0] + self.mConfig.mRadiusFishingRegion < self.mEmulatorBox[2] + self.mEmulatorBox[
-                0] and \
+                    mAbsMousePos[0] + self.mConfig.mRadiusFishingRegion < self.mConfig.mEmulatorSize[0] + \
+                    self.mEmulatorBox[
+                        0] and \
                     mAbsMousePos[1] - self.mConfig.mRadiusFishingRegion - self.mScreenHandle.mTopBar > \
                     self.mEmulatorBox[1] and \
                     mAbsMousePos[1] + self.mConfig.mRadiusFishingRegion < self.mEmulatorBox[1] + self.mEmulatorBox[3]:
                 mRelativeMousePos = self.ConvertCoordinates(mAbsMousePos)
+                self.mSignalSetFishingBobberPos.emit(mRelativeMousePos[0], mRelativeMousePos[1])
+
                 self.mFishingRegion[0] = mRelativeMousePos[0] - self.mConfig.mRadiusFishingRegion
                 self.mFishingRegion[1] = mRelativeMousePos[1] - self.mConfig.mRadiusFishingRegion
                 self.mFishingRegion[2] = self.mConfig.mRadiusFishingRegion * 2
                 self.mFishingRegion[3] = self.mConfig.mRadiusFishingRegion * 2
 
-                # print(self.mFishingRegion)
-
-                mRegion = [mRelativeMousePos[0] - 50, mRelativeMousePos[1] - 50, 100, 100]
+                mRegion = [mRelativeMousePos[0] - self.mConfig.mRadiusFishingRegion,
+                           mRelativeMousePos[1] - self.mConfig.mRadiusFishingRegion,
+                           self.mConfig.mRadiusFishingRegion * 2,
+                           self.mConfig.mRadiusFishingRegion * 2]
                 mTempImage = self.mScreenHandle.RegionScreenshot(mRegion)
-                mTempImage = cv2.circle(mTempImage, (50, 50), 1, (0, 0, 255), 2, cv2.LINE_AA)
+                mTempImage = cv2.circle(mTempImage,
+                                        (self.mConfig.mRadiusFishingRegion, self.mConfig.mRadiusFishingRegion),
+                                        1, (0, 0, 255), 5, cv2.LINE_AA)
+                mTempImage = cv2.circle(mTempImage,
+                                        (self.mConfig.mRadiusFishingRegion, self.mConfig.mRadiusFishingRegion),
+                                        (self.mConfig.mRadiusFishingRegion * 3) // 4,
+                                        (0, 0, 255),
+                                        self.mConfig.mThickness, cv2.LINE_AA)
+                mTempImage = cv2.circle(mTempImage,
+                                        (self.mConfig.mRadiusFishingRegion, self.mConfig.mRadiusFishingRegion),
+                                        self.mConfig.mRadiusFishingRegion // 4,
+                                        (0, 0, 255),
+                                        self.mConfig.mThickness, cv2.LINE_AA)
                 self.mImageShow = mTempImage.copy()
                 self.mSignalUpdateImageShow.emit()
-            if self.CheckLeftMouseClick() is True:
-                self.mCheckMouseRunning = False
-            time.sleep(0.01)
+                self.mCheckBobberPos = True
+
+            for i in range(30):
+                if self.CheckLeftMouseClick() is True:
+                    self.mCheckMouseRunning = False
+                time.sleep(0.001)
+
+        if self.mCheckBobberPos is False:
+            self.MsgEmit(
+                'Lỗi vị trí phao câu quá gần viền cửa sổ giả lập.\nĐiều chỉnh góc nhìn của nhân vật để phao câu xa viền màn hình hơn')
+            self.mFishingRegion = [0, 0, 0, 0]
 
         self.StatusEmit(f'Vùng câu trong game:\n{self.mFishingRegion}')
         log.info(f'Fishing region in game = {self.mFishingRegion}')
 
     def CheckRegionEmulator(self):
-        hwnd1 = self.mScreenHandle.CheckWindowApplication(self.mConfig.mWindowName)
-        hwnd2 = self.mScreenHandle.CheckWindowApplication(f'({self.mConfig.mWindowName})')
-        if hwnd1 is False and hwnd2 is False:
-            self.MsgEmit(f'Không tìm thấy cửa sổ {self.mConfig.mWindowName}')
-            log.info(f'Cannot find window name {self.mConfig.mWindowName}')
+        try:
+            mWindowTitle = pyautogui.getWindowsWithTitle(self.mConfig.mWindowName)[-1].title
+        except (ValueError, Exception):
+            self.MsgEmit(f'Không tìm thấy cửa sổ giả lập {self.mConfig.mWindowName}. Hãy kiểm tra tên cửa sổ')
+            log.info(f'pyautogui cannot find window name {self.mConfig.mWindowName}')
             return False
 
-        mTrueName = self.mConfig.mWindowName
-        mTrueHWND = hwnd1
-        if hwnd2 is not False:
-            mTrueName = f'({self.mConfig.mWindowName})'
-            mTrueHWND = hwnd2
+        check = self.mScreenHandle.CheckWindowApplication(mWindowTitle)
+        if check is False:
+            self.MsgEmit(f'Không tìm thấy cửa sổ giả lập {self.mConfig.mWindowName}. Hãy kiểm tra tên cửa sổ')
+            log.info(f'win32gui cannot find window name {self.mConfig.mWindowName}')
+            return False
 
-        self.mScreenHandle.ActivateWindow(mTrueHWND)
-
-        self.mScreenHandle.SetWindowApplication(mTrueName,
-                                                self.mConfig.mEmulatorSize[0],
+        self.mScreenHandle.ActivateWindow()
+        self.mScreenHandle.SetWindowApplication(self.mConfig.mEmulatorSize[0],
                                                 self.mConfig.mEmulatorSize[1])
 
         self.mEmulatorBox = self.mScreenHandle.GetWindowBox()
+        if self.mEmulatorBox[2] < 200:
+            self.MsgEmit(f'Giả lập không được để tên mặc định.\n'
+                         f'Hãy đổi tên giả lập. Yêu cầu như sau:\n'
+                         f'- Viết liền không dấu.\n'
+                         f'- Không được trùng với tên cửa sổ khác.\n'
+                         f'- Ví dụ auto01, auto02, auto03, ...')
+            log.info(f'Error default name')
+            return False
+
         self.StatusEmit(f'Đã tìm thấy cửa sổ giả lập\n{self.mEmulatorBox}')
 
-        log.info(f'Found {mTrueName}, box = {self.mEmulatorBox}')
+        log.info(f'Found {self.mConfig.mWindowName} = {mWindowTitle}, box = {self.mEmulatorBox}')
         mEmulatorSize = self.mConfig.mEmulatorSize
 
         if abs(mEmulatorSize[0] - self.mEmulatorBox[2]) > 100 or abs(
                 mEmulatorSize[1] - self.mEmulatorBox[3]) > 100:
-            self.MsgEmit(f'Cửa sổ giả lập {self.mEmulatorBox[2]}x{self.mEmulatorBox[3]} không phù hợp')
-            log.info(f'Emulator size {self.mEmulatorBox[2]}x{self.mEmulatorBox[3]} not suitable')
+            self.MsgEmit(
+                f'Cửa sổ giả lập không phải {self.mConfig.mStrListEmulatorSize[self.mConfig.mEmulatorSizeId]}\n'
+                f'Hãy cài đặt độ phân giải giả lập về một trong 3 dạng sau:\n'
+                f'1280x720 (dpi 240)\n'
+                f'960x540 (dpi 160)\n'
+                f'640x360 (dpi 120)')
+            log.info(f'Emulator size {self.mEmulatorBox} not suitable')
             return False
+
+        self.mEmulatorType = self.mScreenHandle.FindLogo()
+        if self.mEmulatorType == OTHER:
+            self.MsgEmit(
+                f'Không tìm thấy giả lập. Hãy đổi tên giả lập\n'
+                f'Lưu ý phần mềm chỉ hỗ trợ 3 loại giả lập LDPlayer, NOX, MEmu')
+            log.info(f'Emulator type not suitable')
+            return False
+
+        if self.mEmulatorType == NOX:
+            self.mImageShow = cv2.imread('data/noxlogo.png')
+        elif self.mEmulatorType == LD:
+            self.mImageShow = cv2.imread('data/ldlogo.png')
+        elif self.mEmulatorType == MEMU:
+            self.mImageShow = cv2.imread('data/memulogo.png')
+        else:
+            pass
+        self.mSignalUpdateImageShow.emit()
         return True
 
     def StartAdbServer(self):
@@ -679,14 +712,14 @@ class AutoFishing(QObject):
         except (ValueError, Exception):
             mCheckStartServer = self.StartAdbServer()
             if mCheckStartServer is False:
-                self.MsgEmit('Không tìm thấy adb-server')
+                self.MsgEmit('Không tìm thấy ADB server\t\t')
                 return False
             else:
                 self.mAdbClient = AdbClient(self.mConfig.mAdbHost, self.mConfig.mAdbPort)
                 self.mAdbDevices = self.mAdbClient.devices()
         if len(self.mAdbDevices) == 0:
             self.mAdbClient = None
-            self.MsgEmit('Không kết nối được giả lập qua adb-server\nRestart lại giả lập')
+            self.MsgEmit('Không kết nối được giả lập qua adb-server\nHãy khởi động lại giả lập')
             return False
         else:
             log.info(f'Complete')
@@ -706,15 +739,28 @@ class AutoFishing(QObject):
         return True
 
     def AdbClick(self, mCoordinateX, mCoordinateY):
-        self.mAdbDevice.shell(f'input tap {str(mCoordinateX)} {str(mCoordinateY)}')
+        try:
+            self.mAdbDevice.shell(f'input tap {str(mCoordinateX)} {str(mCoordinateY)}')
+        except (ValueError, Exception):
+            self.MsgEmit("Mất kết nối địa chỉ ADB đến giả lập.\n"
+                         "Để tránh xung đột ADB, KHÔNG được bật cùng lúc 2 loại giả lập khác nhau")
+            self.mAutoFishRunning = False
 
     def AdbDoubleClick(self, mCoordinateX, mCoordinateY):
-        self.mAdbDevice.shell(
-            f'input tap {str(mCoordinateX)} {str(mCoordinateY)} & sleep 0.1; input tap {str(mCoordinateX)} {str(mCoordinateY)}')
+        try:
+            self.mAdbDevice.shell(
+                f'input tap {str(mCoordinateX)} {str(mCoordinateY)} & sleep 0.1; input tap {str(mCoordinateX)} {str(mCoordinateY)}')
+        except (ValueError, Exception):
+            self.MsgEmit("Mất kết nối ADB đến giả lập")
+            self.mAutoFishRunning = False
 
     def AdbHoldClick(self, mCoordinateX, mCoordinateY, mTime):
-        self.mAdbDevice.shell(
-            f'input swipe {str(mCoordinateX)} {str(mCoordinateY)} {str(mCoordinateX)} {str(mCoordinateY)} {str(mTime)}')
+        try:
+            self.mAdbDevice.shell(
+                f'input swipe {str(mCoordinateX)} {str(mCoordinateY)} {str(mCoordinateX)} {str(mCoordinateY)} {str(mTime)}')
+        except (ValueError, Exception):
+            self.MsgEmit("Mất kết nối ADB đến giả lập")
+            self.mAutoFishRunning = False
 
     def StartAuto(self):
         if self.mCaptchaRecognition is None:
@@ -722,22 +768,27 @@ class AutoFishing(QObject):
 
         self.mAutoFishRunning = True
         if self.mEmulatorBox is None:
-            self.MsgEmit("Chưa kết nối cửa sổ giả lập")
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập\t\t")
             return
 
         if self.mAdbDevice is None:
-            self.MsgEmit("Chưa kết nối địa chỉ Adb của giả lập")
+            self.MsgEmit("Chưa kết nối địa chỉ ADB của giả lập\t\t")
             return
 
-        if self.mMark[0] == 0:
-            self.MsgEmit('Vị trí chấm than không đúng')
-            return False
+        if self.mMark[0] == 0 and self.mMark[1] == 0:
+            self.MsgEmit("Chưa lấy tọa độ chấm than \t\t")
+            return
 
-        if self.mConfig.mFishDetectionCheck is True:
-            if self.mFishingRegion[0] == 0:
-                self.MsgEmit('Vị trí phao câu không đúng')
-                return False
+        if self.mFishingRegion[2] == 0:
+            self.MsgEmit("Chưa lấy tọa độ phao câu\t\t")
+            return
 
+        if self.mEmulatorType == LD:
+            self.mConfig.mSendKeyCheck = False
+        elif self.mEmulatorType == NOX:
+            self.mConfig.mSendKeyCheck = True
+        else:
+            pass
         time.sleep(0.1)
         while self.mAutoFishRunning is True:
             gc.collect()
@@ -821,7 +872,7 @@ class AutoFishing(QObject):
 
                 self.mCaptchaHandleTime += 1
                 if self.mCaptchaHandleTime == 8:
-                    self.MsgEmit('Giải captcha sai 8 lần')
+                    self.MsgEmit('Giải captcha sai 8 lần\t\t')
                     self.mAutoFishRunning = False
                     break
             else:
