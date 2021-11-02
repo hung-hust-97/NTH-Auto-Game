@@ -645,6 +645,7 @@ class AutoFishing(QObject):
                                                               self.mConfig.mFishingResultRegion,
                                                               self.mConfig.mConfidence)
             if mCheckPreservation == Flags.TRUE:
+                time.sleep(self.mConfig.mDelayTime)
                 break
             time.sleep(0.1)
         mFishImage = self.mScreenHandle.RegionScreenshot(self.mConfig.mFishImgRegion)
