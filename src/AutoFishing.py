@@ -149,6 +149,12 @@ class AutoFishing(QObject):
         log.info(f'Clicked {self.mConfig.mOKButton}')
 
     def CheckRod(self):
+        time.sleep(self.mConfig.mDelayTime)
+        for i in range(6):
+            # break point thread auto fishing
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+            time.sleep(0.5)
         mCheck = 0
         while mCheck < 5:
             if self.mAutoFishRunning is False:
