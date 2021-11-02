@@ -41,6 +41,13 @@ REFRESH_CAPTCHA = [200, 470]
 MARK_PIXEL_DISTANCE = 14
 MARK_PIXEL_RADIUS = 50
 
+WHITE_FISH_ID = [1, 7, 13]
+WHITE_CROWN_FISH_ID = [3, 9, 10, 15]
+GREEN_FISH_ID = [2, 4, 5, 6, 8, 11, 12, 14]
+BLUE_FISH_ID = [16, 19]
+SMALL_VIOLET_FISH_ID = [20, 21, 22, 23, 24]
+BIG_VIOLET_FISH_ID = 25
+
 
 # Tương tự như C++ get con trỏ Object Config
 class SingletonMeta(type):
@@ -84,8 +91,8 @@ class Config(metaclass=SingletonMeta):
         self.mDelayTime = self.mConfig.getfloat('delay_time')
         self.mLicense = self.mConfig.get('license')
         self.mDebugMode = self.mConfig.getboolean('debug_mode')
-        self.mCheatEngine = self.mConfig.getboolean('cheat_engine')
         self.mVersion = self.mConfig.get('version')
+        self.mReadMemoryCheck = False
 
         self.mListBackpackImgPath = ['data/backpack1280.png',
                                      'data/backpack960.png',
@@ -183,6 +190,20 @@ class Config(metaclass=SingletonMeta):
         self.mBlueColorBGR = [217, 198, 89]
         self.mGreenColorBGR = [103, 228, 163]
         self.mGrayColorBGR = [197, 224, 228]
+
+        self.mWhiteFishID = deepcopy(WHITE_FISH_ID)
+        self.mWhiteCrownFishID = deepcopy(WHITE_CROWN_FISH_ID)
+        self.mGreenFishID = deepcopy(GREEN_FISH_ID)
+        self.mBlueFishID = deepcopy(BLUE_FISH_ID)
+        self.mSmallVioletFishID = deepcopy(SMALL_VIOLET_FISH_ID)
+        self.mBigVioletFishID = BIG_VIOLET_FISH_ID
+
+        self.mWhiteFishCheck = False
+        self.mWhiteCrownFishCheck = False
+        self.mGreenFishCheck = False
+        self.mBlueFishCheck = False
+        self.mSmallVioletFishCheck = False
+        self.mBigVioletFishCheck = False
 
     def __del__(self):
         pass
@@ -316,6 +337,11 @@ class Config(metaclass=SingletonMeta):
 
         self.__mMutex.release()
 
+    def SetReadMemoryCheck(self, mReadMemoryCheck: bool):
+        self.__mMutex.acquire()
+        self.mReadMemoryCheck = mReadMemoryCheck
+        self.__mMutex.release()
+
     def SetDelayTime(self, mDelayTime: float):
         self.__mMutex.acquire()
         self.mDelayTime = mDelayTime
@@ -391,7 +417,6 @@ class Config(metaclass=SingletonMeta):
         mNewConfig['CONFIG']['delay_time'] = str(self.mDelayTime)
         mNewConfig['CONFIG']['license'] = self.mConfig.get("license")
         mNewConfig['CONFIG']['debug_mode'] = self.mConfig.get('debug_mode')
-        mNewConfig['CONFIG']['cheat_engine'] = self.mConfig.get('cheat_engine')
         mNewConfig['CONFIG']['version'] = self.mConfig.get('version')
 
         with open(self.mConfigPath, 'w') as mConfigFile:

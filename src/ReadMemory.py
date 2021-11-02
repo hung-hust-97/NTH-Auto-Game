@@ -4,8 +4,22 @@ import ctypes
 import psutil
 from ctypes import *
 from threading import Lock
+from PyQt5.QtCore import pyqtSignal, QObject
+import logging as log
 
+# offset from control_base_addr
+# +0x10
 ROD_OFFSET = int('0x10', 16)
+# -0x28
+BACKPACK_OFFSET = int('0x28', 16)
+# -0x24
+ROD_ON_HAND_OFFSET = int('0x24', 16)
+# +0xc4
+FIX_ROD_OFFSET = int('0xc4', 16)
+
+
+# offset from filter_base_addr
+FISH_TYPE_OFFSET = int('0xAC', 16)
 TEMP_PATH = 'C:\\AutoFishing\\config\\temp.txt'
 
 
@@ -23,15 +37,20 @@ class SingletonMeta(type):
 
 
 class ReadMemory(metaclass=SingletonMeta):
-    mProcessName = "MEmuHeadless.exe"
-    mBufferLen = 4
-    mProcess = None
-    mProcessID = None
-    mBaseAddress = 0
-    mRodAddress = 0
-
     def __init__(self):
-        pass
+        self.mProcessName = "MEmuHeadless.exe"
+        self.mBufferLen = 4
+        self.mProcess = None
+        self.mProcessID = None
+        self.mControlBaseAddress = 0
+        self.hexControlBaseAddress = "Quét data lỗi"
+        self.mFilterBaseAddress = 0
+        self.hexFilterBaseAddress = "Quét data lỗi"
+        self.mControlAddress = 0
+        self.mFishTypeAddress = 0
+        self.mBackpackAddress = 0
+        self.mRodOnHandAddress = 0
+        self.mFixRodAddress = 0
 
     def __del__(self):
         pass
@@ -46,7 +65,7 @@ class ReadMemory(metaclass=SingletonMeta):
     def OpenProcess(self):
         self.mProcessID = self.GetPID(self.mProcessName)
         if self.mProcessID is None:
-            print("Process was not found")
+            # print("Process was not found")
             return False
         self.mProcess = windll.kernel32.OpenProcess(win32con.PROCESS_VM_READ, 0, self.mProcessID)
         return True
@@ -59,37 +78,62 @@ class ReadMemory(metaclass=SingletonMeta):
                                                   self.mBufferLen, 0)
         if mRead:
             return mAddressMemory.value
-        return None
+        log.info("Read memory error")
+        return -1
 
     def SetAddress(self):
-        self.mRodAddress = self.mBaseAddress + ROD_OFFSET
+        # co cham than xuat hien = 4
+        # dang quang can = 1
+        # tha can ok  = 3
+        # ve giao dien chinh, co ba lo = 0
+        # cau thanh cong = 8
+        # dang thu can = 7
+        # dang keo ca = 5
+        # 9 11 6 chua ro
+        self.mControlAddress = self.mControlBaseAddress + ROD_OFFSET
+        # < close backpack, 300 = open backpack
+        self.mBackpackAddress = self.mControlBaseAddress - BACKPACK_OFFSET
+        # 1 = ko cam gi ca, 103 = dang cam can cau, > 103 = dang cam linh tinh
+        self.mRodOnHandAddress = self.mControlBaseAddress - ROD_ON_HAND_OFFSET
+        # 6 = hong can, 4 vaf 9 chua ro
+        self.mFixRodAddress = self.mControlBaseAddress + FIX_ROD_OFFSET
+
+        self.mFishTypeAddress = self.mFilterBaseAddress + FISH_TYPE_OFFSET
 
     def GetBaseAddress(self):
         listText = self.ReadTextFile()
-        if not listText:
-            print("txt empty")
+        if listText is None:
+            self.hexControlBaseAddress = "Quét data lỗi"
+            self.hexFilterBaseAddress = "Quét data lỗi"
             return False
 
         try:
-            self.mBaseAddress = int(f'0x{listText[0]}', 16)
-            print(f"self.mBaseAddress={self.mBaseAddress}")
+            self.mControlBaseAddress = int(f'0x{listText[0]}', 16)
+            self.hexControlBaseAddress = listText[0]
+            self.mFilterBaseAddress = int(f'0x{listText[1]}', 16)
+            self.hexFilterBaseAddress = listText[1]
         except (ValueError, Exception):
-            print("cannot get base addr from txt")
+            self.hexControlBaseAddress = "Quét data lỗi"
+            self.hexFilterBaseAddress = "Quét data lỗi"
             return False
         return True
 
-    @staticmethod
-    def WriteBaseAddress():
+    def WriteBaseAddress(self):
+        self.DeleteFile()
         try:
             os.system('cheat_engine\\scanner.exe')
         except (ValueError, Exception):
-            print("write base addr fail")
+            # print("write base addr fail")
             return False
         return True
 
     @staticmethod
     def ReadTextFile():
-        f = open(TEMP_PATH, "r")
+        try:
+            f = open(TEMP_PATH, "r")
+        except (ValueError, Exception):
+            # print("Dont have temp file")
+            return None
         lines = f.readlines()
         output = []
         for line in lines:
@@ -105,12 +149,14 @@ class ReadMemory(metaclass=SingletonMeta):
     def ReadMemoryInit(self):
         checkOpenProc = self.OpenProcess()
         if checkOpenProc is False:
+            # print("checkOpenProc Error")
             return False
         checkWriteBase = self.WriteBaseAddress()
         if checkWriteBase is False:
+            # print("checkWriteBase Error")
             return False
         checkGetBase = self.GetBaseAddress()
         if checkGetBase is False:
+            # print("checkGetBase Error")
             return False
         self.SetAddress()
-        # self.DeleteFile()

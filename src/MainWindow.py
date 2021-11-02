@@ -8,7 +8,7 @@ import sys
 import cv2
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from PyQt5.QtCore import Qt, QTimer, QUrl, QSize, QCoreApplication, pyqtSignal
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 
 from ui.UiMainWindow import Ui_MainWindow
 from src.config import Config
@@ -32,6 +32,7 @@ class MainWindow(QMainWindow):
         self.mLogo = None
         self.mAutoFishingThread = None
         self.mTimer = QTimer()
+        self.mCheckExpand = False
 
         self.mSignalUpdate.connect(self.SlotUpdateNotice)
         threading.Thread(target=self.SlotCheckUpdate).start()
@@ -160,6 +161,8 @@ class MainWindow(QMainWindow):
         self.uic.btnConnectAdb.clicked.connect(self.OnClickConnectAdbAddress)
         self.uic.btnFacebook.clicked.connect(self.SlotOpenFacebook)
         self.uic.btnYoutube.clicked.connect(self.SlotOpenYoutube)
+        self.uic.btnExpand.clicked.connect(self.SlotShowExpand)
+        self.uic.btnScanData.clicked.connect(self.OnClickScanData)
 
         # Connect from auto fishing class to def in this class
         self.mAutoFishing.mSignalSetPixelPos.connect(self.SlotShowMarkPosition)
@@ -169,6 +172,8 @@ class MainWindow(QMainWindow):
         self.mAutoFishing.mSignalUpdateImageShow.connect(self.SlotShowImage)
         self.mAutoFishing.mSignalMessage.connect(self.SlotShowMsgBox)
         self.mAutoFishing.mSignalUpdateStatus.connect(self.SlotShowStatus)
+        self.mAutoFishing.mSignalUpdateBaseAddress.connect(self.SlotUpdateBaseAddress)
+        self.mAutoFishing.mSignalUpdateFishID.connect(self.SlotShowFishID)
 
         # Connect timer to slot
         self.mTimer.timeout.connect(self.SlotShowTime)
@@ -213,13 +218,28 @@ class MainWindow(QMainWindow):
         if self.SaveConfig() is False:
             return
 
-        if self.mConfig.mCheatEngine is True:
-            threading.Thread(target=self.mReadMemory.ReadMemoryInit).start()
-            return
-
         self.SlotShowMsgBox(
             f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\nChọn địa chỉ ADB của giả lập và kết nối")
         return
+
+    def OnClickScanData(self):
+        self.SlotShowMsgBox("Đọc kỹ hướng dẫn trước khi tiếp tục:\n"
+                            "B1: Vào game. Đến khu vực câu cá. Mở ba lô\n"
+                            "B2: Khi kết thúc thông báo này, app MemoryScanner sẽ xuất hiện\n"
+                            "B3: Chờ 5-10 giây cho app MemoryScanner hết xoay. Bấm nút SCAN\n"
+                            "B4: Nếu báo ERROR thì tắt app MemoryScanner. Khởi động lại giả lập. Làm lại từ B1\n"
+                            "B5: Lấy cần câu ra và Start"
+                            "\nLưu ý:\n"
+                            "1. Mỗi lần teleport đến khu vực khác sẽ phải quét lại data\n"
+                            "2. Nếu máy yếu thì SCAN sẽ lâu\n"
+                            "3. Nếu sợ bị BAN thì giờ tắt game đi còn kịp\n"
+                            "4. Hiện tại chỉ hỗ trợ MEMU PLAYER\n"
+                            "\nBây giờ bấm OK để bắt đầu thực hiện ...")
+        threading.Thread(target=self.mAutoFishing.ReadMemoryInit).start()
+
+    def SlotUpdateBaseAddress(self):
+        self.uic.lblControlBaseAddress.setText(self.mReadMemory.hexControlBaseAddress)
+        self.uic.lblFilterBaseAddress.setText(self.mReadMemory.hexFilterBaseAddress)
 
     def OnClickConnectAdbAddress(self):
         if self.uic.listAdbAddress.currentText() == "None":
@@ -279,7 +299,12 @@ class MainWindow(QMainWindow):
         self.mAutoFishing.mAutoFishRunning = False
 
         # Define thread start fishing
-        self.mAutoFishingThread = threading.Thread(name="AutoFishing", target=self.mAutoFishing.StartAuto)
+        if self.mConfig.mReadMemoryCheck is True:
+            self.mAutoFishingThread = threading.Thread(name="ReadMemoryAutoFishing",
+                                                       target=self.mAutoFishing.RMAutoFishing)
+        else:
+            self.mAutoFishingThread = threading.Thread(name="ComputerVisionAutoFishing",
+                                                       target=self.mAutoFishing.CVAutoFishing)
 
         # Set time start fishing
         self.mAutoFishing.mStartTime = time.time()
@@ -415,6 +440,9 @@ class MainWindow(QMainWindow):
             str_s = f'0{s}'
         self.uic.lcdTime.display(f'{str_h}:{str_m}:{str_s}')
 
+    def SlotShowFishID(self, mFishID: int):
+        self.uic.lcdFishID.display(f'{mFishID}')
+
     def SlotShowStatus(self, mText: str):
         if mText == self.mConfig.mLicenseText:
             self.uic.lblStatus.setText(self.mConfig.mLicenseText)
@@ -479,6 +507,28 @@ class MainWindow(QMainWindow):
     def SlotOpenYoutube(self):
         QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeLink))
 
+    def SlotShowExpand(self):
+        if self.mCheckExpand is True:
+            self.mCheckExpand = False
+            self.setMaximumSize(QtCore.QSize(350, 540))
+            self.resize(350, 540)
+            self.uic.btnExpand.setText("Mở rộng")
+            return
+
+        mMsgBox = QMessageBox()
+        mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
+        reply = mMsgBox.question(self, 'Cảnh báo',
+                                 f"Bạn muốn mở ra chế độ đọc data game?\n"
+                                 f"Cẩn thận bị BAN tài khoản!\n\n"
+                                 f"Nếu đồng ý mở bấm YES\n"
+                                 f"Không đồng ý mở bấm NO",
+                                 mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
+        if reply == mMsgBox.Yes:
+            self.mCheckExpand = True
+            self.setMaximumSize(QtCore.QSize(480, 540))
+            self.resize(480, 540)
+            self.uic.btnExpand.setText("Thu gọn")
+
     def SaveConfig(self):
         if (self.uic.txtFishingPeriod.toPlainText()).isnumeric() is False:
             self.SlotShowMsgBox("Chu kỳ câu sai định dạng")
@@ -530,6 +580,15 @@ class MainWindow(QMainWindow):
         self.mConfig.SetShutdownCheckBox(self.uic.cbShutdownPC.isChecked())
         self.mConfig.SetSendKey(self.uic.cbKeyBoard.isChecked())
         self.mConfig.SetFishDetection(self.uic.cbFishDetection.isChecked())
+        self.mConfig.SetReadMemoryCheck(self.uic.cbReadMemory.isChecked())
+
+        # Sua sau *************************************************************************************
+        self.mConfig.mWhiteFishCheck = self.uic.cbWhiteFish.isChecked()
+        self.mConfig.mWhiteCrownFishCheck = self.uic.cbWhiteCrownFish.isChecked()
+        self.mConfig.mGreenFishCheck = self.uic.cbGreenFish.isChecked()
+        self.mConfig.mBlueFishCheck = self.uic.cbBlueFish.isChecked()
+        self.mConfig.mSmallVioletFishCheck = self.uic.cbSmallVioletFish.isChecked()
+        self.mConfig.mBigVioletFishCheck = self.uic.cbBigVioletFish.isChecked()
 
         self.mConfig.SetDelayTime(mDelayTime)
 

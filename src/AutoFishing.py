@@ -26,6 +26,8 @@ class AutoFishing(QObject):
     mSignalUpdateImageShow = pyqtSignal()
     mSignalMessage = pyqtSignal(str)
     mSignalUpdateStatus = pyqtSignal(str)
+    mSignalUpdateBaseAddress = pyqtSignal()
+    mSignalUpdateFishID = pyqtSignal(int)
 
     def __init__(self):
         QObject.__init__(self, parent=None)
@@ -53,6 +55,7 @@ class AutoFishing(QObject):
         self.mCheckBobberPos = False
         self.mCheckMarkPos = False
         self.mEmulatorType = ''
+        self.mListIgnoreID = []
 
         # Khai báo số cá các loại
         self.mAllFish = 0
@@ -146,13 +149,6 @@ class AutoFishing(QObject):
         log.info(f'Clicked {self.mConfig.mOKButton}')
 
     def CheckRod(self):
-        time.sleep(self.mConfig.mDelayTime)
-        for i in range(6):
-            # break point thread auto fishing
-            if self.mAutoFishRunning is False:
-                return Flags.STOP_FISHING
-            time.sleep(0.5)
-
         mCheck = 0
         while mCheck < 5:
             if self.mAutoFishRunning is False:
@@ -171,6 +167,32 @@ class AutoFishing(QObject):
             mCheck += 1
         log.info('CheckRod OK')
         return Flags.CHECK_ROD_OK
+
+    def RMCheckRod(self):
+        time.sleep(self.mConfig.mDelayTime)
+        while True:
+            # print("RMCheckRod")
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+
+            mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
+            mFixRodValue = self.mReadMemory.GetData(self.mReadMemory.mFixRodAddress)
+            # print("mControlValue = ", mControlValue)
+            # print("mFixRodValue = ", mFixRodValue)
+
+            if mControlValue == 3:
+                log.info('CheckRod OK')
+                return Flags.CHECK_ROD_OK
+
+            if mControlValue == 10:
+                log.info('CheckRod Broken')
+                return Flags.CHECK_ROD_BROK
+
+            if mControlValue == 0:
+                if self.CheckCaptcha() == Flags.CAPTCHA_APPEAR:
+                    log.info('CheckRod Captcha Appear')
+                return Flags.CAPTCHA_APPEAR
+            time.sleep(0.1)
 
     def FixRod(self):
         log.info(f'Fix Rod Start')
@@ -248,6 +270,36 @@ class AutoFishing(QObject):
 
         self.FixConfirm()
         time.sleep(self.mConfig.mDelayTime)
+        self.ClickOk()
+        return False
+
+    def RMCastFishingRod(self):
+        mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
+        mRodOnHandValue = self.mReadMemory.GetData(self.mReadMemory.mRodOnHandAddress)
+        mBackpackValue = self.mReadMemory.GetData(self.mReadMemory.mBackpackAddress)
+        # print("mControlValue = ", mControlValue)
+        # print("mRodOnHandValue = ", mRodOnHandValue)
+        # print("mBackpackValue = ", mBackpackValue)
+
+        if mBackpackValue == 300:
+            self.CloseBackPack()
+            return False
+
+        if mControlValue == 0 and mRodOnHandValue == 103:
+            self.AdbClick(self.mConfig.mCastingRodPos[0],
+                          self.mConfig.mCastingRodPos[1])
+            self.StatusEmit("Đã thả cần câu")
+            log.info(f'Clicked {self.mConfig.mCastingRodPos}')
+            return True
+
+        if mControlValue == 8:
+            self.AdbClick(self.mConfig.mPreservationPos[0],
+                          self.mConfig.mPreservationPos[1])
+            log.info(f'Click preservation button {self.mConfig.mPreservationPos}')
+            return False
+
+        self.FixConfirm()
+        time.sleep(self.mConfig.mDelayTime + 0.5)
         self.ClickOk()
         return False
 
@@ -365,7 +417,7 @@ class AutoFishing(QObject):
         mStopDetect = False
         mSkipFrame = 0
 
-        fpsTime = time.time()
+        # fpsTime = time.time()
         time.sleep(0.01)
         while (time.time() - mBaseTime) < self.mConfig.mFishingPeriod:
             # t1 = fpsTime
@@ -392,35 +444,78 @@ class AutoFishing(QObject):
                     log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
                         return
-            # mode cheat engine
-            if self.mConfig.mCheatEngine is True:
-                check = self.mReadMemory.GetData(self.mReadMemory.mRodAddress)
-                print(f'check = {check}')
-                if check == 4:
-                    return
+
+            if (time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
+                time.sleep(0.02)
+                continue
+
+            mPixelCurrMark = self.mScreenHandle.PixelScreenShot(self.mMark)
+            if mPixelCurrMark is None:
+                # print("none pixel")
                 time.sleep(0.001)
+                continue
+            mDiffRgbMark = self.ComparePixel(mPixelCurrMark, mPixelBaseMark)
+            if mDiffRgbMark > 50:
+                log.info(f'mDiffRgb = {mDiffRgbMark}')
+                return
+            time.sleep(0.015)
+        self.StatusEmit("Hết chu kỳ câu. Kéo cần")
+        log.info(f'End fishing period. Pulling Rod')
+        return
 
-            # Mode ko cheat engine
-            else:
-                if (time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
-                    time.sleep(0.02)
-                    continue
+    def RMCheckMark(self):
+        mBaseTime = time.time()
+        mStopDetect = False
 
-                mPixelCurrMark = self.mScreenHandle.PixelScreenShot(self.mMark)
-                if mPixelCurrMark is None:
-                    # print("none pixel")
-                    time.sleep(0.001)
-                    continue
-                mDiffRgbMark = self.ComparePixel(mPixelCurrMark, mPixelBaseMark)
-                if mDiffRgbMark > 50:
-                    log.info(f'mDiffRgb = {mDiffRgbMark}')
+        while (time.time() - mBaseTime) < self.mConfig.mFishingPeriod:
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+            if mStopDetect is False:
+                mFishTypeValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
+                self.mSignalUpdateFishID.emit(mFishTypeValue)
+                if mFishTypeValue in self.mListIgnoreID:
+                    # print("Bo qua ca nay ************")
                     return
-                time.sleep(0.015)
+                if self.mConfig.mBigVioletFishCheck is True:
+                    if mFishTypeValue >= self.mConfig.mBigVioletFishID:
+                        # print("Bo qua ca nay ************")
+                        return
+                mStopDetect = True
+
+            mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
+            # print(f' = {mControlValue}')
+            if mControlValue == 4:
+                return
+            time.sleep(0.01)
+
         self.StatusEmit("Hết chu kỳ câu. Kéo cần")
         log.info(f'End fishing period. Pulling Rod')
         return
 
     def PullFishingRod(self):
+        if self.mConfig.mSendKeyCheck is True:
+            self.mScreenHandle.SendKey()
+            self.StatusEmit("Đang kéo cần câu")
+            log.info('PullFishingRod')
+            return
+        else:
+            time1 = time.time()
+            self.AdbClick(self.mConfig.mPullingRodPos[0],
+                          self.mConfig.mPullingRodPos[1])
+            timeDelay = time.time() - time1
+            self.StatusEmit(f'Đang kéo cần câu. Độ trễ giật cần {round(timeDelay, 2)} giây')
+            log.info(f'Clicked {self.mConfig.mPullingRodPos}. Delay = {round(timeDelay, 2)} sec')
+            if timeDelay > 0.5:
+                self.mCheckAdbDelay += 1
+                if self.mCheckAdbDelay <= 3:
+                    return
+                self.mAutoFishRunning = False
+                self.MsgEmit(
+                    'Kéo cần qua ADB bị trễ quá cao\nHãy chọn chế độ kéo cần bằng phím Space (KHÔNG hỗ trợ trên LD Player)')
+                self.mCheckAdbDelay = 0
+            return
+
+    def RMPullFishingRod(self):
         if self.mConfig.mSendKeyCheck is True:
             self.mScreenHandle.SendKey()
             self.StatusEmit("Đang kéo cần câu")
@@ -477,8 +572,75 @@ class AutoFishing(QObject):
         log.info(f'Check fishing result error')
         return
 
+    def RMFishPreservation(self):
+        time.sleep(self.mConfig.mDelayTime)
+        time1 = time.time()
+        while time.time() - time1 < 15:
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+
+            mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
+            # print("mControlValue= ", mControlValue)
+
+            if mControlValue == 5 or mControlValue == 7:
+                continue
+
+            if mControlValue == 8:
+                self.StatusEmit("Câu thành công")
+                self.RMFishCount()
+                self.AdbClick(self.mConfig.mPreservationPos[0],
+                              self.mConfig.mPreservationPos[1])
+                log.info(f'Fishing Success. Click preservation {self.mConfig.mPreservationPos}')
+                return
+
+            if mControlValue == 0:
+                self.StatusEmit("Câu thất bại")
+                log.info(f'Fishing fail')
+                return
+            time.sleep(0.1)
+
+        self.StatusEmit("Kiểm tra kết quả bị lỗi")
+        log.info(f'Check fishing result error')
+        return
+
     def FishCount(self):
         time.sleep(0.05)
+        mFishImage = self.mScreenHandle.RegionScreenshot(self.mConfig.mFishImgRegion)
+        if mFishImage is None:
+            return False
+        self.mAllFish += 1
+        mPixelCheckTypeFishPosition = [self.mConfig.mCheckTypeFishPos[0] - self.mConfig.mFishImgRegion[0],
+                                       self.mConfig.mCheckTypeFishPos[1] - self.mConfig.mFishImgRegion[1]]
+        mPixelCheckTypeFish = mFishImage[mPixelCheckTypeFishPosition[1],
+                                         mPixelCheckTypeFishPosition[0]]
+        if self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mVioletColorBGR) < 10:
+            self.mVioletFish += 1
+            log.info(f'VioletFish = {self.mVioletFish}')
+        elif self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mBlueColorBGR) < 10:
+            self.mBlueFish += 1
+            log.info(f'BlueFish = {self.mBlueFish}')
+        elif self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mGreenColorBGR) < 10:
+            self.mGreenFish += 1
+            log.info(f'GreenFish = {self.mGreenFish}')
+        elif self.ComparePixel(mPixelCheckTypeFish, self.mConfig.mGrayColorBGR) < 10:
+            self.mGrayFish += 1
+            log.info(f'GrayFish = {self.mGrayFish}')
+        else:
+            log.info(f'No fish')
+            pass
+        self.mImageShow = mFishImage.copy()
+        # Hiện ảnh cá câu được lên app auto
+
+        self.mSignalUpdateImageShow.emit()
+
+    def RMFishCount(self):
+        while True:
+            mCheckPreservation = self.mScreenHandle.FindImage(self.mConfig.mPreservationImg,
+                                                              self.mConfig.mFishingResultRegion,
+                                                              self.mConfig.mConfidence)
+            if mCheckPreservation == Flags.TRUE:
+                break
+            time.sleep(0.1)
         mFishImage = self.mScreenHandle.RegionScreenshot(self.mConfig.mFishImgRegion)
         if mFishImage is None:
             return False
@@ -773,10 +935,7 @@ class AutoFishing(QObject):
             self.MsgEmit("Mất kết nối ADB đến giả lập")
             self.mAutoFishRunning = False
 
-    def StartAuto(self):
-        if self.mCaptchaRecognition is None:
-            self.InitClassification()
-
+    def CVAutoFishing(self):
         self.mAutoFishRunning = True
         if self.mEmulatorBox is None:
             self.MsgEmit("Chưa kết nối cửa sổ giả lập\t\t")
@@ -800,12 +959,6 @@ class AutoFishing(QObject):
             self.mConfig.mSendKeyCheck = True
         else:
             pass
-
-        if self.mConfig.mCheatEngine is True:
-            print(f'self.mReadMemory.mBaseAddress {self.mReadMemory.mBaseAddress}')
-            if self.mReadMemory.mBaseAddress == 0:
-                print("Fail Base Address")
-                return
 
         time.sleep(0.1)
         while self.mAutoFishRunning is True:
@@ -866,6 +1019,135 @@ class AutoFishing(QObject):
                 if self.mAutoFishRunning is False:
                     return Flags.STOP_FISHING
                 self.FishPreservation()
+                # break point thread auto fishing
+                if self.mAutoFishRunning is False:
+                    return Flags.STOP_FISHING
+                self.mSignalUpdateFishNum.emit()
+            elif mCheckRod == Flags.CHECK_ROD_BROK:
+                self.FixRod()
+                # break point thread auto fishing
+                if self.mAutoFishRunning is False:
+                    return Flags.STOP_FISHING
+                self.mFixRodTime += 1
+                if self.mFixRodTime == 20:
+                    self.MsgEmit("Thả câu lỗi 20 lần liên tiếp. Kiểm tra xem có hết lượt câu không?")
+                    while True:
+                        if self.mAutoFishRunning is False:
+                            return Flags.STOP_FISHING
+                        time.sleep(0.5)
+            elif mCheckRod == Flags.CAPTCHA_APPEAR:
+                self.CaptchaHandle()
+                # break point thread auto fishing
+                if self.mAutoFishRunning is False:
+                    return Flags.STOP_FISHING
+
+                self.mCaptchaHandleTime += 1
+                if self.mCaptchaHandleTime == 8:
+                    self.MsgEmit('Giải captcha sai 8 lần\t\t')
+                    self.mAutoFishRunning = False
+                    break
+            else:
+                pass
+        return False
+
+    def RMAutoFishing(self):
+        if self.mCaptchaRecognition is None:
+            self.InitClassification()
+
+        self.mAutoFishRunning = True
+        if self.mEmulatorBox is None:
+            self.MsgEmit("Chưa kết nối cửa sổ giả lập\t\t")
+            return
+
+        if self.mAdbDevice is None:
+            self.MsgEmit("Chưa kết nối địa chỉ ADB của giả lập\t\t")
+            return
+
+        if self.mEmulatorType != MEMU:
+            self.MsgEmit("Chế độ bổ củi hiện tại chỉ chạy được trên MEMU PLAYER")
+            return
+
+        if self.mConfig.mReadMemoryCheck is True:
+            if self.mReadMemory.mControlBaseAddress == 0 or self.mReadMemory.mFilterBaseAddress == 0:
+                self.MsgEmit("Chưa Quét Data\t\t\t\t\t")
+                return
+
+        self.mListIgnoreID.clear()
+        if self.mConfig.mWhiteFishCheck is True:
+            for temp in self.mConfig.mWhiteFishID:
+                self.mListIgnoreID.append(temp)
+        if self.mConfig.mWhiteCrownFishCheck is True:
+            for temp in self.mConfig.mWhiteCrownFishID:
+                self.mListIgnoreID.append(temp)
+        if self.mConfig.mGreenFishCheck is True:
+            for temp in self.mConfig.mGreenFishID:
+                self.mListIgnoreID.append(temp)
+        if self.mConfig.mBlueFishCheck is True:
+            for temp in self.mConfig.mBlueFishID:
+                self.mListIgnoreID.append(temp)
+        if self.mConfig.mSmallVioletFishCheck is True:
+            for temp in self.mConfig.mSmallVioletFishID:
+                self.mListIgnoreID.append(temp)
+
+        time.sleep(0.1)
+        while self.mAutoFishRunning is True:
+            gc.collect()
+            time.sleep(self.mConfig.mDelayTime)
+            log.info('********************************************************')
+            log.info(f'Fishing time {self.mFishingNum + 1}')
+
+            # break point thread auto fishing
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+
+            # Have captcha?
+            mCheckCaptcha = self.CheckCaptcha()
+            if mCheckCaptcha == Flags.CAPTCHA_APPEAR:
+                self.CaptchaHandle()
+                # break point thread auto fishing
+                if self.mAutoFishRunning is False:
+                    return Flags.STOP_FISHING
+                self.mCaptchaHandleTime += 1
+                if self.mCaptchaHandleTime == 8:
+                    self.MsgEmit('Giải captcha sai 8 lần liên tiếp. Thoát game để tránh bị ban 24h câu')
+                    self.mAutoFishRunning = False
+                    break
+                else:
+                    continue
+            elif mCheckCaptcha == Flags.CAPTCHA_NONE:
+                self.mCaptchaHandleTime = 0
+            else:
+                return Flags.STOP_FISHING
+
+            mCheckCastRod = self.RMCastFishingRod()
+            # break point thread auto fishing
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+            if mCheckCastRod is False:
+                continue
+
+            self.mFishingNum += 1
+            self.mSignalUpdateFishingNum.emit()
+
+            # break point thread auto fishing
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+
+            mCheckRod = self.RMCheckRod()
+            # break point thread auto fishing
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+            if mCheckRod == Flags.CHECK_ROD_OK:
+                self.mFixRodTime = 0
+                self.RMCheckMark()
+                # break point thread auto fishing
+                if self.mAutoFishRunning is False:
+                    return Flags.STOP_FISHING
+                self.RMPullFishingRod()
+                # break point thread auto fishing
+                if self.mAutoFishRunning is False:
+                    return Flags.STOP_FISHING
+                self.RMFishPreservation()
                 # break point thread auto fishing
                 if self.mAutoFishRunning is False:
                     return Flags.STOP_FISHING
@@ -998,3 +1280,7 @@ class AutoFishing(QObject):
         time.sleep(2)
         log.info('Captcha Handle Complete')
         return
+
+    def ReadMemoryInit(self):
+        self.mReadMemory.ReadMemoryInit()
+        self.mSignalUpdateBaseAddress.emit()
