@@ -41,12 +41,11 @@ REFRESH_CAPTCHA = [200, 470]
 MARK_PIXEL_DISTANCE = 14
 MARK_PIXEL_RADIUS = 50
 
-WHITE_FISH_ID = [1, 7, 13]
-WHITE_CROWN_FISH_ID = [3, 9, 10, 15]
-GREEN_FISH_ID = [2, 4, 5, 6, 8, 11, 12, 14]
-BLUE_FISH_ID = [16, 19]
-SMALL_VIOLET_FISH_ID = [20, 21, 22, 23, 24]
-BIG_VIOLET_FISH_ID = 25
+FILTER_MODE1 = [1, 7, 13]
+FILTER_MODE2 = [1, 3, 7, 9, 10, 13, 15]
+FILTER_MODE3 = 16
+FILTER_MODE4 = 20
+FILTER_MODE5 = 25
 
 
 # Tương tự như C++ get con trỏ Object Config
@@ -185,25 +184,26 @@ class Config(metaclass=SingletonMeta):
         self.mGreenColorRGB = [163, 228, 103]
         self.mGrayColorRGB = [228, 224, 197]
         self.mTextColor = (255, 255, 255)
+        self.mYellowColorRGB = [255, 255, 0]
+        self.mWhiteColorRGB = [255, 255, 255]
         # RGB in openCV is BGR
         self.mVioletColorBGR = [232, 147, 231]
         self.mBlueColorBGR = [217, 198, 89]
         self.mGreenColorBGR = [103, 228, 163]
         self.mGrayColorBGR = [197, 224, 228]
 
-        self.mWhiteFishID = deepcopy(WHITE_FISH_ID)
-        self.mWhiteCrownFishID = deepcopy(WHITE_CROWN_FISH_ID)
-        self.mGreenFishID = deepcopy(GREEN_FISH_ID)
-        self.mBlueFishID = deepcopy(BLUE_FISH_ID)
-        self.mSmallVioletFishID = deepcopy(SMALL_VIOLET_FISH_ID)
-        self.mBigVioletFishID = BIG_VIOLET_FISH_ID
+        self.mFilterMode1 = deepcopy(FILTER_MODE1)
+        self.mFilterMode2 = deepcopy(FILTER_MODE2)
+        self.mFilterMode3 = FILTER_MODE3
+        self.mFilterMode4 = FILTER_MODE4
+        self.mFilterMode5 = FILTER_MODE5
 
-        self.mWhiteFishCheck = False
-        self.mWhiteCrownFishCheck = False
-        self.mGreenFishCheck = False
-        self.mBlueFishCheck = False
-        self.mSmallVioletFishCheck = False
-        self.mBigVioletFishCheck = False
+        self.mFilterMode1Check = False
+        self.mFilterMode2Check = False
+        self.mFilterMode3Check = False
+        self.mFilterMode4Check = False
+        self.mFilterMode5Check = False
+        self.mListUnIgnoreFish = []
 
     def __del__(self):
         pass

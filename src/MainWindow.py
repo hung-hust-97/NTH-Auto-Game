@@ -88,6 +88,7 @@ class MainWindow(QMainWindow):
 
     def SlotOpenApp(self):
         log.info('Opening App')
+        self.setMaximumSize(QtCore.QSize(350, 550))
         self.mLogo = self.Base64ToQImage(self.mConfig.mAppLogo)
 
         self.setWindowTitle(QCoreApplication.translate("MainWindow", self.mConfig.mAppTitle))
@@ -98,31 +99,24 @@ class MainWindow(QMainWindow):
 
         self.uic.txtFishingRodPosition.setText(str(self.mConfig.mFishingRodIndex))
         self.uic.txtFishingRodPosition.setAlignment(Qt.AlignCenter)
-        # self.uic.txtFishingRodPosition.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtFishingPeriod.setText(str(self.mConfig.mFishingPeriod))
         self.uic.txtFishingPeriod.setAlignment(Qt.AlignCenter)
-        # self.uic.txtFishingPeriod.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtWaitingFishTime.setText(str(self.mConfig.mWaitingFishTime))
         self.uic.txtWaitingFishTime.setAlignment(Qt.AlignCenter)
-        # self.uic.txtWaitingFishTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtWaitingMarkTime.setText(str(self.mConfig.mWaitingMarkTime))
         self.uic.txtWaitingMarkTime.setAlignment(Qt.AlignCenter)
-        # self.uic.txtWaitingMarkTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtMinFishSize.setText(str(self.mConfig.mFishSize))
         self.uic.txtMinFishSize.setAlignment(Qt.AlignCenter)
-        # self.uic.txtMinFishSize.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtShutdownTime.setText("0")
         self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
-        # self.uic.txtShutdownTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.uic.txtDelayTime.setText(str(self.mConfig.mDelayTime))
         self.uic.txtDelayTime.setAlignment(Qt.AlignCenter)
-        # self.uic.txtDelayTime.setStyleSheet(HIDE_TEXT_BOX_STYLE)
 
         self.SlotShowNumFish()
         self.ShowListEmulatorSize()
@@ -152,6 +146,49 @@ class MainWindow(QMainWindow):
         self.uic.lcdMarkX.setSegmentStyle(2)
         self.uic.lcdMarkY.setSegmentStyle(2)
 
+        # Show Fish txt
+        self.uic.txtVioletFish.setText(str(self.mAutoFishing.mVioletFish))
+        self.uic.txtVioletFish.setDisabled(True)
+        self.uic.txtVioletFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({self.mConfig.mVioletColorRGB[0]},'
+            f' {self.mConfig.mVioletColorRGB[1]}, {self.mConfig.mVioletColorRGB[2]}, 255);')
+        self.uic.txtVioletFish.setAlignment(Qt.AlignCenter)
+
+        self.uic.txtBlueFish.setText(str(self.mAutoFishing.mBlueFish))
+        self.uic.txtBlueFish.setDisabled(True)
+        self.uic.txtBlueFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({self.mConfig.mBlueColorRGB[0]},'
+            f' {self.mConfig.mBlueColorRGB[1]}, {self.mConfig.mBlueColorRGB[2]}, 255);')
+        self.uic.txtBlueFish.setAlignment(Qt.AlignCenter)
+
+        self.uic.txtGreenFish.setText(str(self.mAutoFishing.mGreenFish))
+        self.uic.txtGreenFish.setDisabled(True)
+        self.uic.txtGreenFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({self.mConfig.mGreenColorRGB[0]},'
+            f' {self.mConfig.mGreenColorRGB[1]}, {self.mConfig.mGreenColorRGB[2]}, 255);')
+        self.uic.txtGreenFish.setAlignment(Qt.AlignCenter)
+
+        self.uic.txtGrayFish.setText(str(self.mAutoFishing.mGrayFish))
+        self.uic.txtGrayFish.setDisabled(True)
+        self.uic.txtGrayFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({self.mConfig.mGrayColorRGB[0]},'
+            f' {self.mConfig.mGrayColorRGB[1]}, {self.mConfig.mGrayColorRGB[2]}, 255);')
+        self.uic.txtGrayFish.setAlignment(Qt.AlignCenter)
+
+        self.uic.txtOtherFish.setText(str(self.mAutoFishing.mOtherFish))
+        self.uic.txtOtherFish.setDisabled(True)
+        self.uic.txtOtherFish.setStyleSheet(
+            f'border: 0px; background-color: rgba({self.mConfig.mYellowColorRGB[0]},'
+            f' {self.mConfig.mYellowColorRGB[1]}, {self.mConfig.mYellowColorRGB[2]}, 255);')
+        self.uic.txtOtherFish.setAlignment(Qt.AlignCenter)
+
+        self.uic.txtBrokenWire.setText(str(self.mAutoFishing.mBrokenWire))
+        self.uic.txtBrokenWire.setDisabled(True)
+        self.uic.txtBrokenWire.setStyleSheet(
+            f'border: 0px; background-color: rgba({self.mConfig.mWhiteColorRGB[0]},'
+            f' {self.mConfig.mWhiteColorRGB[1]}, {self.mConfig.mWhiteColorRGB[2]}, 255);')
+        self.uic.txtBrokenWire.setAlignment(Qt.AlignCenter)
+
         # Connect btn
         self.uic.btnConnectWindowTitle.clicked.connect(self.OnClickConnectWindowTitle)
         self.uic.btnStartFishing.clicked.connect(self.OnClickStart)
@@ -161,8 +198,10 @@ class MainWindow(QMainWindow):
         self.uic.btnConnectAdb.clicked.connect(self.OnClickConnectAdbAddress)
         self.uic.btnFacebook.clicked.connect(self.SlotOpenFacebook)
         self.uic.btnYoutube.clicked.connect(self.SlotOpenYoutube)
-        self.uic.btnExpand.clicked.connect(self.SlotShowExpand)
+        self.uic.btnExpand.clicked.connect(self.OnClickExpand)
         self.uic.btnScanData.clicked.connect(self.OnClickScanData)
+        self.uic.btnFilterDescription.clicked.connect(self.OnClickFilterDescription)
+        self.uic.btnClearFish.clicked.connect(self.OnLickClear)
 
         # Connect from auto fishing class to def in this class
         self.mAutoFishing.mSignalSetPixelPos.connect(self.SlotShowMarkPosition)
@@ -223,6 +262,8 @@ class MainWindow(QMainWindow):
         return
 
     def OnClickScanData(self):
+        self.uic.lblControlBaseAddress.setText("Base Address 1")
+        self.uic.lblFilterBaseAddress.setText("Base Address 2")
         self.SlotShowMsgBox("Đọc kỹ hướng dẫn trước khi tiếp tục:\n"
                             "B1: Vào game. Đến khu vực câu cá. Mở ba lô\n"
                             "B2: Khi kết thúc thông báo này, app MemoryScanner sẽ xuất hiện\n"
@@ -274,6 +315,8 @@ class MainWindow(QMainWindow):
         self.uic.btnStartFishing.setDisabled(True)
         self.uic.btnGetMarkPosition.setDisabled(True)
         self.uic.btnGetBobberPosition.setDisabled(True)
+        self.uic.btnScanData.setDisabled(True)
+        self.uic.btnClearFish.setDisabled(True)
 
         # Hide text box
         self.uic.txtFishingPeriod.setDisabled(True)
@@ -293,6 +336,15 @@ class MainWindow(QMainWindow):
         self.uic.cbShutdownPC.setDisabled(True)
         self.uic.cbFishDetection.setDisabled(True)
         self.uic.cbKeyBoard.setDisabled(True)
+        self.uic.cbReadMemory.setDisabled(True)
+        self.uic.cbFilterMode1.setDisabled(True)
+        self.uic.cbFilterMode2.setDisabled(True)
+        self.uic.cbFilterMode3.setDisabled(True)
+        self.uic.cbFilterMode4.setDisabled(True)
+        self.uic.cbFilterMode5.setDisabled(True)
+        self.uic.cbFilterBaba.setDisabled(True)
+        self.uic.cbFilterKyNhong.setDisabled(True)
+        self.uic.cbFilterKyNhongVM.setDisabled(True)
 
         # All thread flag = False
         self.mAutoFishing.mCheckMouseRunning = False
@@ -336,6 +388,23 @@ class MainWindow(QMainWindow):
         self.mAutoFishing.mCheckMouseRunning = False
         threading.Thread(name="SetMarkPosition", target=self.mAutoFishing.SetMarkPos).start()
 
+    @staticmethod
+    def OnClickFilterDescription():
+        mMsgBox = QMessageBox()
+        mMsgBox.setText("Bổ củi cơ bản:\n"
+                        "- Mode 1. Trắng VM trở lên. Bỏ qua mã số 1, 7, 13\n"
+                        "- Mode 2. Xanh trở lên. Bỏ qua mã số 1, 3, 7, 9, 10, 13, 15\n"
+                        "- Mode 3. Bóng 3 VM trở lên. Bỏ qua mã số dưới 16\n"
+                        "- Mode 4. Bóng 4 trở lên. Bỏ qua mã số dưới 20\n"
+                        "- Mode 5. Bóng 5 trở lên. Bỏ qua mã số dưới 25\n"
+                        "\nGiữ lại các loại cá:\n"
+                        "- Kỳ Nhông. Giữ lại mã số 4\n"
+                        "- Kỳ Nhông VM. Giữ lại mã số 6\n"
+                        "- Ba ba, chép vàng. Giữ lại mã số 10")
+        mMsgBox.setWindowTitle("Mô tả các chế độ bổ củi")
+        mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
+        mMsgBox.exec()
+
     def ShowListEmulatorSize(self):
         for mSize in self.mConfig.mStrListEmulatorSize:
             self.uic.listEmulatorSize.addItem(mSize)
@@ -364,40 +433,40 @@ class MainWindow(QMainWindow):
 
     def SlotShowNumFish(self):
         self.uic.lcdNumFish.display(str(self.mAutoFishing.mAllFish))
-
-        # font = QtGui.QFont()
-        # font.setPointSize(10)
         self.uic.txtVioletFish.setText(str(self.mAutoFishing.mVioletFish))
         self.uic.txtVioletFish.setAlignment(Qt.AlignCenter)
-        self.uic.txtVioletFish.setDisabled(True)
-        # self.uic.txtVioletFish.setFont(font)
-        self.uic.txtVioletFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({self.mConfig.mVioletColorRGB[0]},'
-            f' {self.mConfig.mVioletColorRGB[1]}, {self.mConfig.mVioletColorRGB[2]}, 255);')
-
         self.uic.txtBlueFish.setText(str(self.mAutoFishing.mBlueFish))
         self.uic.txtBlueFish.setAlignment(Qt.AlignCenter)
-        self.uic.txtBlueFish.setDisabled(True)
-        # self.uic.txtBlueFish.setFont(font)
-        self.uic.txtBlueFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({self.mConfig.mBlueColorRGB[0]},'
-            f' {self.mConfig.mBlueColorRGB[1]}, {self.mConfig.mBlueColorRGB[2]}, 255);')
-
         self.uic.txtGreenFish.setText(str(self.mAutoFishing.mGreenFish))
         self.uic.txtGreenFish.setAlignment(Qt.AlignCenter)
-        self.uic.txtGreenFish.setDisabled(True)
-        # self.uic.txtGreenFish.setFont(font)
-        self.uic.txtGreenFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({self.mConfig.mGreenColorRGB[0]},'
-            f' {self.mConfig.mGreenColorRGB[1]}, {self.mConfig.mGreenColorRGB[2]}, 255);')
-
         self.uic.txtGrayFish.setText(str(self.mAutoFishing.mGrayFish))
         self.uic.txtGrayFish.setAlignment(Qt.AlignCenter)
-        self.uic.txtGrayFish.setDisabled(True)
-        # self.uic.txtGrayFish.setFont(font)
-        self.uic.txtGrayFish.setStyleSheet(
-            f'border: 0px; background-color: rgba({self.mConfig.mGrayColorRGB[0]},'
-            f' {self.mConfig.mGrayColorRGB[1]}, {self.mConfig.mGrayColorRGB[2]}, 255);')
+        self.uic.txtOtherFish.setText(str(self.mAutoFishing.mOtherFish))
+        self.uic.txtOtherFish.setAlignment(Qt.AlignCenter)
+        self.uic.txtBrokenWire.setText(str(self.mAutoFishing.mBrokenWire))
+        self.uic.txtBrokenWire.setAlignment(Qt.AlignCenter)
+
+    def OnLickClear(self):
+        mMsgBox = QMessageBox()
+        mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
+        reply = mMsgBox.question(self, 'Cảnh báo',
+                                 f"Bạn muốn xóa hết dữ liệu thống kê hiện tại?\n",
+                                 mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
+        if reply == mMsgBox.Yes:
+            self.mAutoFishing.mFishingNum = 0
+            self.mAutoFishing.mAllFish = 0
+            self.mAutoFishing.mVioletFish = 0
+            self.mAutoFishing.mBlueFish = 0
+            self.mAutoFishing.mGreenFish = 0
+            self.mAutoFishing.mGrayFish = 0
+            self.mAutoFishing.mOtherFish = 0
+            self.mAutoFishing.mBrokenWire = 0
+            self.uic.lcdTime.display('00:00:00')
+            self.mAutoFishing.mSaveTime = 0
+            self.mAutoFishing.mStartTime = time.time()
+            self.SlotShowTime()
+            self.SlotShowNumFish()
+            self.SlotShowFishingNum()
 
     def OnClickGetBobberPosition(self):
         self.mAutoFishing.mCheckMouseRunning = False
@@ -466,12 +535,23 @@ class MainWindow(QMainWindow):
             self.uic.btnConnectAdb.setDisabled(False)
             self.uic.btnGetMarkPosition.setDisabled(False)
             self.uic.btnGetBobberPosition.setDisabled(False)
+            self.uic.btnScanData.setDisabled(False)
+            self.uic.btnClearFish.setDisabled(False)
 
             # Show all check box
             self.uic.cbShutdownPC.setDisabled(False)
             self.uic.cbFishDetection.setDisabled(False)
             if self.mAutoFishing.mEmulatorType == MEMU or self.mAutoFishing.mEmulatorType == '':
                 self.uic.cbKeyBoard.setDisabled(False)
+            self.uic.cbReadMemory.setDisabled(False)
+            self.uic.cbFilterMode1.setDisabled(False)
+            self.uic.cbFilterMode2.setDisabled(False)
+            self.uic.cbFilterMode3.setDisabled(False)
+            self.uic.cbFilterMode4.setDisabled(False)
+            self.uic.cbFilterMode5.setDisabled(False)
+            self.uic.cbFilterBaba.setDisabled(False)
+            self.uic.cbFilterKyNhong.setDisabled(False)
+            self.uic.cbFilterKyNhongVM.setDisabled(False)
 
             # Show all text box
             self.uic.txtFishingPeriod.setDisabled(False)
@@ -507,11 +587,11 @@ class MainWindow(QMainWindow):
     def SlotOpenYoutube(self):
         QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeLink))
 
-    def SlotShowExpand(self):
+    def OnClickExpand(self):
         if self.mCheckExpand is True:
             self.mCheckExpand = False
-            self.setMaximumSize(QtCore.QSize(350, 540))
-            self.resize(350, 540)
+            self.setMaximumSize(QtCore.QSize(350, 550))
+            self.resize(350, 550)
             self.uic.btnExpand.setText("Mở rộng")
             return
 
@@ -525,8 +605,8 @@ class MainWindow(QMainWindow):
                                  mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
         if reply == mMsgBox.Yes:
             self.mCheckExpand = True
-            self.setMaximumSize(QtCore.QSize(480, 540))
-            self.resize(480, 540)
+            self.setMaximumSize(QtCore.QSize(480, 550))
+            self.resize(480, 550)
             self.uic.btnExpand.setText("Thu gọn")
 
     def SaveConfig(self):
@@ -558,7 +638,6 @@ class MainWindow(QMainWindow):
             self.SlotShowMsgBox("Hẹn giờ tắt PC sai định dạng")
             return False
 
-        mDelayTime = 0
         try:
             mDelayTime = float(self.uic.txtDelayTime.toPlainText())
         except ValueError:
@@ -583,12 +662,19 @@ class MainWindow(QMainWindow):
         self.mConfig.SetReadMemoryCheck(self.uic.cbReadMemory.isChecked())
 
         # Sua sau *************************************************************************************
-        self.mConfig.mWhiteFishCheck = self.uic.cbWhiteFish.isChecked()
-        self.mConfig.mWhiteCrownFishCheck = self.uic.cbWhiteCrownFish.isChecked()
-        self.mConfig.mGreenFishCheck = self.uic.cbGreenFish.isChecked()
-        self.mConfig.mBlueFishCheck = self.uic.cbBlueFish.isChecked()
-        self.mConfig.mSmallVioletFishCheck = self.uic.cbSmallVioletFish.isChecked()
-        self.mConfig.mBigVioletFishCheck = self.uic.cbBigVioletFish.isChecked()
+        self.mConfig.mFilterMode1Check = self.uic.cbFilterMode1.isChecked()
+        self.mConfig.mFilterMode2Check = self.uic.cbFilterMode2.isChecked()
+        self.mConfig.mFilterMode3Check = self.uic.cbFilterMode3.isChecked()
+        self.mConfig.mFilterMode4Check = self.uic.cbFilterMode4.isChecked()
+        self.mConfig.mFilterMode5Check = self.uic.cbFilterMode5.isChecked()
+
+        self.mConfig.mListUnIgnoreFish.clear()
+        if self.uic.cbFilterKyNhong.isChecked() is True:
+            self.mConfig.mListUnIgnoreFish.append(4)
+        if self.uic.cbFilterKyNhongVM.isChecked() is True:
+            self.mConfig.mListUnIgnoreFish.append(6)
+        if self.uic.cbFilterBaba.isChecked() is True:
+            self.mConfig.mListUnIgnoreFish.append(10)
 
         self.mConfig.SetDelayTime(mDelayTime)
 

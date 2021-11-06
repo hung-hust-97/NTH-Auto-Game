@@ -4,7 +4,6 @@ import ctypes
 import psutil
 from ctypes import *
 from threading import Lock
-from PyQt5.QtCore import pyqtSignal, QObject
 import logging as log
 
 # offset from control_base_addr
@@ -65,7 +64,7 @@ class ReadMemory(metaclass=SingletonMeta):
     def OpenProcess(self):
         self.mProcessID = self.GetPID(self.mProcessName)
         if self.mProcessID is None:
-            # print("Process was not found")
+            log.info("Process was not found")
             return False
         self.mProcess = windll.kernel32.OpenProcess(win32con.PROCESS_VM_READ, 0, self.mProcessID)
         return True
@@ -123,7 +122,7 @@ class ReadMemory(metaclass=SingletonMeta):
         try:
             os.system('cheat_engine\\scanner.exe')
         except (ValueError, Exception):
-            # print("write base addr fail")
+            log.info("Write base address fail")
             return False
         return True
 
@@ -132,7 +131,7 @@ class ReadMemory(metaclass=SingletonMeta):
         try:
             f = open(TEMP_PATH, "r")
         except (ValueError, Exception):
-            # print("Dont have temp file")
+            log.info("Dont have temp file")
             return None
         lines = f.readlines()
         output = []
@@ -149,14 +148,14 @@ class ReadMemory(metaclass=SingletonMeta):
     def ReadMemoryInit(self):
         checkOpenProc = self.OpenProcess()
         if checkOpenProc is False:
-            # print("checkOpenProc Error")
+            log.info("checkOpenProc Error")
             return False
         checkWriteBase = self.WriteBaseAddress()
         if checkWriteBase is False:
-            # print("checkWriteBase Error")
+            log.info("checkWriteBase Error")
             return False
         checkGetBase = self.GetBaseAddress()
         if checkGetBase is False:
-            # print("checkGetBase Error")
+            log.info("checkGetBase Error")
             return False
         self.SetAddress()

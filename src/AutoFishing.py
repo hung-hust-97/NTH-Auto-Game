@@ -56,6 +56,7 @@ class AutoFishing(QObject):
         self.mCheckMarkPos = False
         self.mEmulatorType = ''
         self.mListIgnoreID = []
+        self.mFishTypeValue = 0
 
         # Khai báo số cá các loại
         self.mAllFish = 0
@@ -63,6 +64,8 @@ class AutoFishing(QObject):
         self.mBlueFish = 0
         self.mGreenFish = 0
         self.mGrayFish = 0
+        self.mOtherFish = 0
+        self.mBrokenWire = 0
 
         self.mStartTime = time.time()
         self.mSaveTime = 0
@@ -182,7 +185,7 @@ class AutoFishing(QObject):
                 return Flags.STOP_FISHING
 
             mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
-            mFixRodValue = self.mReadMemory.GetData(self.mReadMemory.mFixRodAddress)
+            # mFixRodValue = self.mReadMemory.GetData(self.mReadMemory.mFixRodAddress)
             # print("mControlValue = ", mControlValue)
             # print("mFixRodValue = ", mFixRodValue)
 
@@ -283,13 +286,6 @@ class AutoFishing(QObject):
         mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
         mRodOnHandValue = self.mReadMemory.GetData(self.mReadMemory.mRodOnHandAddress)
         mBackpackValue = self.mReadMemory.GetData(self.mReadMemory.mBackpackAddress)
-        # print("mControlValue = ", mControlValue)
-        # print("mRodOnHandValue = ", mRodOnHandValue)
-        # print("mBackpackValue = ", mBackpackValue)
-
-        if mBackpackValue == 300:
-            self.CloseBackPack()
-            return False
 
         if mControlValue == 0 and mRodOnHandValue == 103:
             self.AdbClick(self.mConfig.mCastingRodPos[0],
@@ -298,10 +294,18 @@ class AutoFishing(QObject):
             log.info(f'Clicked {self.mConfig.mCastingRodPos}')
             return True
 
+        if mControlValue == 0 and mRodOnHandValue < 103:
+            self.FixRod()
+            return False
+
         if mControlValue == 8:
             self.AdbClick(self.mConfig.mPreservationPos[0],
                           self.mConfig.mPreservationPos[1])
             log.info(f'Click preservation button {self.mConfig.mPreservationPos}')
+            return False
+
+        if mBackpackValue == 300:
+            self.CloseBackPack()
             return False
 
         self.FixConfirm()
@@ -472,28 +476,50 @@ class AutoFishing(QObject):
     def RMCheckMark(self):
         mBaseTime = time.time()
         mStopDetect = False
-
+        time.sleep(self.mConfig.mDelayTime)
+        self.StatusEmit("Đang câu cá")
+        log.info(f'Fishing')
         while (time.time() - mBaseTime) < self.mConfig.mFishingPeriod:
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
-            if mStopDetect is False:
-                mFishTypeValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
-                self.mSignalUpdateFishID.emit(mFishTypeValue)
-                if mFishTypeValue in self.mListIgnoreID:
-                    # print("Bo qua ca nay ************")
-                    return
-                if self.mConfig.mBigVioletFishCheck is True:
-                    if mFishTypeValue >= self.mConfig.mBigVioletFishID:
-                        # print("Bo qua ca nay ************")
-                        return
-                mStopDetect = True
 
+            if (time.time() - mBaseTime) < self.mConfig.mWaitingFishTime:
+                time.sleep(0.1)
+                continue
+
+            # detec fish type
+            if mStopDetect is False:
+                self.mFishTypeValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
+                self.mSignalUpdateFishID.emit(self.mFishTypeValue)
+
+                # Neu ca thuoc danh sach uu tien giu lai
+                if self.mFishTypeValue in self.mConfig.mListUnIgnoreFish:
+                    pass
+                else:
+                    if self.mConfig.mFilterMode5Check is True:
+                        if self.mFishTypeValue < self.mConfig.mFilterMode5:
+                            return
+                    elif self.mConfig.mFilterMode4Check is True:
+                        if self.mFishTypeValue < self.mConfig.mFilterMode4:
+                            return
+                    elif self.mConfig.mFilterMode3Check is True:
+                        if self.mFishTypeValue < self.mConfig.mFilterMode3:
+                            return
+                    elif self.mConfig.mFilterMode2Check is True:
+                        if self.mFishTypeValue in self.mConfig.mFilterMode2:
+                            return
+                    elif self.mConfig.mFilterMode1Check is True:
+                        if self.mFishTypeValue in self.mConfig.mFilterMode1:
+                            return
+                    else:
+                        pass
+                mStopDetect = True
             mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
-            # print(f' = {mControlValue}')
             if mControlValue == 4:
                 return
+            if mControlValue == 7:
+                return
             time.sleep(0.01)
-
         self.StatusEmit("Hết chu kỳ câu. Kéo cần")
         log.info(f'End fishing period. Pulling Rod')
         return
@@ -548,9 +574,8 @@ class AutoFishing(QObject):
         time.sleep(0.1)
         if self.mAutoFishRunning is False:
             return Flags.STOP_FISHING
-        time1 = time.time()
-        time2 = time.time()
-        while (time2 - time1) < 15:
+        baseTime = time.time()
+        while (time.time() - baseTime) < 15:
             # check point break auto fishing thread
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
@@ -560,6 +585,10 @@ class AutoFishing(QObject):
             if mCheckBackpack == Flags.TRUE:
                 self.StatusEmit("Câu thất bại")
                 log.info(f'Fishing fail')
+
+                # Từ lúc kéo cần đến lúc thấy ba lô nếu trên 2s tức là kéo cá bị đứt dây
+                if time.time() - baseTime > 2:
+                    self.mBrokenWire += 1
                 return
 
             mCheckPreservation = self.mScreenHandle.FindImage(self.mConfig.mPreservationImg,
@@ -573,22 +602,27 @@ class AutoFishing(QObject):
                 log.info(f'Fishing Success. Click preservation {self.mConfig.mPreservationPos}')
                 return
             time.sleep(0.1)
-            time2 = time.time()
         self.StatusEmit("Kiểm tra kết quả bị lỗi")
         log.info(f'Check fishing result error')
         return
 
     def RMFishPreservation(self):
-        time.sleep(self.mConfig.mDelayTime)
-        time1 = time.time()
-        while time.time() - time1 < 15:
+        time.sleep(0.1)
+        baseTime = time.time()
+        mPullingFishCheck = False
+        while time.time() - baseTime < 15:
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
 
             mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
-            # print("mControlValue= ", mControlValue)
 
-            if mControlValue == 5 or mControlValue == 7:
+            if mControlValue == 7:
+                time.sleep(0.1)
+                continue
+
+            if mControlValue == 5:
+                mPullingFishCheck = True
+                time.sleep(0.1)
                 continue
 
             if mControlValue == 8:
@@ -602,6 +636,8 @@ class AutoFishing(QObject):
             if mControlValue == 0:
                 self.StatusEmit("Câu thất bại")
                 log.info(f'Fishing fail')
+                if mPullingFishCheck is True:
+                    self.mBrokenWire += 1
                 return
             time.sleep(0.1)
 
@@ -632,6 +668,7 @@ class AutoFishing(QObject):
             self.mGrayFish += 1
             log.info(f'GrayFish = {self.mGrayFish}')
         else:
+            self.mOtherFish += 1
             log.info(f'No fish')
             pass
         self.mImageShow = mFishImage.copy()
@@ -645,7 +682,7 @@ class AutoFishing(QObject):
                                                               self.mConfig.mFishingResultRegion,
                                                               self.mConfig.mConfidence)
             if mCheckPreservation == Flags.TRUE:
-                time.sleep(self.mConfig.mDelayTime)
+                time.sleep(0.3)
                 break
             time.sleep(0.1)
         mFishImage = self.mScreenHandle.RegionScreenshot(self.mConfig.mFishImgRegion)
@@ -669,12 +706,16 @@ class AutoFishing(QObject):
             self.mGrayFish += 1
             log.info(f'GrayFish = {self.mGrayFish}')
         else:
+            self.mOtherFish += 1
             log.info(f'No fish')
-            pass
         self.mImageShow = mFishImage.copy()
         # Hiện ảnh cá câu được lên app auto
 
         self.mSignalUpdateImageShow.emit()
+
+        if self.mConfig.mDebugMode is True:
+            img_name = f'{self.mFishTypeValue}__{time.time()}.jpg'
+            cv2.imwrite(f'log/fish_type/{img_name}', mFishImage)
 
     def SetMarkPos(self):
         if self.mEmulatorBox is None:
@@ -856,7 +897,8 @@ class AutoFishing(QObject):
         self.mEmulatorType = self.mScreenHandle.FindLogo()
         if self.mEmulatorType == OTHER:
             self.MsgEmit(
-                f'Không tìm thấy giả lập. Hãy đổi tên giả lập\n'
+                f'Không tìm thấy logo giả lập\n'
+                f'Hãy vào cài đặt màn hình windows, chỉnh scale 100%. Khởi động lại giả lập\n'
                 f'Lưu ý phần mềm chỉ hỗ trợ 3 loại giả lập LDPlayer, NOX, MEmu')
             log.info(f'Emulator type not suitable')
             return False
@@ -1004,9 +1046,6 @@ class AutoFishing(QObject):
             if mCheckCastRod is False:
                 continue
 
-            self.mFishingNum += 1
-            self.mSignalUpdateFishingNum.emit()
-
             # break point thread auto fishing
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
@@ -1016,6 +1055,8 @@ class AutoFishing(QObject):
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
             if mCheckRod == Flags.CHECK_ROD_OK:
+                self.mFishingNum += 1
+                self.mSignalUpdateFishingNum.emit()
                 self.mFixRodTime = 0
                 self.CheckMark()
                 # break point thread auto fishing
@@ -1079,26 +1120,11 @@ class AutoFishing(QObject):
                 self.MsgEmit("Chưa Quét Data\t\t\t\t\t")
                 return
 
-        self.mListIgnoreID.clear()
-        if self.mConfig.mWhiteFishCheck is True:
-            for temp in self.mConfig.mWhiteFishID:
-                self.mListIgnoreID.append(temp)
-        if self.mConfig.mWhiteCrownFishCheck is True:
-            for temp in self.mConfig.mWhiteCrownFishID:
-                self.mListIgnoreID.append(temp)
-        if self.mConfig.mGreenFishCheck is True:
-            for temp in self.mConfig.mGreenFishID:
-                self.mListIgnoreID.append(temp)
-        if self.mConfig.mBlueFishCheck is True:
-            for temp in self.mConfig.mBlueFishID:
-                self.mListIgnoreID.append(temp)
-        if self.mConfig.mSmallVioletFishCheck is True:
-            for temp in self.mConfig.mSmallVioletFishID:
-                self.mListIgnoreID.append(temp)
-
         time.sleep(0.1)
         while self.mAutoFishRunning is True:
             gc.collect()
+            # Reset fish type display
+            self.mSignalUpdateFishID.emit(0)
             time.sleep(self.mConfig.mDelayTime)
             log.info('********************************************************')
             log.info(f'Fishing time {self.mFishingNum + 1}')
@@ -1110,6 +1136,7 @@ class AutoFishing(QObject):
             # Have captcha?
             mCheckCaptcha = self.CheckCaptcha()
             if mCheckCaptcha == Flags.CAPTCHA_APPEAR:
+                time.sleep(0.5)
                 self.CaptchaHandle()
                 # break point thread auto fishing
                 if self.mAutoFishRunning is False:
@@ -1133,9 +1160,6 @@ class AutoFishing(QObject):
             if mCheckCastRod is False:
                 continue
 
-            self.mFishingNum += 1
-            self.mSignalUpdateFishingNum.emit()
-
             # break point thread auto fishing
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
@@ -1145,6 +1169,8 @@ class AutoFishing(QObject):
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
             if mCheckRod == Flags.CHECK_ROD_OK:
+                self.mFishingNum += 1
+                self.mSignalUpdateFishingNum.emit()
                 self.mFixRodTime = 0
                 self.RMCheckMark()
                 # break point thread auto fishing
@@ -1166,12 +1192,13 @@ class AutoFishing(QObject):
                     return Flags.STOP_FISHING
                 self.mFixRodTime += 1
                 if self.mFixRodTime == 20:
-                    self.MsgEmit("Thả câu lỗi 20 lần liên tiếp. Kiểm tra xem có hết lượt câu không?")
+                    self.MsgEmit("Thả câu lỗi 20 lần. Kiểm tra xem có hết lượt câu không?")
                     while True:
                         if self.mAutoFishRunning is False:
                             return Flags.STOP_FISHING
                         time.sleep(0.5)
             elif mCheckRod == Flags.CAPTCHA_APPEAR:
+                time.sleep(0.5)
                 self.CaptchaHandle()
                 # break point thread auto fishing
                 if self.mAutoFishRunning is False:
