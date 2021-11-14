@@ -113,20 +113,24 @@ class Config(metaclass=SingletonMeta):
         self.mMemuLogo = None
 
         self.mListEmulatorSize = [[1280, 720], [960, 540], [640, 360]]
-        self.mStrListEmulatorSize = ['1280x720 dpi 240', '960x540 dpi 160', '640x360 dpi 120']
-        self.mListBlurArg = [15, 5, 3]
+        self.mStrListEmulatorSize = ['1280x720 dpi 240', '960x540 dpi 180', '640x360 dpi 120']
+        self.mListBlurArg = [15, 5, 1]
 
         self.mAppTitle = "NTH Auto Game " + self.mVersion
-        self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả"
+        self.mLicenseText = "Bấm vào Youtube, Facebook để liên hệ tác giả NTH Auto Game"
         self.mFacebookLink = "https://www.facebook.com/groups/4478925988809953"
         self.mYoutubeLink = "https://www.youtube.com/channel/UCaEW8YUslMbGv3839jzdQ6g/featured"
         self.mMediaFire = "https://www.mediafire.com/folder/zpq42aonjn4bh/Auto_Game_PlayTogether"
+        self.mDocumentLink = "https://docs.google.com/document/d/1TRxY3XsCNAGmGuSKX0FSiD30q7159OOPhGUHaiwCa2s/edit?usp=sharing"
         self.mWaitStatus = "Auto đang đóng chu trình câu\nVui lòng đợi trong giây lát"
         self.mAppLogo = LOGO_NTH_AUTO_GAME
         self.mIcon = ICON_NTH_AUTO_GAME
 
         self.mYoutubeImgPath = 'data/youtube.png'
         self.mFacebookImgPath = 'data/facebook.png'
+        self.mHelpIconPath = 'data/help.png'
+        self.mLessIconPath = 'data/less.png'
+        self.mMoreIconPath = 'data/more.png'
 
         self.mConfidence = 0.7
         self.mShutdownCheckBox = False
@@ -198,6 +202,8 @@ class Config(metaclass=SingletonMeta):
         self.mFilterMode4 = FILTER_MODE4
         self.mFilterMode5 = FILTER_MODE5
 
+        # Mode 0 la duel check mark RM + CV
+        self.mFilterMode0Check = False
         self.mFilterMode1Check = False
         self.mFilterMode2Check = False
         self.mFilterMode3Check = False

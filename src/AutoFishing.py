@@ -12,10 +12,11 @@ from PyQt5.QtCore import pyqtSignal, QObject
 import subprocess
 import logging as log
 import win32gui
+from copy import deepcopy
 
 from src.common import *
 from src.ScreenHandle import ScreenHandle
-from src.ReadMemory import ReadMemory
+from src.ReadMemory import *
 
 
 class AutoFishing(QObject):
@@ -26,8 +27,10 @@ class AutoFishing(QObject):
     mSignalUpdateImageShow = pyqtSignal()
     mSignalMessage = pyqtSignal(str)
     mSignalUpdateStatus = pyqtSignal(str)
-    mSignalUpdateBaseAddress = pyqtSignal()
+    mSignalUpdateMarkAddress = pyqtSignal()
+    mSignalUpdateFishAddress = pyqtSignal()
     mSignalUpdateFishID = pyqtSignal(int)
+    mSignalUpdatePID = pyqtSignal()
 
     def __init__(self):
         QObject.__init__(self, parent=None)
@@ -55,7 +58,6 @@ class AutoFishing(QObject):
         self.mCheckBobberPos = False
         self.mCheckMarkPos = False
         self.mEmulatorType = ''
-        self.mListIgnoreID = []
         self.mFishTypeValue = 0
 
         # Khai báo số cá các loại
@@ -180,14 +182,10 @@ class AutoFishing(QObject):
     def RMCheckRod(self):
         time.sleep(self.mConfig.mDelayTime)
         while True:
-            # print("RMCheckRod")
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
 
             mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
-            # mFixRodValue = self.mReadMemory.GetData(self.mReadMemory.mFixRodAddress)
-            # print("mControlValue = ", mControlValue)
-            # print("mFixRodValue = ", mFixRodValue)
 
             if mControlValue == 3:
                 log.info('CheckRod OK')
@@ -200,7 +198,7 @@ class AutoFishing(QObject):
             if mControlValue == 0:
                 if self.CheckCaptcha() == Flags.CAPTCHA_APPEAR:
                     log.info('CheckRod Captcha Appear')
-                return Flags.CAPTCHA_APPEAR
+                    return Flags.CAPTCHA_APPEAR
             time.sleep(0.1)
 
     def FixRod(self):
@@ -283,9 +281,23 @@ class AutoFishing(QObject):
         return False
 
     def RMCastFishingRod(self):
+        mBackpackValue = self.mReadMemory.GetData(self.mReadMemory.mBackpackAddress)
+        if mBackpackValue == 300:
+            self.StatusEmit("Đang đóng ba lô")
+            self.CloseBackPack()
+            time.sleep(0.2)
+            mBackpackValue = self.mReadMemory.GetData(self.mReadMemory.mBackpackAddress)
+            if mBackpackValue == 300:
+                self.StatusEmit("Xác nhận sửa cần")
+                self.FixConfirm()
+                time.sleep(self.mConfig.mDelayTime + 0.5)
+                self.ClickOk()
+                time.sleep(0.2)
+                self.CloseBackPack()
+                time.sleep(0.2)
+
         mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
         mRodOnHandValue = self.mReadMemory.GetData(self.mReadMemory.mRodOnHandAddress)
-        mBackpackValue = self.mReadMemory.GetData(self.mReadMemory.mBackpackAddress)
 
         if mControlValue == 0 and mRodOnHandValue == 103:
             self.AdbClick(self.mConfig.mCastingRodPos[0],
@@ -295,7 +307,8 @@ class AutoFishing(QObject):
             return True
 
         if mControlValue == 0 and mRodOnHandValue < 103:
-            self.FixRod()
+            self.MsgEmit("Kiểm tra lại cần câu hoặc vị trí ô đồ chứa cần")
+            self.mAutoFishRunning = False
             return False
 
         if mControlValue == 8:
@@ -303,14 +316,6 @@ class AutoFishing(QObject):
                           self.mConfig.mPreservationPos[1])
             log.info(f'Click preservation button {self.mConfig.mPreservationPos}')
             return False
-
-        if mBackpackValue == 300:
-            self.CloseBackPack()
-            return False
-
-        self.FixConfirm()
-        time.sleep(self.mConfig.mDelayTime + 0.5)
-        self.ClickOk()
         return False
 
     def FishDetection(self, mPrevFrameGray, mCurrFrameGray, mCurrFrameRGB):
@@ -403,7 +408,7 @@ class AutoFishing(QObject):
         self.mSignalUpdateImageShow.emit()
         return mFishArea
 
-    def CheckMark(self):
+    def CVCheckMark(self):
         mStaticFrameGray = None
         if self.mConfig.mFishDetectionCheck is True:
             mStaticFrameRGB = self.mScreenHandle.RegionScreenshot(self.mFishingRegion)
@@ -415,24 +420,22 @@ class AutoFishing(QObject):
         self.StatusEmit("Đang câu cá")
         log.info(f'Fishing')
         mPixelBaseMark = None
+        mPixelAboveBaseMark = None
+        mAboveMark = [self.mMark[0], self.mMark[1] - self.mConfig.mMarkPixelDist * 2]
 
         for i in range(3):
             mPixelBaseMark = self.mScreenHandle.PixelScreenShot(self.mMark)
-            if mPixelBaseMark is None:
-                time.sleep(0.001)
-                continue
-            break
+            mPixelAboveBaseMark = self.mScreenHandle.PixelScreenShot(mAboveMark)
+            if mPixelBaseMark is not None and mPixelAboveBaseMark is not None:
+                break
+            time.sleep(0.001)
 
         mBaseTime = time.time()
         mStopDetect = False
         mSkipFrame = 0
 
-        # fpsTime = time.time()
         time.sleep(0.01)
         while (time.time() - mBaseTime) < self.mConfig.mFishingPeriod:
-            # t1 = fpsTime
-            # fpsTime = time.time()
-            # print(f'FPS = {1 / (fpsTime - t1)}')
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
 
@@ -440,8 +443,7 @@ class AutoFishing(QObject):
                 time.sleep(0.1)
                 continue
 
-            if self.mConfig.mFishDetectionCheck is True and mStopDetect is False and (
-                    time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
+            if self.mConfig.mFishDetectionCheck is True and mStopDetect is False:
                 mCurrentFrameRGB = self.mScreenHandle.RegionScreenshot(self.mFishingRegion)
                 if mCurrentFrameRGB is None:
                     return
@@ -460,15 +462,84 @@ class AutoFishing(QObject):
                 continue
 
             mPixelCurrMark = self.mScreenHandle.PixelScreenShot(self.mMark)
-            if mPixelCurrMark is None:
-                # print("none pixel")
+            mPixelAboveCurrMark = self.mScreenHandle.PixelScreenShot(mAboveMark)
+            if mPixelCurrMark is None or mPixelAboveCurrMark is None:
                 time.sleep(0.001)
                 continue
             mDiffRgbMark = self.ComparePixel(mPixelCurrMark, mPixelBaseMark)
-            if mDiffRgbMark > 50:
-                log.info(f'mDiffRgb = {mDiffRgbMark}')
+            mDiffRgbAboveMark = self.ComparePixel(mPixelAboveCurrMark, mPixelAboveBaseMark)
+
+            if mDiffRgbMark > 40:
+                if mDiffRgbAboveMark > 40:
+                    for i in range(3):
+                        mPixelBaseMark = self.mScreenHandle.PixelScreenShot(self.mMark)
+                        mPixelAboveBaseMark = self.mScreenHandle.PixelScreenShot(mAboveMark)
+                        if mPixelBaseMark is not None and mPixelAboveBaseMark is not None:
+                            break
+                        time.sleep(0.001)
+                else:
+                    log.info(f'mDiffRgb = {mDiffRgbMark}')
+                    return
+            time.sleep(0.01)
+        self.StatusEmit("Hết chu kỳ câu. Kéo cần")
+        log.info(f'End fishing period. Pulling Rod')
+        return
+
+    def DuelCheckMark(self):
+        mStaticFrameGray = None
+        if self.mConfig.mFishDetectionCheck is True:
+            time.sleep(self.mConfig.mDelayTime)
+            for i in range(6):
+                # break point thread auto fishing
+                if self.mAutoFishRunning is False:
+                    return Flags.STOP_FISHING
+                time.sleep(0.5)
+            mStaticFrameRGB = self.mScreenHandle.RegionScreenshot(self.mFishingRegion)
+            if mStaticFrameRGB is None:
                 return
-            time.sleep(0.015)
+            mStaticFrameGray = cv2.cvtColor(mStaticFrameRGB, cv2.COLOR_BGR2GRAY)
+            self.mImageShow = mStaticFrameRGB
+
+        self.StatusEmit("Đang câu cá")
+        log.info(f'Fishing')
+
+        mBaseTime = time.time()
+        mStopDetect = False
+        mSkipFrame = 0
+
+        time.sleep(0.01)
+        while (time.time() - mBaseTime) < self.mConfig.mFishingPeriod:
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
+
+            if (time.time() - mBaseTime) < self.mConfig.mWaitingFishTime:
+                time.sleep(0.1)
+                continue
+
+            if self.mConfig.mFishDetectionCheck is True and mStopDetect is False:
+                mCurrentFrameRGB = self.mScreenHandle.RegionScreenshot(self.mFishingRegion)
+                if mCurrentFrameRGB is None:
+                    return
+                mCurrentFrameGray = cv2.cvtColor(mCurrentFrameRGB, cv2.COLOR_BGR2GRAY)
+                mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
+                if mSizeFish != 0:
+                    mSkipFrame += 1
+                if mSkipFrame == 10:
+                    mStopDetect = True
+                    log.info(f'Size Fish = {mSizeFish}')
+                    if mSizeFish < self.mConfig.mFishSize:
+                        return
+
+            if (time.time() - mBaseTime) < self.mConfig.mWaitingMarkTime:
+                time.sleep(0.02)
+                continue
+
+            mControlValue = self.mReadMemory.GetData(self.mReadMemory.mControlAddress)
+            if mControlValue == 4:
+                return
+            if mControlValue == 7:
+                return
+            time.sleep(0.01)
         self.StatusEmit("Hết chu kỳ câu. Kéo cần")
         log.info(f'End fishing period. Pulling Rod')
         return
@@ -851,6 +922,8 @@ class AutoFishing(QObject):
         log.info(f'Fishing region in game = {self.mFishingRegion}')
 
     def CheckRegionEmulator(self):
+        self.mReadMemory.mListPID.clear()
+        self.mSignalUpdatePID.emit()
         try:
             mWindowTitle = pyautogui.getWindowsWithTitle(self.mConfig.mWindowName)[-1].title
         except (ValueError, Exception):
@@ -895,22 +968,29 @@ class AutoFishing(QObject):
             return False
 
         self.mEmulatorType = self.mScreenHandle.FindLogo()
-        if self.mEmulatorType == OTHER:
-            self.MsgEmit(
-                f'Không tìm thấy logo giả lập\n'
-                f'Hãy vào cài đặt màn hình windows, chỉnh scale 100%. Khởi động lại giả lập\n'
-                f'Lưu ý phần mềm chỉ hỗ trợ 3 loại giả lập LDPlayer, NOX, MEmu')
-            log.info(f'Emulator type not suitable')
-            return False
 
         if self.mEmulatorType == NOX:
             self.mImageShow = cv2.imread('data/noxlogo.png')
+            self.mReadMemory.mProcessName = NOX_PROCESS_NAME
+            self.mReadMemory.mMarkScannerPath = NOX_MARK_SCANNER_PATH
+            self.mReadMemory.mFishScannerPath = NOX_FISH_SCANNER_PATH
+            self.mReadMemory.GetPID()
         elif self.mEmulatorType == LD:
             self.mImageShow = cv2.imread('data/ldlogo.png')
         elif self.mEmulatorType == MEMU:
             self.mImageShow = cv2.imread('data/memulogo.png')
+            self.mReadMemory.mProcessName = MEMU_PROCESS_NAME
+            self.mReadMemory.mMarkScannerPath = MEMU_MARK_SCANNER_PATH
+            self.mReadMemory.mFishScannerPath = MEMU_FISH_SCANNER_PATH
+            self.mReadMemory.GetPID()
         else:
-            pass
+            self.MsgEmit(
+                f'Không tìm thấy logo giả lập\n'
+                f'Hãy vào cài đặt màn hình windows, chỉnh scale 100%. Khởi động lại giả lập\n'
+                f'Lưu ý phần mềm chỉ hỗ trợ 3 loại giả lập MEmu, NOX, LDPlayer')
+            log.info(f'Emulator type not suitable')
+            return False
+        self.mSignalUpdatePID.emit()
         self.mSignalUpdateImageShow.emit()
         return True
 
@@ -998,9 +1078,10 @@ class AutoFishing(QObject):
             self.MsgEmit("Chưa lấy tọa độ chấm than \t\t")
             return
 
-        if self.mFishingRegion[2] == 0:
-            self.MsgEmit("Chưa lấy tọa độ phao câu\t\t")
-            return
+        if self.mConfig.mFishDetectionCheck is True:
+            if self.mFishingRegion[2] == 0:
+                self.MsgEmit("Chưa lấy tọa độ phao câu\t\t")
+                return
 
         if self.mEmulatorType == LD:
             self.mConfig.mSendKeyCheck = False
@@ -1058,7 +1139,7 @@ class AutoFishing(QObject):
                 self.mFishingNum += 1
                 self.mSignalUpdateFishingNum.emit()
                 self.mFixRodTime = 0
-                self.CheckMark()
+                self.CVCheckMark()
                 # break point thread auto fishing
                 if self.mAutoFishRunning is False:
                     return Flags.STOP_FISHING
@@ -1111,14 +1192,35 @@ class AutoFishing(QObject):
             self.MsgEmit("Chưa kết nối địa chỉ ADB của giả lập\t\t")
             return
 
-        if self.mEmulatorType != MEMU:
-            self.MsgEmit("Chế độ bổ củi hiện tại chỉ chạy được trên MEMU PLAYER")
+        if self.mEmulatorType != MEMU and self.mEmulatorType != NOX:
+            self.MsgEmit("Chế độ đọc data chỉ hỗ trợ MEMU PLAYER và NOX PLAYER")
             return
 
-        if self.mConfig.mReadMemoryCheck is True:
-            if self.mReadMemory.mControlBaseAddress == 0 or self.mReadMemory.mFilterBaseAddress == 0:
-                self.MsgEmit("Chưa Quét Data\t\t\t\t\t")
+        if self.mReadMemory.mControlBaseAddress == 0:
+            self.MsgEmit("Chưa quét địa chỉ chấm than\t\t\t\t\t")
+            return
+        if self.mConfig.mFilterMode0Check is False:
+            if self.mReadMemory.mFilterBaseAddress == 0:
+                self.MsgEmit("Chưa quét địa chỉ bóng cá\t\t\t\t\t")
                 return
+
+        if self.mReadMemory.OpenProcess() is False:
+            self.MsgEmit("Lỗi kết nối PID\t\t\t\t\t")
+            return
+
+        if self.mReadMemory.GetData(self.mReadMemory.mControlAddress) != 0:
+            self.MsgEmit("Kiểm tra các nguyên nhận sau:\n"
+                         "1. Chưa cầm cần câu\n"
+                         "2. Dịch chuyển khu vực phải quét lại chấm than\n"
+                         "3. Chọn sai PID nếu đang bật nhiều tab MEmu\n"
+                         "4. Nếu vẫn không được hãy restart giả lập")
+            return
+
+        if self.mConfig.mFilterMode0Check is True and self.mConfig.mFishDetectionCheck is True:
+            if self.mConfig.mFishDetectionCheck is True:
+                if self.mFishingRegion[2] == 0:
+                    self.MsgEmit("Chưa lấy tọa độ phao câu\t\t")
+                    return
 
         time.sleep(0.1)
         while self.mAutoFishRunning is True:
@@ -1172,7 +1274,13 @@ class AutoFishing(QObject):
                 self.mFishingNum += 1
                 self.mSignalUpdateFishingNum.emit()
                 self.mFixRodTime = 0
-                self.RMCheckMark()
+
+                # Neu ko tick vao cac mode loc bong bo cui thi se chay duel check mark
+                if self.mConfig.mFilterMode0Check is True:
+                    self.DuelCheckMark()
+                else:
+                    self.RMCheckMark()
+
                 # break point thread auto fishing
                 if self.mAutoFishRunning is False:
                     return Flags.STOP_FISHING
@@ -1315,6 +1423,10 @@ class AutoFishing(QObject):
         log.info('Captcha Handle Complete')
         return
 
-    def ReadMemoryInit(self):
-        self.mReadMemory.ReadMemoryInit()
-        self.mSignalUpdateBaseAddress.emit()
+    def MarkScanner(self):
+        self.mReadMemory.MarkScanner()
+        self.mSignalUpdateMarkAddress.emit()
+
+    def FishScanner(self):
+        self.mReadMemory.FishScanner()
+        self.mSignalUpdateFishAddress.emit()

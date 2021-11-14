@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
 
     def SlotOpenApp(self):
         log.info('Opening App')
-        self.setMaximumSize(QtCore.QSize(350, 550))
+        self.setMaximumSize(QtCore.QSize(350, 540))
         self.mLogo = self.Base64ToQImage(self.mConfig.mAppLogo)
 
         self.setWindowTitle(QCoreApplication.translate("MainWindow", self.mConfig.mAppTitle))
@@ -121,6 +121,7 @@ class MainWindow(QMainWindow):
         self.SlotShowNumFish()
         self.ShowListEmulatorSize()
         self.uic.listAdbAddress.addItem(self.mConfig.mAdbAddress)
+        self.uic.listPID.addItem('None')
 
         self.uic.cbKeyBoard.setChecked(self.mConfig.mSendKeyCheck)
         self.uic.cbFishDetection.setChecked(self.mConfig.mFishDetectionCheck)
@@ -134,6 +135,12 @@ class MainWindow(QMainWindow):
         self.uic.btnFacebook.setIcon(QtGui.QIcon(self.mConfig.mFacebookImgPath))
         self.uic.btnFacebook.setIconSize(QSize(40, 40))
         self.uic.btnFacebook.setFlat(True)
+        self.uic.btnHelp.setIcon(QtGui.QIcon(self.mConfig.mHelpIconPath))
+        self.uic.btnHelp.setIconSize(QSize(38, 38))
+        self.uic.btnHelp.setFlat(True)
+        self.uic.btnExpand.setIcon(QtGui.QIcon(self.mConfig.mMoreIconPath))
+        self.uic.btnExpand.setIconSize(QSize(28, 28))
+        self.uic.btnExpand.setFlat(True)
 
         # Show time
         self.uic.lcdTime.setNumDigits(8)
@@ -198,8 +205,10 @@ class MainWindow(QMainWindow):
         self.uic.btnConnectAdb.clicked.connect(self.OnClickConnectAdbAddress)
         self.uic.btnFacebook.clicked.connect(self.SlotOpenFacebook)
         self.uic.btnYoutube.clicked.connect(self.SlotOpenYoutube)
+        self.uic.btnHelp.clicked.connect(self.OnClickHelp)
         self.uic.btnExpand.clicked.connect(self.OnClickExpand)
-        self.uic.btnScanData.clicked.connect(self.OnClickScanData)
+        self.uic.btnMarkScanner.clicked.connect(self.OnClickMarkScanner)
+        self.uic.btnFishScanner.clicked.connect(self.OnClickFishScanner)
         self.uic.btnFilterDescription.clicked.connect(self.OnClickFilterDescription)
         self.uic.btnClearFish.clicked.connect(self.OnLickClear)
 
@@ -211,8 +220,10 @@ class MainWindow(QMainWindow):
         self.mAutoFishing.mSignalUpdateImageShow.connect(self.SlotShowImage)
         self.mAutoFishing.mSignalMessage.connect(self.SlotShowMsgBox)
         self.mAutoFishing.mSignalUpdateStatus.connect(self.SlotShowStatus)
-        self.mAutoFishing.mSignalUpdateBaseAddress.connect(self.SlotUpdateBaseAddress)
+        self.mAutoFishing.mSignalUpdateMarkAddress.connect(self.SlotUpdateMarkAddress)
+        self.mAutoFishing.mSignalUpdateFishAddress.connect(self.SlotUpdateFishAddress)
         self.mAutoFishing.mSignalUpdateFishID.connect(self.SlotShowFishID)
+        self.mAutoFishing.mSignalUpdatePID.connect(self.SlotUpdatePID)
 
         # Connect timer to slot
         self.mTimer.timeout.connect(self.SlotShowTime)
@@ -227,6 +238,22 @@ class MainWindow(QMainWindow):
 
         # Show status bar
         self.uic.statusbar.showMessage("Phần mềm miễn phí. Tác giả NTH Auto Game")
+
+        # self.uic.cbFilterMode1.hide()
+        # self.uic.cbFilterMode2.hide()
+        # self.uic.cbFilterMode3.hide()
+        # self.uic.cbFilterMode4.hide()
+        # self.uic.cbFilterMode5.hide()
+        # self.uic.cbFilterBaba.hide()
+        # self.uic.cbFilterKyNhong.hide()
+        # self.uic.cbFilterKyNhongVM.hide()
+        # self.uic.cbFilterMiniFish.hide()
+        # self.uic.labelFilterMode.hide()
+        # self.uic.labelFishTypeKeep.hide()
+        # self.uic.lblFilterBaseAddress.hide()
+        # self.uic.btnFilterDescription.hide()
+        # self.uic.lcdFishID.hide()
+        # self.uic.lblFishID.hide()
 
     def OnClickConnectWindowTitle(self):
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
@@ -261,26 +288,32 @@ class MainWindow(QMainWindow):
             f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\nChọn địa chỉ ADB của giả lập và kết nối")
         return
 
-    def OnClickScanData(self):
-        self.uic.lblControlBaseAddress.setText("Base Address 1")
-        self.uic.lblFilterBaseAddress.setText("Base Address 2")
-        self.SlotShowMsgBox("Đọc kỹ hướng dẫn trước khi tiếp tục:\n"
-                            "B1: Vào game. Đến khu vực câu cá. Mở ba lô\n"
-                            "B2: Khi kết thúc thông báo này, app MemoryScanner sẽ xuất hiện\n"
-                            "B3: Chờ 5-10 giây cho app MemoryScanner hết xoay. Bấm nút SCAN\n"
-                            "B4: Nếu báo ERROR thì tắt app MemoryScanner. Khởi động lại giả lập. Làm lại từ B1\n"
-                            "B5: Lấy cần câu ra và Start"
-                            "\nLưu ý:\n"
-                            "1. Mỗi lần teleport đến khu vực khác sẽ phải quét lại data\n"
-                            "2. Nếu máy yếu thì SCAN sẽ lâu\n"
-                            "3. Nếu sợ bị BAN thì giờ tắt game đi còn kịp\n"
-                            "4. Hiện tại chỉ hỗ trợ MEMU PLAYER\n"
-                            "\nBây giờ bấm OK để bắt đầu thực hiện ...")
-        threading.Thread(target=self.mAutoFishing.ReadMemoryInit).start()
+    def OnClickMarkScanner(self):
+        self.uic.lblControlBaseAddress.setText("Địa chỉ chấm than")
+        self.SlotShowMsgBox("Lưu ý:\n\n"
+                            "Khi dịch chuyển đến khu vực mới, phải quét lại chấm than")
+        threading.Thread(target=self.mAutoFishing.MarkScanner).start()
 
-    def SlotUpdateBaseAddress(self):
+    def OnClickFishScanner(self):
+        self.uic.lblFilterBaseAddress.setText("Địa chỉ bóng cá")
+        self.SlotShowMsgBox("Lưu ý:\n\n"
+                            "Khi dịch chuyển đến khu vực mới, phải câu trước 1 con cá rồi mới Start auto")
+        threading.Thread(target=self.mAutoFishing.FishScanner).start()
+
+    def SlotUpdateMarkAddress(self):
         self.uic.lblControlBaseAddress.setText(self.mReadMemory.hexControlBaseAddress)
+
+    def SlotUpdateFishAddress(self):
         self.uic.lblFilterBaseAddress.setText(self.mReadMemory.hexFilterBaseAddress)
+
+    def SlotUpdatePID(self):
+        self.uic.listPID.clear()
+        if not self.mReadMemory.mListPID:
+            self.uic.listPID.addItem('None')
+            return
+        for mPID in self.mReadMemory.mListPID:
+            self.uic.listPID.addItem(str(mPID))
+        self.uic.listPID.setCurrentIndex(0)
 
     def OnClickConnectAdbAddress(self):
         if self.uic.listAdbAddress.currentText() == "None":
@@ -315,7 +348,8 @@ class MainWindow(QMainWindow):
         self.uic.btnStartFishing.setDisabled(True)
         self.uic.btnGetMarkPosition.setDisabled(True)
         self.uic.btnGetBobberPosition.setDisabled(True)
-        self.uic.btnScanData.setDisabled(True)
+        self.uic.btnFishScanner.setDisabled(True)
+        self.uic.btnMarkScanner.setDisabled(True)
         self.uic.btnClearFish.setDisabled(True)
 
         # Hide text box
@@ -331,6 +365,7 @@ class MainWindow(QMainWindow):
         # Hide list box
         self.uic.listAdbAddress.setDisabled(True)
         self.uic.listEmulatorSize.setDisabled(True)
+        self.uic.listPID.setDisabled(True)
 
         # Hide check box
         self.uic.cbShutdownPC.setDisabled(True)
@@ -345,6 +380,7 @@ class MainWindow(QMainWindow):
         self.uic.cbFilterBaba.setDisabled(True)
         self.uic.cbFilterKyNhong.setDisabled(True)
         self.uic.cbFilterKyNhongVM.setDisabled(True)
+        self.uic.cbFilterMiniFish.setDisabled(True)
 
         # All thread flag = False
         self.mAutoFishing.mCheckMouseRunning = False
@@ -391,7 +427,7 @@ class MainWindow(QMainWindow):
     @staticmethod
     def OnClickFilterDescription():
         mMsgBox = QMessageBox()
-        mMsgBox.setText("Bổ củi cơ bản:\n"
+        mMsgBox.setText("Chế độ thường dùng:\n"
                         "- Mode 1. Trắng VM trở lên. Bỏ qua mã số 1, 7, 13\n"
                         "- Mode 2. Xanh trở lên. Bỏ qua mã số 1, 3, 7, 9, 10, 13, 15\n"
                         "- Mode 3. Bóng 3 VM trở lên. Bỏ qua mã số dưới 16\n"
@@ -400,8 +436,9 @@ class MainWindow(QMainWindow):
                         "\nGiữ lại các loại cá:\n"
                         "- Kỳ Nhông. Giữ lại mã số 4\n"
                         "- Kỳ Nhông VM. Giữ lại mã số 6\n"
-                        "- Ba ba, chép vàng. Giữ lại mã số 10")
-        mMsgBox.setWindowTitle("Mô tả các chế độ bổ củi")
+                        "- Ba ba. Chép vàng. Giữ lại mã số 8, 10\n"
+                        "- Cá mini. Giữ lại mã số 4, 6, 12, 18")
+        mMsgBox.setWindowTitle("Mô tả các chế độ lọc bóng bằng đọc data game")
         mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
         mMsgBox.exec()
 
@@ -535,7 +572,8 @@ class MainWindow(QMainWindow):
             self.uic.btnConnectAdb.setDisabled(False)
             self.uic.btnGetMarkPosition.setDisabled(False)
             self.uic.btnGetBobberPosition.setDisabled(False)
-            self.uic.btnScanData.setDisabled(False)
+            self.uic.btnFishScanner.setDisabled(False)
+            self.uic.btnMarkScanner.setDisabled(False)
             self.uic.btnClearFish.setDisabled(False)
 
             # Show all check box
@@ -552,6 +590,7 @@ class MainWindow(QMainWindow):
             self.uic.cbFilterBaba.setDisabled(False)
             self.uic.cbFilterKyNhong.setDisabled(False)
             self.uic.cbFilterKyNhongVM.setDisabled(False)
+            self.uic.cbFilterMiniFish.setDisabled(False)
 
             # Show all text box
             self.uic.txtFishingPeriod.setDisabled(False)
@@ -563,8 +602,10 @@ class MainWindow(QMainWindow):
             self.uic.txtEmulatorName.setDisabled(False)
             self.uic.txtDelayTime.setDisabled(False)
 
+            # show all list
             self.uic.listAdbAddress.setDisabled(False)
             self.uic.listEmulatorSize.setDisabled(False)
+            self.uic.listPID.setDisabled(False)
 
             self.uic.txtShutdownTime.setText(str(self.mConfig.mShutdownTime))
             self.uic.txtShutdownTime.setAlignment(Qt.AlignCenter)
@@ -587,27 +628,21 @@ class MainWindow(QMainWindow):
     def SlotOpenYoutube(self):
         QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mYoutubeLink))
 
+    def OnClickHelp(self):
+        QtGui.QDesktopServices.openUrl(QUrl(self.mConfig.mDocumentLink))
+
     def OnClickExpand(self):
         if self.mCheckExpand is True:
             self.mCheckExpand = False
-            self.setMaximumSize(QtCore.QSize(350, 550))
-            self.resize(350, 550)
-            self.uic.btnExpand.setText("Mở rộng")
+            self.setMaximumSize(QtCore.QSize(350, 540))
+            self.resize(350, 540)
+            self.uic.btnExpand.setIcon(QtGui.QIcon(self.mConfig.mMoreIconPath))
             return
 
-        mMsgBox = QMessageBox()
-        mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
-        reply = mMsgBox.question(self, 'Cảnh báo',
-                                 f"Bạn muốn mở ra chế độ đọc data game?\n"
-                                 f"Cẩn thận bị BAN tài khoản!\n\n"
-                                 f"Nếu đồng ý mở bấm YES\n"
-                                 f"Không đồng ý mở bấm NO",
-                                 mMsgBox.Yes | mMsgBox.No, mMsgBox.No)
-        if reply == mMsgBox.Yes:
-            self.mCheckExpand = True
-            self.setMaximumSize(QtCore.QSize(480, 550))
-            self.resize(480, 550)
-            self.uic.btnExpand.setText("Thu gọn")
+        self.mCheckExpand = True
+        self.setMaximumSize(QtCore.QSize(480, 540))
+        self.resize(480, 540)
+        self.uic.btnExpand.setIcon(QtGui.QIcon(self.mConfig.mLessIconPath))
 
     def SaveConfig(self):
         if (self.uic.txtFishingPeriod.toPlainText()).isnumeric() is False:
@@ -667,6 +702,14 @@ class MainWindow(QMainWindow):
         self.mConfig.mFilterMode3Check = self.uic.cbFilterMode3.isChecked()
         self.mConfig.mFilterMode4Check = self.uic.cbFilterMode4.isChecked()
         self.mConfig.mFilterMode5Check = self.uic.cbFilterMode5.isChecked()
+        if self.mConfig.mFilterMode5Check is True or \
+                self.mConfig.mFilterMode4Check is True or \
+                self.mConfig.mFilterMode3Check is True or \
+                self.mConfig.mFilterMode2Check is True or \
+                self.mConfig.mFilterMode1Check is True:
+            self.mConfig.mFilterMode0Check = False
+        else:
+            self.mConfig.mFilterMode0Check = True
 
         self.mConfig.mListUnIgnoreFish.clear()
         if self.uic.cbFilterKyNhong.isChecked() is True:
@@ -674,9 +717,18 @@ class MainWindow(QMainWindow):
         if self.uic.cbFilterKyNhongVM.isChecked() is True:
             self.mConfig.mListUnIgnoreFish.append(6)
         if self.uic.cbFilterBaba.isChecked() is True:
+            self.mConfig.mListUnIgnoreFish.append(8)
             self.mConfig.mListUnIgnoreFish.append(10)
+        if self.uic.cbFilterMiniFish.isChecked() is True:
+            self.mConfig.mListUnIgnoreFish.append(4)
+            self.mConfig.mListUnIgnoreFish.append(6)
+            self.mConfig.mListUnIgnoreFish.append(12)
+            self.mConfig.mListUnIgnoreFish.append(18)
 
         self.mConfig.SetDelayTime(mDelayTime)
+
+        if self.mReadMemory.mListPID:
+            self.mReadMemory.mProcessID = self.mReadMemory.mListPID[self.uic.listPID.currentIndex()]
 
         self.mConfig.SaveConfig()
         return True

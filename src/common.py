@@ -13,6 +13,8 @@ class Flags(Enum):
     CHECK_ROD_OK = 3
     CHECK_ROD_BROK = -3
 
+    BACKPACK_OPENING = -4
+
     STOP_FISHING = -100
 
     FIND_IMG_ERROR = -99
