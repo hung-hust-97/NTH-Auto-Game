@@ -307,7 +307,9 @@ class AutoFishing(QObject):
             return True
 
         if mControlValue == 0 and mRodOnHandValue < 103:
-            self.MsgEmit("Kiểm tra lại cần câu hoặc vị trí ô đồ chứa cần")
+            self.MsgEmit("1. Kiểm tra lại cần câu\n"
+                         "2. Kiểm tra vị trí ô đồ chứa cần\n"
+                         "3. Quét lại địa chỉ chấm than")
             self.mAutoFishRunning = False
             return False
 
@@ -421,7 +423,7 @@ class AutoFishing(QObject):
         log.info(f'Fishing')
         mPixelBaseMark = None
         mPixelAboveBaseMark = None
-        mAboveMark = [self.mMark[0], self.mMark[1] - self.mConfig.mMarkPixelDist * 2]
+        mAboveMark = [self.mMark[0] - self.mConfig.mMarkPixelDist * 2, self.mMark[1] - self.mConfig.mMarkPixelDist * 2]
 
         for i in range(3):
             mPixelBaseMark = self.mScreenHandle.PixelScreenShot(self.mMark)
@@ -749,6 +751,8 @@ class AutoFishing(QObject):
 
     def RMFishCount(self):
         while True:
+            if self.mAutoFishRunning is False:
+                return Flags.STOP_FISHING
             mCheckPreservation = self.mScreenHandle.FindImage(self.mConfig.mPreservationImg,
                                                               self.mConfig.mFishingResultRegion,
                                                               self.mConfig.mConfidence)
@@ -819,10 +823,10 @@ class AutoFishing(QObject):
                 mTempImage = self.mScreenHandle.RegionScreenshot(mRegion)
                 mTempImage = cv2.circle(mTempImage, (self.mConfig.mMarkPixelRadius, self.mConfig.mMarkPixelRadius),
                                         1, (0, 0, 255), 1, cv2.LINE_AA)
-                # mTempImage = cv2.circle(mTempImage,
-                #                         (self.mConfig.mMarkPixelRadius,
-                #                          self.mConfig.mMarkPixelRadius - self.mConfig.mMarkPixelDist),
-                #                         1, (0, 0, 255), 1, cv2.LINE_AA)
+                mTempImage = cv2.circle(mTempImage,
+                                        (self.mConfig.mMarkPixelRadius - 2 * self.mConfig.mMarkPixelDist,
+                                         self.mConfig.mMarkPixelRadius - 2 * self.mConfig.mMarkPixelDist),
+                                        1, (0, 0, 255), 1, cv2.LINE_AA)
                 # mTempImage = cv2.circle(mTempImage,
                 #                         (self.mConfig.mMarkPixelRadius - self.mConfig.mMarkPixelDist,
                 #                          self.mConfig.mMarkPixelRadius),
