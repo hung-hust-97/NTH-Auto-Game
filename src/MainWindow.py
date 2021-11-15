@@ -429,7 +429,7 @@ class MainWindow(QMainWindow):
         mMsgBox = QMessageBox()
         mMsgBox.setText("Chế độ thường dùng:\n"
                         "- Mode 1. Trắng VM trở lên. Bỏ qua mã số 1, 7, 13\n"
-                        "- Mode 2. Xanh trở lên. Bỏ qua mã số 1, 3, 7, 9, 10, 13, 15\n"
+                        "- Mode 2. Xanh trở lên. Bỏ qua mã số 1, 3, 7, 9, 10, 13, 15\t\t\n"
                         "- Mode 3. Bóng 3 VM trở lên. Bỏ qua mã số dưới 16\n"
                         "- Mode 4. Bóng 4 trở lên. Bỏ qua mã số dưới 20\n"
                         "- Mode 5. Bóng 5 trở lên. Bỏ qua mã số dưới 25\n"

@@ -5,6 +5,7 @@ import psutil
 from ctypes import *
 from threading import Lock
 import logging as log
+# co the su dung thu vien pymem ho tro doc ram rat tot
 
 # offset from control_base_addr
 # +0x10
@@ -88,7 +89,7 @@ class ReadMemory(metaclass=SingletonMeta):
             mBufferLen = 1
         mAddressMemory = ctypes.c_ulong()
         mRead = windll.kernel32.ReadProcessMemory(self.mProcess,
-                                                  address,
+                                                  ctypes.c_void_p(address),
                                                   ctypes.byref(mAddressMemory),
                                                   mBufferLen, 0)
         if mRead:
@@ -99,14 +100,17 @@ class ReadMemory(metaclass=SingletonMeta):
     def GetBaseAddress(self, path: str):
         listText = self.ReadTextFile(path)
         if listText is None:
+            log.info("listText is None")
             return 0, "ERROR"
         if len(listText) > 1:
+            log.info(f"len(listText) = {len(listText)}")
             return 0, "ERROR"
 
         try:
             intAddress = int(f'0x{listText[0]}', 16)
             hexAddress = listText[0]
         except (ValueError, Exception):
+            log.info('')
             return 0, "ERROR"
         return intAddress, hexAddress
 
