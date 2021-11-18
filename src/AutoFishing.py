@@ -181,7 +181,8 @@ class AutoFishing(QObject):
 
     def RMCheckRod(self):
         time.sleep(self.mConfig.mDelayTime)
-        while True:
+        time1 = time.time()
+        while time.time() - time1 < 3:
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
 
@@ -200,6 +201,7 @@ class AutoFishing(QObject):
                     log.info('CheckRod Captcha Appear')
                     return Flags.CAPTCHA_APPEAR
             time.sleep(0.1)
+        return Flags.FALSE
 
     def FixRod(self):
         log.info(f'Fix Rod Start')
@@ -255,6 +257,7 @@ class AutoFishing(QObject):
                 return True
             mCheck += 1
             time.sleep(0.1)
+
         self.StatusEmit("Không tìm thấy nút ba lô")
         log.info(f'Cannot find backpack')
         self.CloseBackPack()
@@ -750,7 +753,8 @@ class AutoFishing(QObject):
         self.mSignalUpdateImageShow.emit()
 
     def RMFishCount(self):
-        while True:
+        time1 = time.time()
+        while time.time() - time1 < 2:
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
             mCheckPreservation = self.mScreenHandle.FindImage(self.mConfig.mPreservationImg,
@@ -1213,11 +1217,12 @@ class AutoFishing(QObject):
             return
 
         if self.mReadMemory.GetData(self.mReadMemory.mControlAddress) != 0:
-            self.MsgEmit("Kiểm tra các nguyên nhận sau:\n"
-                         "1. Chưa cầm cần câu\n"
-                         "2. Dịch chuyển khu vực phải quét lại chấm than\n"
-                         "3. Chọn sai PID nếu đang bật nhiều tab MEmu\n"
-                         "4. Nếu vẫn không được hãy restart giả lập")
+            self.MsgEmit("Thử các cách sau:\n"
+                         "1. Kiểm tra cần câu\n"
+                         "2. Thử quét lại chấm than\n"
+                         "3. Chọn lại PID nếu đang bật nhiều tab giả lập\n"
+                         "4. Thử di chuyển vị trí nhân vật\n"
+                         "5. Nếu vẫn không được hãy restart giả lập")
             return
 
         if self.mConfig.mFilterMode0Check is True and self.mConfig.mFishDetectionCheck is True:
@@ -1229,9 +1234,9 @@ class AutoFishing(QObject):
         time.sleep(0.1)
         while self.mAutoFishRunning is True:
             gc.collect()
+            time.sleep(self.mConfig.mDelayTime)
             # Reset fish type display
             self.mSignalUpdateFishID.emit(0)
-            time.sleep(self.mConfig.mDelayTime)
             log.info('********************************************************')
             log.info(f'Fishing time {self.mFishingNum + 1}')
 
@@ -1242,7 +1247,6 @@ class AutoFishing(QObject):
             # Have captcha?
             mCheckCaptcha = self.CheckCaptcha()
             if mCheckCaptcha == Flags.CAPTCHA_APPEAR:
-                time.sleep(0.5)
                 self.CaptchaHandle()
                 # break point thread auto fishing
                 if self.mAutoFishRunning is False:
@@ -1259,8 +1263,9 @@ class AutoFishing(QObject):
             else:
                 return Flags.STOP_FISHING
 
-            mCheckCastRod = self.RMCastFishingRod()
-            # break point thread auto fishing
+            # mCheckCastRod = self.RMCastFishingRod()
+            mCheckCastRod = self.CastFishingRod()
+
             if self.mAutoFishRunning is False:
                 return Flags.STOP_FISHING
             if mCheckCastRod is False:
@@ -1310,7 +1315,6 @@ class AutoFishing(QObject):
                             return Flags.STOP_FISHING
                         time.sleep(0.5)
             elif mCheckRod == Flags.CAPTCHA_APPEAR:
-                time.sleep(0.5)
                 self.CaptchaHandle()
                 # break point thread auto fishing
                 if self.mAutoFishRunning is False:

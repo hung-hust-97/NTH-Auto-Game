@@ -283,9 +283,12 @@ class MainWindow(QMainWindow):
         self.UpdateListAdbAddress()
         if self.SaveConfig() is False:
             return
-
         self.SlotShowMsgBox(
             f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\nChọn địa chỉ ADB của giả lập và kết nối")
+        if len(self.mAutoFishing.mListAdbDevicesSerial) > 4:
+            self.SlotShowMsgBox("Cày thuê nhiều tài khoản thế bro\n"
+                                "Kiếm được nhiều thì donate ủng hộ tác giả có động lực update nhé!\n"
+                                "Thanks!")
         return
 
     def OnClickMarkScanner(self):
