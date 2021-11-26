@@ -201,6 +201,7 @@ class AutoFishing(QObject):
                     log.info('CheckRod Captcha Appear')
                     return Flags.CAPTCHA_APPEAR
             time.sleep(0.1)
+        self.ClickOk()
         return Flags.FALSE
 
     def FixRod(self):
@@ -1411,9 +1412,6 @@ class AutoFishing(QObject):
                 cv2.imwrite(f'log/log_captcha/{fileName}', mSmallCaptchaImage)
             time.sleep(0.1)
 
-        self.AdbClick(self.mConfig.mOKCaptchaPos[0], self.mConfig.mOKCaptchaPos[1])
-        time.sleep(1)
-
         if self.mAutoFishRunning is False:
             return Flags.STOP_FISHING
 
@@ -1422,6 +1420,9 @@ class AutoFishing(QObject):
             self.AdbClick(self.mConfig.mRefreshCaptcha[0], self.mConfig.mRefreshCaptcha[1])
             time.sleep(3)
             return
+
+        self.AdbClick(self.mConfig.mOKCaptchaPos[0], self.mConfig.mOKCaptchaPos[1])
+        time.sleep(1)
 
         if self.mAutoFishRunning is False:
             return Flags.STOP_FISHING
