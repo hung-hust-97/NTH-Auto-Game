@@ -1366,7 +1366,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Quét chấm than</string>
+     <string>Quét địa chỉ</string>
     </property>
    </widget>
    <widget class="QLabel" name="lblFilterBaseAddress">

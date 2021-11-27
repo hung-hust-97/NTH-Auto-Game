@@ -566,7 +566,13 @@ class AutoFishing(QObject):
 
             # detec fish type
             if mStopDetect is False:
-                self.mFishTypeValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
+                mTempFishValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
+                mTempFishValue2 = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress2)
+                self.mFishTypeValue = mTempFishValue - mTempFishValue2
+                # print("*****************")
+                # print(f"mTempFishValue = {mTempFishValue}")
+                # print(f"mTempFishValue2 = {mTempFishValue2}")
+
                 self.mSignalUpdateFishID.emit(self.mFishTypeValue)
 
                 # Neu ca thuoc danh sach uu tien giu lai
@@ -1208,10 +1214,10 @@ class AutoFishing(QObject):
         if self.mReadMemory.mControlBaseAddress == 0:
             self.MsgEmit("Chưa quét địa chỉ chấm than\t\t\t\t\t")
             return
-        if self.mConfig.mFilterMode0Check is False:
-            if self.mReadMemory.mFilterBaseAddress == 0:
-                self.MsgEmit("Chưa quét địa chỉ bóng cá\t\t\t\t\t")
-                return
+        # if self.mConfig.mFilterMode0Check is False:
+        #     if self.mReadMemory.mFilterBaseAddress == 0:
+        #         self.MsgEmit("Chưa quét địa chỉ bóng cá\t\t\t\t\t")
+        #         return
 
         if self.mReadMemory.OpenProcess() is False:
             self.MsgEmit("Lỗi kết nối PID\t\t\t\t\t")
@@ -1226,6 +1232,7 @@ class AutoFishing(QObject):
                          "5. Nếu vẫn không được hãy restart giả lập")
             return
 
+        # Kiểm tra lấy phao câu ở chế độ lai giữa đọc data và đo bóng xử lý ảnh
         if self.mConfig.mFilterMode0Check is True and self.mConfig.mFishDetectionCheck is True:
             if self.mConfig.mFishDetectionCheck is True:
                 if self.mFishingRegion[2] == 0:
@@ -1309,8 +1316,8 @@ class AutoFishing(QObject):
                 if self.mAutoFishRunning is False:
                     return Flags.STOP_FISHING
                 self.mFixRodTime += 1
-                if self.mFixRodTime == 20:
-                    self.MsgEmit("Thả câu lỗi 20 lần. Kiểm tra xem có hết lượt câu không?")
+                if self.mFixRodTime > 10:
+                    self.MsgEmit("Thả câu lỗi 10 lần. Kiểm tra xem có hết lượt câu không?")
                     while True:
                         if self.mAutoFishRunning is False:
                             return Flags.STOP_FISHING
@@ -1327,7 +1334,13 @@ class AutoFishing(QObject):
                     self.mAutoFishRunning = False
                     break
             else:
-                pass
+                self.mFixRodTime += 1
+                if self.mFixRodTime > 10:
+                    self.MsgEmit("Thả câu lỗi 10 lần. Kiểm tra xem có hết lượt câu không?")
+                    while True:
+                        if self.mAutoFishRunning is False:
+                            return Flags.STOP_FISHING
+                        time.sleep(0.5)
         return False
 
     def CheckCaptcha(self):

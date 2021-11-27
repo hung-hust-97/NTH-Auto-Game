@@ -6,8 +6,12 @@ import operator
 
 class Classification:
     def __init__(self):
-        self.mLabelList = ['Ao', 'Balo', 'CanCau', 'Cho', 'Ga', 'Giay', 'Heo', 'Khac', 'Kinh', 'Meo', 'Non', 'Quan',
-                           'Tho', 'Toc', 'Trung', 'Xe']
+        # self.mLabelList = ['Ao', 'Balo', 'CanCau', 'Cho', 'Ga', 'Giay', 'Heo', 'Khac', 'Kinh', 'Meo', 'Non', 'Quan',
+        # 'Tho', 'Toc', 'Trung', 'Xe']
+
+        self.mLabelList = ['Ao', 'Balo', 'Ca', 'CanCau', 'Cho', 'Ghe', 'Giay', 'Giuong', 'Heo', 'Khac', 'Khoi',
+                           'Kinh', 'Leu', 'Meo', 'Non', 'Quan', 'Tho', 'Toc', 'Trung', 'Vay', 'Xe']
+
         self.model = MobileNetv2((224, 224, 3), len(self.mLabelList))
         self.model.load_weights("model/weights.h5")
 

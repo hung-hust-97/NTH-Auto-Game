@@ -1121,7 +1121,7 @@ class Ui_MainWindow(object):
         self.cbKeyBoard.setText(_translate("MainWindow", "Kéo cần phím Space"))
         self.lblShowFish.setText(_translate("MainWindow", "Image"))
         self.lblControlBaseAddress.setText(_translate("MainWindow", "Địa chỉ chấm than"))
-        self.btnMarkScanner.setText(_translate("MainWindow", "Quét chấm than"))
+        self.btnMarkScanner.setText(_translate("MainWindow", "Quét địa chỉ"))
         self.lblFilterBaseAddress.setText(_translate("MainWindow", "Địa chỉ bóng cá"))
         self.labelFilterMode.setText(_translate("MainWindow", "Chế độ cơ bản:"))
         self.cbFilterMode1.setText(_translate("MainWindow", "Trắng VM trở lên"))
