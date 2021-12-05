@@ -211,6 +211,7 @@ class MainWindow(QMainWindow):
         # self.uic.btnFishScanner.clicked.connect(self.OnClickFishScanner)
         self.uic.btnFilterDescription.clicked.connect(self.OnClickFilterDescription)
         self.uic.btnClearFish.clicked.connect(self.OnLickClear)
+        self.uic.btnFishLevelList.clicked.connect(self.OnClickFishLevelList)
 
         # Connect from auto fishing class to def in this class
         self.mAutoFishing.mSignalSetPixelPos.connect(self.SlotShowMarkPosition)
@@ -246,8 +247,8 @@ class MainWindow(QMainWindow):
         # self.uic.cbFilterMode5.hide()
         # self.uic.cbFilterBaba.hide()
         # self.uic.cbFilterKyNhong.hide()
-        # self.uic.cbFilterKyNhongVM.hide()
         # self.uic.cbFilterMiniFish.hide()
+        # self.uic.cbFilter15Fish.hide()
         # self.uic.labelFilterMode.hide()
         # self.uic.labelFishTypeKeep.hide()
         self.uic.lblFilterBaseAddress.hide()
@@ -385,8 +386,8 @@ class MainWindow(QMainWindow):
         self.uic.cbFilterMode5.setDisabled(True)
         self.uic.cbFilterBaba.setDisabled(True)
         self.uic.cbFilterKyNhong.setDisabled(True)
-        self.uic.cbFilterKyNhongVM.setDisabled(True)
         self.uic.cbFilterMiniFish.setDisabled(True)
+        self.uic.cbFilter15Fish.setDisabled(True)
 
         # All thread flag = False
         self.mAutoFishing.mCheckMouseRunning = False
@@ -440,13 +441,18 @@ class MainWindow(QMainWindow):
                         "- Mode 4. Bóng 4 trở lên. Bỏ qua mã số dưới 20\n"
                         "- Mode 5. Bóng 5 trở lên. Bỏ qua mã số dưới 25\n"
                         "\nGiữ lại các loại cá:\n"
-                        "- Kỳ Nhông. Giữ lại mã số 4\n"
-                        "- Kỳ Nhông VM. Giữ lại mã số 6\n"
+                        "- Kỳ Nhông. Giữ lại mã số 4, 6\n"
                         "- Ba ba. Chép vàng. Giữ lại mã số 8, 10\n"
-                        "- Cá mini. Giữ lại mã số 4, 6, 12, 18")
+                        "- Mini. Giữ lại mã số 4, 6, 12, 18\n"
+                        "- Xanh-Home.Camp. Giữ lại mã số 15")
         mMsgBox.setWindowTitle("Mô tả các chế độ lọc bóng bằng đọc data game")
         mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
         mMsgBox.exec()
+
+    def OnClickFishLevelList(self):
+        img = cv2.imread(self.mConfig.mFishLevelImgPath)
+        cv2.namedWindow('Danh sach ma so ca', cv2.WINDOW_NORMAL)
+        cv2.imshow('Danh sach ma so ca', img)
 
     def ShowListEmulatorSize(self):
         for mSize in self.mConfig.mStrListEmulatorSize:
@@ -595,8 +601,8 @@ class MainWindow(QMainWindow):
             self.uic.cbFilterMode5.setDisabled(False)
             self.uic.cbFilterBaba.setDisabled(False)
             self.uic.cbFilterKyNhong.setDisabled(False)
-            self.uic.cbFilterKyNhongVM.setDisabled(False)
             self.uic.cbFilterMiniFish.setDisabled(False)
+            self.uic.cbFilter15Fish.setDisabled(False)
 
             # Show all text box
             self.uic.txtFishingPeriod.setDisabled(False)
@@ -720,7 +726,6 @@ class MainWindow(QMainWindow):
         self.mConfig.mListUnIgnoreFish.clear()
         if self.uic.cbFilterKyNhong.isChecked() is True:
             self.mConfig.mListUnIgnoreFish.append(4)
-        if self.uic.cbFilterKyNhongVM.isChecked() is True:
             self.mConfig.mListUnIgnoreFish.append(6)
         if self.uic.cbFilterBaba.isChecked() is True:
             self.mConfig.mListUnIgnoreFish.append(8)
@@ -730,6 +735,8 @@ class MainWindow(QMainWindow):
             self.mConfig.mListUnIgnoreFish.append(6)
             self.mConfig.mListUnIgnoreFish.append(12)
             self.mConfig.mListUnIgnoreFish.append(18)
+        if self.uic.cbFilter15Fish.isChecked() is True:
+            self.mConfig.mListUnIgnoreFish.append(15)
 
         self.mConfig.SetDelayTime(mDelayTime)
 

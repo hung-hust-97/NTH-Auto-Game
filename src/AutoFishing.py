@@ -282,7 +282,12 @@ class AutoFishing(QObject):
         self.FixConfirm()
         time.sleep(self.mConfig.mDelayTime)
         self.ClickOk()
-        return False
+        time.sleep(self.mConfig.mDelayTime)
+        self.AdbClick(self.mConfig.mCastingRodPos[0],
+                      self.mConfig.mCastingRodPos[1])
+        self.StatusEmit("Đã thả cần câu")
+        log.info(f'Clicked {self.mConfig.mCastingRodPos}')
+        return True
 
     def RMCastFishingRod(self):
         mBackpackValue = self.mReadMemory.GetData(self.mReadMemory.mBackpackAddress)
@@ -506,7 +511,7 @@ class AutoFishing(QObject):
             mStaticFrameGray = cv2.cvtColor(mStaticFrameRGB, cv2.COLOR_BGR2GRAY)
             self.mImageShow = mStaticFrameRGB
 
-        self.StatusEmit("Đang câu cá")
+        self.StatusEmit("Chờ cá cắn câu")
         log.info(f'Fishing')
 
         mBaseTime = time.time()
@@ -569,9 +574,6 @@ class AutoFishing(QObject):
                 mTempFishValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
                 mTempFishValue2 = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress2)
                 self.mFishTypeValue = mTempFishValue - mTempFishValue2
-                # print("*****************")
-                # print(f"mTempFishValue = {mTempFishValue}")
-                # print(f"mTempFishValue2 = {mTempFishValue2}")
 
                 self.mSignalUpdateFishID.emit(self.mFishTypeValue)
 
@@ -1316,8 +1318,8 @@ class AutoFishing(QObject):
                 if self.mAutoFishRunning is False:
                     return Flags.STOP_FISHING
                 self.mFixRodTime += 1
-                if self.mFixRodTime > 10:
-                    self.MsgEmit("Thả câu lỗi 10 lần. Kiểm tra xem có hết lượt câu không?")
+                if self.mFixRodTime == 20:
+                    self.MsgEmit("Thả câu lỗi 20 lần. Kiểm tra xem có hết lượt câu không?")
                     while True:
                         if self.mAutoFishRunning is False:
                             return Flags.STOP_FISHING
@@ -1335,8 +1337,8 @@ class AutoFishing(QObject):
                     break
             else:
                 self.mFixRodTime += 1
-                if self.mFixRodTime > 10:
-                    self.MsgEmit("Thả câu lỗi 10 lần. Kiểm tra xem có hết lượt câu không?")
+                if self.mFixRodTime == 20:
+                    self.MsgEmit("Thả câu lỗi 20 lần. Kiểm tra xem có hết lượt câu không?")
                     while True:
                         if self.mAutoFishRunning is False:
                             return Flags.STOP_FISHING
@@ -1380,7 +1382,7 @@ class AutoFishing(QObject):
         self.mSignalUpdateImageShow.emit()
 
         if mBigCaptchaConfident < 90:
-            idTime = int(time.time())
+            idTime = time.time()
             fileName = f'{mBigCaptchaLabel}_{mBigCaptchaConfident}_{idTime}.jpg'
             cv2.imwrite(f'log/new_captcha/{fileName}', mBigCaptchaImage)
 
@@ -1442,6 +1444,7 @@ class AutoFishing(QObject):
 
         self.AdbClick(self.mConfig.mOKCaptchaComplete[0], self.mConfig.mOKCaptchaComplete[1])
         time.sleep(2)
+        time.sleep(self.mConfig.mDelayTime)
         log.info('Captcha Handle Complete')
         return
 

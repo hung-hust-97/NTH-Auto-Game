@@ -131,6 +131,7 @@ class Config(metaclass=SingletonMeta):
         self.mHelpIconPath = 'data/help.png'
         self.mLessIconPath = 'data/less.png'
         self.mMoreIconPath = 'data/more.png'
+        self.mFishLevelImgPath = 'data/fishlevel.png'
 
         self.mConfidence = 0.7
         self.mShutdownCheckBox = False

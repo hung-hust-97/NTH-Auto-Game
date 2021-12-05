@@ -1,23 +1,22 @@
 import cv2
 import numpy as np
-from src.mobilenet_v2 import MobileNetv2
+from src.MobileNetV2 import MobileNetV2
+# from src.MobileNetV3 import MobileNetV3
 import operator
 
 
 class Classification:
     def __init__(self):
-        # self.mLabelList = ['Ao', 'Balo', 'CanCau', 'Cho', 'Ga', 'Giay', 'Heo', 'Khac', 'Kinh', 'Meo', 'Non', 'Quan',
-        # 'Tho', 'Toc', 'Trung', 'Xe']
-
         self.mLabelList = ['Ao', 'Balo', 'Ca', 'CanCau', 'Cho', 'Ghe', 'Giay', 'Giuong', 'Heo', 'Khac', 'Khoi',
                            'Kinh', 'Leu', 'Meo', 'Non', 'Quan', 'Tho', 'Toc', 'Trung', 'Vay', 'Xe']
 
-        self.model = MobileNetv2((224, 224, 3), len(self.mLabelList))
-        self.model.load_weights("model/weights.h5")
+        self.model = MobileNetV2((112, 112, 3), len(self.mLabelList))
+        # self.model = MobileNetV3((112, 112, 3), len(self.mLabelList))
+        self.model.load_weights("model/weights_112_21la.h5")
 
     def Run(self, image):
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (224, 224))
+        img = cv2.resize(img, (112, 112))
         x_img = np.expand_dims(img, axis=0)
         x_img = x_img / 255.0
         list_score = self.model.predict(x_img)[0].copy()

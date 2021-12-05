@@ -1882,7 +1882,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Kỳ nhông</string>
+     <string>4.6.KỳNhông</string>
     </property>
    </widget>
    <widget class="QLabel" name="labelFishTypeKeep">
@@ -1914,7 +1914,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>360</x>
-      <y>370</y>
+      <y>350</y>
       <width>120</width>
       <height>23</height>
      </rect>
@@ -1943,46 +1943,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Ba ba. Chép vàng</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="cbFilterKyNhongVM">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>350</y>
-      <width>150</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>150</width>
-      <height>23</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>150</width>
-      <height>23</height>
-     </size>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>7</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Kỳ nhông VM</string>
+     <string>8.10.Baba.ChépVàng</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btnFilterDescription">
@@ -2464,7 +2425,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>360</x>
-      <y>390</y>
+      <y>370</y>
       <width>120</width>
       <height>23</height>
      </rect>
@@ -2493,7 +2454,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Cá mini</string>
+     <string>4.6.12.18.Mini</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btnHelp">
@@ -2566,6 +2527,61 @@ p, li { white-space: pre-wrap; }
      <string>Quét bóng cá</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btnFishLevelList">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>470</y>
+      <width>111</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Danh sách mã cá</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="cbFilter15Fish">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>390</y>
+      <width>120</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>120</width>
+      <height>23</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>120</width>
+      <height>23</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>7</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>15.Xanh-Home.Camp</string>
+    </property>
+   </widget>
    <zorder>lblStatus</zorder>
    <zorder>gridLayoutWidget_2</zorder>
    <zorder>gridLayoutWidget</zorder>
@@ -2589,7 +2605,6 @@ p, li { white-space: pre-wrap; }
    <zorder>cbFilterKyNhong</zorder>
    <zorder>labelFishTypeKeep</zorder>
    <zorder>cbFilterBaba</zorder>
-   <zorder>cbFilterKyNhongVM</zorder>
    <zorder>btnFilterDescription</zorder>
    <zorder>txtVioletFish</zorder>
    <zorder>txtBlueFish</zorder>
@@ -2609,6 +2624,8 @@ p, li { white-space: pre-wrap; }
    <zorder>cbFilterMiniFish</zorder>
    <zorder>btnHelp</zorder>
    <zorder>btnFishScanner</zorder>
+   <zorder>btnFishLevelList</zorder>
+   <zorder>cbFilter15Fish</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
