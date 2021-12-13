@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from src.MobileNetV2 import MobileNetV2
-# from src.MobileNetV3 import MobileNetV3
 import operator
 
 
@@ -11,7 +10,6 @@ class Classification:
                            'Kinh', 'Leu', 'Meo', 'Non', 'Quan', 'Tho', 'Toc', 'Trung', 'Vay', 'Xe']
 
         self.model = MobileNetV2((112, 112, 3), len(self.mLabelList))
-        # self.model = MobileNetV3((112, 112, 3), len(self.mLabelList))
         self.model.load_weights("model/weights_112_21la.h5")
 
     def Run(self, image):

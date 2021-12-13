@@ -1882,7 +1882,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>4.6.KỳNhông</string>
+     <string>4.6.KỳNhông.Mini</string>
     </property>
    </widget>
    <widget class="QLabel" name="labelFishTypeKeep">
@@ -1943,7 +1943,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>8.10.Baba.ChépVàng</string>
+     <string>10.12.Baba.ChépVàng</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btnFilterDescription">
@@ -2418,45 +2418,6 @@ p, li { white-space: pre-wrap; }
      <string>Process ID</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="cbFilterMiniFish">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>360</x>
-      <y>370</y>
-      <width>120</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>120</width>
-      <height>23</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>120</width>
-      <height>23</height>
-     </size>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>7</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>4.6.12.18.Mini</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="btnHelp">
     <property name="geometry">
      <rect>
@@ -2550,7 +2511,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>360</x>
-      <y>390</y>
+      <y>370</y>
       <width>120</width>
       <height>23</height>
      </rect>
@@ -2621,7 +2582,6 @@ p, li { white-space: pre-wrap; }
    <zorder>btnClearFish</zorder>
    <zorder>listPID</zorder>
    <zorder>lblPID</zorder>
-   <zorder>cbFilterMiniFish</zorder>
    <zorder>btnHelp</zorder>
    <zorder>btnFishScanner</zorder>
    <zorder>btnFishLevelList</zorder>

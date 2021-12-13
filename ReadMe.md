@@ -1,12 +1,14 @@
 # Requirement lib:
-    Pillow
-    PyAutoGUI
-    opencv-python
-    pure-python-adb
-    pyinstaller
-    PyQt5
-    pywin32
-    urllib3
+	PyQt5==5.15.6
+	opencv-python==4.5.4.60
+	PyAutoGUI==0.9.53
+	pure-python-adb==0.3.0.dev0
+	pywin32==302
+	Pillow==8.4.0
+	psutil==5.8
+	urllib3==1.26.7
+	tensorflow==2.7.0
+    pyinstaller==4.7.0
 
     SDK Platform-Tools Android for adb-server
     https://developer.android.com/studio/releases/platform-tools

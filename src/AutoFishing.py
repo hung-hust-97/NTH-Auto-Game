@@ -10,9 +10,7 @@ import win32api
 from src.config import Config
 from PyQt5.QtCore import pyqtSignal, QObject
 import subprocess
-import logging as log
 import win32gui
-from copy import deepcopy
 
 from src.common import *
 from src.ScreenHandle import ScreenHandle
@@ -113,6 +111,7 @@ class AutoFishing(QObject):
         log.info('InitClassification')
         from src.Classification import Classification
         self.mCaptchaRecognition = Classification()
+        log.info(self.mCaptchaRecognition)
 
     # Convert tọa độ tuyet doi tren man hinh sang toa do tuong doi
     def ConvertCoordinates(self, absPos: list):
@@ -357,6 +356,7 @@ class AutoFishing(QObject):
 
         # so sánh 2 frame, tìm sai khác
         mFrameDelta = cv2.absdiff(mPrevFrameBlur, mCurrFrameBlur)
+
         mThresh = cv2.threshold(mFrameDelta, mMinThreshValue, mMaxThreshValue, cv2.THRESH_BINARY)[1]
 
         # Fill in holes via dilate()
@@ -389,6 +389,9 @@ class AutoFishing(QObject):
 
             # neu height > 2 * weight, bo qua de tranh hat mua
             if h > 2 * w:
+                continue
+
+            if abs(w - h) < (self.mConfig.mMinContour / 40):
                 continue
 
             mContourCenterX = x + w // 2
@@ -462,7 +465,7 @@ class AutoFishing(QObject):
                 mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
                 if mSizeFish != 0:
                     mSkipFrame += 1
-                if mSkipFrame == 10:
+                if mSkipFrame == 5:
                     mStopDetect = True
                     log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
@@ -571,9 +574,10 @@ class AutoFishing(QObject):
 
             # detec fish type
             if mStopDetect is False:
-                mTempFishValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
-                mTempFishValue2 = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress2)
-                self.mFishTypeValue = mTempFishValue - mTempFishValue2
+                # mTempFishValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
+                # mTempFishValue2 = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress2)
+                # self.mFishTypeValue = mTempFishValue - mTempFishValue2
+                self.mFishTypeValue = 6969
 
                 self.mSignalUpdateFishID.emit(self.mFishTypeValue)
 
@@ -731,7 +735,7 @@ class AutoFishing(QObject):
         return
 
     def FishCount(self):
-        time.sleep(0.05)
+        time.sleep(0.3)
         mFishImage = self.mScreenHandle.RegionScreenshot(self.mConfig.mFishImgRegion)
         if mFishImage is None:
             return False
@@ -1381,7 +1385,7 @@ class AutoFishing(QObject):
         self.mImageShow = mShowCaptcha
         self.mSignalUpdateImageShow.emit()
 
-        if mBigCaptchaConfident < 90:
+        if mBigCaptchaConfident < 80:
             idTime = time.time()
             fileName = f'{mBigCaptchaLabel}_{mBigCaptchaConfident}_{idTime}.jpg'
             cv2.imwrite(f'log/new_captcha/{fileName}', mBigCaptchaImage)
@@ -1418,7 +1422,7 @@ class AutoFishing(QObject):
                 self.AdbClick((self.mConfig.mListCaptchaRegion[i][0] + self.mConfig.mListCaptchaRegion[i][2] // 2),
                               (self.mConfig.mListCaptchaRegion[i][1] + self.mConfig.mListCaptchaRegion[i][3] // 2))
 
-            if mSmallCaptchaConfident < 90:
+            if mSmallCaptchaConfident < 80:
                 fileName = f'{mSmallCaptchaLabel}_{mSmallCaptchaConfident}_{idTime}.jpg'
                 cv2.imwrite(f'log/new_captcha/{fileName}', mSmallCaptchaImage)
 

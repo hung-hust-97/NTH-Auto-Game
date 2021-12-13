@@ -247,7 +247,6 @@ class MainWindow(QMainWindow):
         # self.uic.cbFilterMode5.hide()
         # self.uic.cbFilterBaba.hide()
         # self.uic.cbFilterKyNhong.hide()
-        # self.uic.cbFilterMiniFish.hide()
         # self.uic.cbFilter15Fish.hide()
         # self.uic.labelFilterMode.hide()
         # self.uic.labelFishTypeKeep.hide()
@@ -386,7 +385,6 @@ class MainWindow(QMainWindow):
         self.uic.cbFilterMode5.setDisabled(True)
         self.uic.cbFilterBaba.setDisabled(True)
         self.uic.cbFilterKyNhong.setDisabled(True)
-        self.uic.cbFilterMiniFish.setDisabled(True)
         self.uic.cbFilter15Fish.setDisabled(True)
 
         # All thread flag = False
@@ -441,9 +439,8 @@ class MainWindow(QMainWindow):
                         "- Mode 4. Bóng 4 trở lên. Bỏ qua mã số dưới 20\n"
                         "- Mode 5. Bóng 5 trở lên. Bỏ qua mã số dưới 25\n"
                         "\nGiữ lại các loại cá:\n"
-                        "- Kỳ Nhông. Giữ lại mã số 4, 6\n"
-                        "- Ba ba. Chép vàng. Giữ lại mã số 8, 10\n"
-                        "- Mini. Giữ lại mã số 4, 6, 12, 18\n"
+                        "- Kỳ Nhông. Mini. Giữ lại mã số 4, 6\n"
+                        "- Ba ba. Chép vàng. Giữ lại mã số 10, 12\n"
                         "- Xanh-Home.Camp. Giữ lại mã số 15")
         mMsgBox.setWindowTitle("Mô tả các chế độ lọc bóng bằng đọc data game")
         mMsgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
@@ -601,7 +598,6 @@ class MainWindow(QMainWindow):
             self.uic.cbFilterMode5.setDisabled(False)
             self.uic.cbFilterBaba.setDisabled(False)
             self.uic.cbFilterKyNhong.setDisabled(False)
-            self.uic.cbFilterMiniFish.setDisabled(False)
             self.uic.cbFilter15Fish.setDisabled(False)
 
             # Show all text box
@@ -728,13 +724,8 @@ class MainWindow(QMainWindow):
             self.mConfig.mListUnIgnoreFish.append(4)
             self.mConfig.mListUnIgnoreFish.append(6)
         if self.uic.cbFilterBaba.isChecked() is True:
-            self.mConfig.mListUnIgnoreFish.append(8)
             self.mConfig.mListUnIgnoreFish.append(10)
-        if self.uic.cbFilterMiniFish.isChecked() is True:
-            self.mConfig.mListUnIgnoreFish.append(4)
-            self.mConfig.mListUnIgnoreFish.append(6)
             self.mConfig.mListUnIgnoreFish.append(12)
-            self.mConfig.mListUnIgnoreFish.append(18)
         if self.uic.cbFilter15Fish.isChecked() is True:
             self.mConfig.mListUnIgnoreFish.append(15)
 

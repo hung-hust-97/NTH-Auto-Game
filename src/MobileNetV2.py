@@ -1,8 +1,7 @@
-from keras.models import Model
-from keras.layers import Input, Conv2D, GlobalAveragePooling2D, Dropout
-from keras.layers import Activation, BatchNormalization, Add, Reshape, DepthwiseConv2D
-# from keras.utils.vis_utils import plot_model
-from keras import backend as K
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.layers import Activation, BatchNormalization, Add, Reshape, DepthwiseConv2D
+from tensorflow.keras import backend as K
 
 
 def _make_divisible(v, divisor, min_value=None):
@@ -146,6 +145,5 @@ def MobileNetV2(input_shape, k, alpha=1.0):
     output = Reshape((k,))(x)
 
     model = Model(inputs, output)
-    # plot_model(model, to_file='model/MobileNetV2.png', show_shapes=True, show_layer_names=True)
 
     return model
