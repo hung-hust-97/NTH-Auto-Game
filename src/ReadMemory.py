@@ -15,9 +15,8 @@ BACKPACK_OFFSET = int('0x28', 16)
 # -0x24
 ROD_ON_HAND_OFFSET = int('0x24', 16)
 
-# offset from filter_base_addr +9c +b0
-FISH_TYPE_OFFSET = int('0x9C', 16)
-FISH_TYPE_OFFSET2 = int('0xB0', 16)
+# offset from filter_base_addr +10
+FISH_TYPE_OFFSET = int('0x10', 16)
 
 MEMU_MARK_SCANNER_PATH = "cheat_engine\\memu\\MarkScanner.exe"
 MEMU_FISH_SCANNER_PATH = "cheat_engine\\memu\\FishScanner.exe"
@@ -51,15 +50,14 @@ class ReadMemory(metaclass=SingletonMeta):
         self.hexFilterBaseAddress = ""
         self.mControlAddress = 0
         self.mFishTypeAddress = 0
-        self.mFishTypeAddress2 = 0
         self.mBackpackAddress = 0
         self.mRodOnHandAddress = 0
         self.mFixRodAddress = 0
         self.mListPID = []
         self.mMarkScannerPath = MEMU_MARK_SCANNER_PATH
         self.mFishScannerPath = MEMU_FISH_SCANNER_PATH
-        self.mMarkAddressPath = 'C:\\AutoFishing\\config\\MarkScanner.txt'
-        self.mFishAddressPath = 'C:\\AutoFishing\\config\\FishScanner.txt'
+        self.mMarkAddressPath = 'C:\\AutoFishing\\config\\mark.txt'
+        self.mFishAddressPath = 'C:\\AutoFishing\\config\\fish.txt'
 
     def __del__(self):
         pass
@@ -85,9 +83,6 @@ class ReadMemory(metaclass=SingletonMeta):
 
     def GetData(self, address):
         mBufferLen = 4
-        # if address == self.mFishTypeAddress or address == self.mFishTypeAddress2:
-        #     mBufferLen = 1
-
         mAddressMemory = ctypes.c_ulong()
         mRead = windll.kernel32.ReadProcessMemory(self.mProcess,
                                                   ctypes.c_void_p(address),
@@ -118,7 +113,7 @@ class ReadMemory(metaclass=SingletonMeta):
     @staticmethod
     def CheatEngine(path: str):
         try:
-            os.system(path)
+            os.popen(path)
         except (ValueError, Exception):
             log.info("Write base address fail")
             return False
@@ -162,18 +157,14 @@ class ReadMemory(metaclass=SingletonMeta):
         # 1 = ko cam gi ca, 103 = dang cam can cau, > 103 = dang cam linh tinh
         self.mRodOnHandAddress = self.mControlBaseAddress - ROD_ON_HAND_OFFSET
 
-        # ma ca = add_value1 - add_value2
-        self.mFishTypeAddress = self.mControlBaseAddress + FISH_TYPE_OFFSET
-        self.mFishTypeAddress2 = self.mControlBaseAddress + FISH_TYPE_OFFSET2
-
-    # def FishScanner(self):
-    #     self.DeleteFile(self.mFishAddressPath)
-    #     checkWrite = self.CheatEngine(self.mFishScannerPath)
-    #     if checkWrite is False:
-    #         log.info("checkWriteBase Error")
-    #         return False
-    #     self.mFilterBaseAddress, self.hexFilterBaseAddress = self.GetBaseAddress(self.mFishAddressPath)
-    #     if self.mFilterBaseAddress == 0:
-    #         log.info("checkGetBase Error")
-    #         return False
-    #     self.mFishTypeAddress = self.mFilterBaseAddress - FISH_TYPE_OFFSET
+    def FishScanner(self):
+        self.DeleteFile(self.mFishAddressPath)
+        checkWrite = self.CheatEngine(self.mFishScannerPath)
+        if checkWrite is False:
+            log.info("checkWriteBase Error")
+            return False
+        self.mFilterBaseAddress, self.hexFilterBaseAddress = self.GetBaseAddress(self.mFishAddressPath)
+        if self.mFilterBaseAddress == 0:
+            log.info("checkGetBase Error")
+            return False
+        self.mFishTypeAddress = self.mFilterBaseAddress + FISH_TYPE_OFFSET

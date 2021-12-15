@@ -278,6 +278,7 @@ class AutoFishing(QObject):
             mCheck += 1
             time.sleep(0.1)
 
+        # Đóng nhiệm vụ mới 7h sáng hoặc đang bị kẹt ở trả tiền sửa cần
         self.FixConfirm()
         time.sleep(self.mConfig.mDelayTime)
         self.ClickOk()
@@ -538,7 +539,7 @@ class AutoFishing(QObject):
                 mSizeFish = self.FishDetection(mStaticFrameGray, mCurrentFrameGray, mCurrentFrameRGB)
                 if mSizeFish != 0:
                     mSkipFrame += 1
-                if mSkipFrame == 10:
+                if mSkipFrame == 5:
                     mStopDetect = True
                     log.info(f'Size Fish = {mSizeFish}')
                     if mSizeFish < self.mConfig.mFishSize:
@@ -572,13 +573,9 @@ class AutoFishing(QObject):
                 time.sleep(0.1)
                 continue
 
-            # detec fish type
+            # detect fish type
             if mStopDetect is False:
-                # mTempFishValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
-                # mTempFishValue2 = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress2)
-                # self.mFishTypeValue = mTempFishValue - mTempFishValue2
-                self.mFishTypeValue = 6969
-
+                self.mFishTypeValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
                 self.mSignalUpdateFishID.emit(self.mFishTypeValue)
 
                 # Neu ca thuoc danh sach uu tien giu lai
@@ -1277,7 +1274,7 @@ class AutoFishing(QObject):
             else:
                 return Flags.STOP_FISHING
 
-            # mCheckCastRod = self.RMCastFishingRod()
+            mCheckCastRod = self.RMCastFishingRod()
             mCheckCastRod = self.CastFishingRod()
 
             if self.mAutoFishRunning is False:

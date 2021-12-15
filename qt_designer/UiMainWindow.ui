@@ -1347,7 +1347,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="text">
-     <string>Địa chỉ chấm than</string>
+     <string>Chưa quét chấm than</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btnMarkScanner">
@@ -1366,7 +1366,7 @@ p, li { white-space: pre-wrap; }
      </font>
     </property>
     <property name="text">
-     <string>Quét địa chỉ</string>
+     <string>Quét chấm than</string>
     </property>
    </widget>
    <widget class="QLabel" name="lblFilterBaseAddress">
@@ -1377,12 +1377,12 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>360</x>
       <y>60</y>
-      <width>81</width>
+      <width>111</width>
       <height>22</height>
      </rect>
     </property>
     <property name="text">
-     <string>Địa chỉ bóng cá</string>
+     <string>Chưa quét bóng cá</string>
     </property>
    </widget>
    <widget class="QLabel" name="labelFilterMode">

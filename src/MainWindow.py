@@ -208,7 +208,7 @@ class MainWindow(QMainWindow):
         self.uic.btnHelp.clicked.connect(self.OnClickHelp)
         self.uic.btnExpand.clicked.connect(self.OnClickExpand)
         self.uic.btnMarkScanner.clicked.connect(self.OnClickMarkScanner)
-        # self.uic.btnFishScanner.clicked.connect(self.OnClickFishScanner)
+        self.uic.btnFishScanner.clicked.connect(self.OnClickFishScanner)
         self.uic.btnFilterDescription.clicked.connect(self.OnClickFilterDescription)
         self.uic.btnClearFish.clicked.connect(self.OnLickClear)
         self.uic.btnFishLevelList.clicked.connect(self.OnClickFishLevelList)
@@ -250,14 +250,15 @@ class MainWindow(QMainWindow):
         # self.uic.cbFilter15Fish.hide()
         # self.uic.labelFilterMode.hide()
         # self.uic.labelFishTypeKeep.hide()
-        self.uic.lblFilterBaseAddress.hide()
-        self.uic.btnFishScanner.hide()
-        self.uic.lblControlBaseAddress.setText("Địa chỉ data")
+        # self.uic.lblFilterBaseAddress.hide()
+        # self.uic.btnFishScanner.hide()
         # self.uic.btnFilterDescription.hide()
         # self.uic.lcdFishID.hide()
         # self.uic.lblFishID.hide()
 
     def OnClickConnectWindowTitle(self):
+        self.uic.lblControlBaseAddress.setText("Chưa quét chấm than")
+        self.uic.lblFilterBaseAddress.setText("Chưa quét bóng cá")
         self.mConfig.SetWindowName(self.uic.txtEmulatorName.toPlainText())
         self.mConfig.SetEmulatorSize(self.uic.listEmulatorSize.currentIndex())
 
@@ -294,23 +295,34 @@ class MainWindow(QMainWindow):
         return
 
     def OnClickMarkScanner(self):
-        self.uic.lblControlBaseAddress.setText("Địa chỉ data")
+        self.uic.lblControlBaseAddress.setText("Chưa quét chấm than")
         self.SlotShowMsgBox("Lưu ý:\n\n"
-                            "Khi dịch chuyển đến khu vực mới, nếu bị lỗi hãy quét lại data")
+                            "Khi dịch chuyển đến khu vực mới, nếu bị lỗi hãy quét lại chấm than")
         threading.Thread(target=self.mAutoFishing.MarkScanner).start()
 
-    # def OnClickFishScanner(self):
-    #     self.uic.lblFilterBaseAddress.setText("Địa chỉ bóng cá")
-    #     self.SlotShowMsgBox("Game đã update v1.28. Tạm thời tool chưa thể quét bóng cá để bổ củi")
-        # self.SlotShowMsgBox("Lưu ý:\n\n"
-        #                     "Khi dịch chuyển đến khu vực mới, phải câu trước 1 con cá rồi mới Start auto")
-        # threading.Thread(target=self.mAutoFishing.FishScanner).start()
+    def OnClickFishScanner(self):
+        self.uic.lblFilterBaseAddress.setText("Chưa quét bóng cá")
+        self.SlotShowMsgBox("Quét bóng cá gồm 2 bước:\n\n"
+                            "Bước 1: Quét tại màn hình chờ của game, lúc có chữ bấm vào màn hình\n"
+                            "Bước 2: Xong bước 1 thì vào game, câu trước 1 con cá rồi quét bước 2")
+        threading.Thread(target=self.mAutoFishing.FishScanner).start()
 
     def SlotUpdateMarkAddress(self):
         self.uic.lblControlBaseAddress.setText(self.mReadMemory.hexControlBaseAddress)
+        if self.mReadMemory.hexControlBaseAddress == "ERROR":
+            self.uic.lblControlBaseAddress.setText("Chấm than lỗi")
+        elif self.mReadMemory.hexControlBaseAddress == "":
+            self.uic.lblControlBaseAddress.setText("Chưa quét chấm than")
+        else:
+            self.uic.lblControlBaseAddress.setText("Chấm than OK")
 
     def SlotUpdateFishAddress(self):
-        self.uic.lblFilterBaseAddress.setText(self.mReadMemory.hexFilterBaseAddress)
+        if self.mReadMemory.hexFilterBaseAddress == "ERROR":
+            self.uic.lblFilterBaseAddress.setText("Bóng cá lỗi")
+        elif self.mReadMemory.hexFilterBaseAddress == "":
+            self.uic.lblFilterBaseAddress.setText("Chưa quét bóng cá")
+        else:
+            self.uic.lblFilterBaseAddress.setText("Bóng cá OK")
 
     def SlotUpdatePID(self):
         self.uic.listPID.clear()
@@ -354,7 +366,7 @@ class MainWindow(QMainWindow):
         self.uic.btnStartFishing.setDisabled(True)
         self.uic.btnGetMarkPosition.setDisabled(True)
         self.uic.btnGetBobberPosition.setDisabled(True)
-        # self.uic.btnFishScanner.setDisabled(True)
+        self.uic.btnFishScanner.setDisabled(True)
         self.uic.btnMarkScanner.setDisabled(True)
         self.uic.btnClearFish.setDisabled(True)
 
@@ -581,7 +593,7 @@ class MainWindow(QMainWindow):
             self.uic.btnConnectAdb.setDisabled(False)
             self.uic.btnGetMarkPosition.setDisabled(False)
             self.uic.btnGetBobberPosition.setDisabled(False)
-            # self.uic.btnFishScanner.setDisabled(False)
+            self.uic.btnFishScanner.setDisabled(False)
             self.uic.btnMarkScanner.setDisabled(False)
             self.uic.btnClearFish.setDisabled(False)
 
