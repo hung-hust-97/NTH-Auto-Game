@@ -980,7 +980,7 @@ class AutoFishing(QObject):
                 f'Cửa sổ giả lập không phải {self.mConfig.mStrListEmulatorSize[self.mConfig.mEmulatorSizeId]}\n'
                 f'Hãy cài đặt độ phân giải giả lập về một trong 3 dạng sau:\n'
                 f'1280x720 (dpi 240)\n'
-                f'960x540 (dpi 160)\n'
+                f'960x540 (dpi 180)\n'
                 f'640x360 (dpi 120)')
             log.info(f'Emulator size {self.mEmulatorBox} not suitable')
             return False
@@ -1217,10 +1217,10 @@ class AutoFishing(QObject):
         if self.mReadMemory.mControlBaseAddress == 0:
             self.MsgEmit("Chưa quét địa chỉ chấm than\t\t\t\t\t")
             return
-        # if self.mConfig.mFilterMode0Check is False:
-        #     if self.mReadMemory.mFilterBaseAddress == 0:
-        #         self.MsgEmit("Chưa quét địa chỉ bóng cá\t\t\t\t\t")
-        #         return
+        if self.mConfig.mFilterMode0Check is False:
+            if self.mReadMemory.mFilterBaseAddress == 0:
+                self.MsgEmit("Chưa quét địa chỉ bóng cá\t\t\t\t\t")
+                return
 
         if self.mReadMemory.OpenProcess() is False:
             self.MsgEmit("Lỗi kết nối PID\t\t\t\t\t")

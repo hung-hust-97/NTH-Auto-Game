@@ -113,7 +113,7 @@ class ReadMemory(metaclass=SingletonMeta):
     @staticmethod
     def CheatEngine(path: str):
         try:
-            os.popen(path)
+            os.popen(path).read()
         except (ValueError, Exception):
             log.info("Write base address fail")
             return False
