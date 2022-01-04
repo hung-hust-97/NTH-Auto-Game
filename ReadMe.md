@@ -11,8 +11,5 @@
 	tensorflow==2.7.0
     pyinstaller==4.7.0
 
-    SDK Platform-Tools Android for adb-server
-    https://developer.android.com/studio/releases/platform-tools
-
 # Build app to file .exe for windows:
-pyinstaller main.py --onefile --noconsole --icon="data/AutoFishing.ico" --name=AutoFishing
+pyinstaller main.py --noconsole --noconfirm --icon="data/nth_auto_game.ico" --name=AutoFishing
