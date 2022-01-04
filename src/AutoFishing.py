@@ -57,6 +57,7 @@ class AutoFishing(QObject):
         self.mCheckMarkPos = False
         self.mEmulatorType = ''
         self.mFishTypeValue = 0
+        self.mTimeErrorFishValue = 0
 
         # Khai báo số cá các loại
         self.mAllFish = 0
@@ -576,6 +577,15 @@ class AutoFishing(QObject):
             # detect fish type
             if mStopDetect is False:
                 self.mFishTypeValue = self.mReadMemory.GetData(self.mReadMemory.mFishTypeAddress)
+
+                if self.mFishTypeValue > 30:
+                    self.mTimeErrorFishValue += 1
+                    if self.mTimeErrorFishValue > 5:
+                        self.mAutoFishRunning = False
+                    return
+                else:
+                    self.mTimeErrorFishValue = 0
+
                 self.mSignalUpdateFishID.emit(self.mFishTypeValue)
 
                 # Neu ca thuoc danh sach uu tien giu lai
@@ -629,7 +639,7 @@ class AutoFishing(QObject):
                     return
                 self.mAutoFishRunning = False
                 self.MsgEmit(
-                    'Kéo cần qua ADB bị trễ quá cao\nHãy chọn chế độ kéo cần bằng phím Space (KHÔNG hỗ trợ trên LD Player)')
+                    'Kéo cần qua ADB bị trễ quá cao\nHãy chọn chế độ kéo cần bằng phím Space')
                 self.mCheckAdbDelay = 0
             return
 
@@ -652,7 +662,7 @@ class AutoFishing(QObject):
                     return
                 self.mAutoFishRunning = False
                 self.MsgEmit(
-                    'Kéo cần qua ADB bị trễ quá cao\nHãy chọn chế độ kéo cần bằng phím Space (KHÔNG hỗ trợ trên LD Player)')
+                    'Kéo cần qua ADB bị trễ quá cao\nHãy chọn chế độ kéo cần bằng phím Space')
                 self.mCheckAdbDelay = 0
             return
 
@@ -722,6 +732,9 @@ class AutoFishing(QObject):
             if mControlValue == 0:
                 self.StatusEmit("Câu thất bại")
                 log.info(f'Fishing fail')
+                self.OpenBackPack()
+                time.sleep(0.2)
+                self.CloseBackPack()
                 if mPullingFishCheck is True:
                     self.mBrokenWire += 1
                 return
@@ -993,8 +1006,6 @@ class AutoFishing(QObject):
             self.mReadMemory.mMarkScannerPath = NOX_MARK_SCANNER_PATH
             self.mReadMemory.mFishScannerPath = NOX_FISH_SCANNER_PATH
             self.mReadMemory.GetPID()
-        elif self.mEmulatorType == LD:
-            self.mImageShow = cv2.imread('data/ldlogo.png')
         elif self.mEmulatorType == MEMU:
             self.mImageShow = cv2.imread('data/memulogo.png')
             self.mReadMemory.mProcessName = MEMU_PROCESS_NAME
@@ -1005,22 +1016,11 @@ class AutoFishing(QObject):
             self.MsgEmit(
                 f'Không tìm thấy logo giả lập\n'
                 f'Hãy vào cài đặt màn hình windows, chỉnh scale 100%. Khởi động lại giả lập\n'
-                f'Lưu ý phần mềm chỉ hỗ trợ 3 loại giả lập MEmu, NOX, LDPlayer')
+                f'Lưu ý phần mềm chỉ hỗ trợ 2 loại giả lập MEmu, NOX')
             log.info(f'Emulator type not suitable')
             return False
         self.mSignalUpdatePID.emit()
         self.mSignalUpdateImageShow.emit()
-        return True
-
-    def StartAdbServer(self):
-        self.StatusEmit("Đang khởi tạo adb-server")
-        log.info(f'')
-        try:
-            subprocess.call(f'{self.mConfig.mAdbPath} devices', creationflags=0x08000000)
-        except (ValueError, Exception):
-            self.StatusEmit('Khởi tạo adb-server thất bại')
-            return False
-        self.StatusEmit('Khởi tạo adb-server thành công')
         return True
 
     def AdbServerConnect(self):
@@ -1030,13 +1030,8 @@ class AutoFishing(QObject):
             self.mAdbClient = AdbClient(self.mConfig.mAdbHost, self.mConfig.mAdbPort)
             self.mAdbDevices = self.mAdbClient.devices()
         except (ValueError, Exception):
-            mCheckStartServer = self.StartAdbServer()
-            if mCheckStartServer is False:
-                self.MsgEmit('Không tìm thấy ADB server\t\t')
-                return False
-            else:
-                self.mAdbClient = AdbClient(self.mConfig.mAdbHost, self.mConfig.mAdbPort)
-                self.mAdbDevices = self.mAdbClient.devices()
+            self.MsgEmit('Không tìm thấy ADB server\t\t')
+            return False
         if len(self.mAdbDevices) == 0:
             self.mAdbClient = None
             self.MsgEmit('Không kết nối được giả lập qua adb-server\nHãy khởi động lại giả lập')
@@ -1101,9 +1096,7 @@ class AutoFishing(QObject):
                 self.MsgEmit("Chưa lấy tọa độ phao câu\t\t")
                 return
 
-        if self.mEmulatorType == LD:
-            self.mConfig.mSendKeyCheck = False
-        elif self.mEmulatorType == NOX:
+        if self.mEmulatorType == NOX:
             self.mConfig.mSendKeyCheck = True
         else:
             pass
@@ -1274,7 +1267,6 @@ class AutoFishing(QObject):
             else:
                 return Flags.STOP_FISHING
 
-            mCheckCastRod = self.RMCastFishingRod()
             mCheckCastRod = self.CastFishingRod()
 
             if self.mAutoFishRunning is False:

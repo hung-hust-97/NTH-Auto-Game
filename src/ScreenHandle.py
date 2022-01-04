@@ -41,9 +41,23 @@ class ScreenHandle(QObject):
 
         # Bo title bar
         self.mTopBar = self.mWindowBox[3] - height
+        # print(self.mTopBar)
+        # print(self.mWindowBox[2] - width)
+        # self.mTopBar = 30
 
         self.mFrameSize[0] = width
         self.mFrameSize[1] = height
+        # win32gui.MoveWindow(self.hwndMain,
+        #                     self.mWindowBox[0],
+        #                     self.mWindowBox[1],
+        #                     width + 40,
+        #                     height + 30,
+        #                     0)
+        # window_rect = win32gui.GetWindowRect(self.hwndMain)
+        # self.mWindowBox[0] = window_rect[0]
+        # self.mWindowBox[1] = window_rect[1]
+        # self.mWindowBox[2] = window_rect[2] - window_rect[0]
+        # self.mWindowBox[3] = window_rect[3] - window_rect[1]
 
     def WindowScreenShot(self, width: int, height: int, left_offset: int, top_offset: int):
         try:
@@ -151,8 +165,6 @@ class ScreenHandle(QObject):
         if mRegionFindLogoScreen is None:
             return ''
         mRegionFindLogoScreen = cv2.cvtColor(mRegionFindLogoScreen, cv2.COLOR_BGR2GRAY)
-        if self.CompareImage(mRegionFindLogoScreen, self.mConfig.mLdLogo, 0.7) is True:
-            return LD
         if self.CompareImage(mRegionFindLogoScreen, self.mConfig.mNoxLogo, 0.7) is True:
             return NOX
         if self.CompareImage(mRegionFindLogoScreen, self.mConfig.mMemuLogo, 0.7) is True:

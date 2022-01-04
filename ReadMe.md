@@ -1,4 +1,5 @@
 # Requirement lib:
+    python==3.9.7
 	PyQt5==5.15.6
 	opencv-python==4.5.4.60
 	PyAutoGUI==0.9.53
@@ -15,6 +16,3 @@
 
 # Build app to file .exe for windows:
 pyinstaller main.py --onefile --noconsole --icon="data/AutoFishing.ico" --name=AutoFishing
-
-# Branch 2.x.x license NTH Auto Game 
-remove captcha

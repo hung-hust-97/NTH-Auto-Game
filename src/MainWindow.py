@@ -265,10 +265,7 @@ class MainWindow(QMainWindow):
         if self.mAutoFishing.CheckRegionEmulator() is True:
             self.SlotShowStatus(f"Kết nối thành công giả lập {self.mAutoFishing.mEmulatorType}\n"
                                 f"{self.mAutoFishing.mEmulatorBox}")
-            if self.mAutoFishing.mEmulatorType == LD:
-                self.uic.cbKeyBoard.setDisabled(True)
-                self.uic.cbKeyBoard.setChecked(False)
-            elif self.mAutoFishing.mEmulatorType == NOX:
+            if self.mAutoFishing.mEmulatorType == NOX:
                 self.uic.cbKeyBoard.setDisabled(True)
                 self.uic.cbKeyBoard.setChecked(True)
             else:
@@ -296,15 +293,10 @@ class MainWindow(QMainWindow):
 
     def OnClickMarkScanner(self):
         self.uic.lblControlBaseAddress.setText("Chưa quét chấm than")
-        self.SlotShowMsgBox("Lưu ý:\n\n"
-                            "Khi dịch chuyển đến khu vực mới, nếu bị lỗi hãy quét lại chấm than")
         threading.Thread(target=self.mAutoFishing.MarkScanner).start()
 
     def OnClickFishScanner(self):
         self.uic.lblFilterBaseAddress.setText("Chưa quét bóng cá")
-        self.SlotShowMsgBox("Quét bóng cá gồm 2 bước:\n\n"
-                            "Bước 1: Quét tại màn hình chờ của game, lúc có chữ bấm vào màn hình\n"
-                            "Bước 2: Xong bước 1 thì vào game, câu trước 1 con cá rồi quét bước 2")
         threading.Thread(target=self.mAutoFishing.FishScanner).start()
 
     def SlotUpdateMarkAddress(self):

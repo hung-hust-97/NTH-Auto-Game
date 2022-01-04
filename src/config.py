@@ -72,8 +72,6 @@ class Config(metaclass=SingletonMeta):
         self.mConfig = self.mConfigParser['CONFIG']
 
         self.mLogPath = f'log/{self.mDateTime}.log'
-        # self.mLogPath = f'log/log.log'
-        self.mAdbPath = 'adb/adb.exe'
 
         self.mWindowRatio = 1
         self.mAdbHost = "127.0.0.1"
@@ -108,7 +106,6 @@ class Config(metaclass=SingletonMeta):
         self.mBackpackImg = None
         self.mOKCaptchaImg = None
         self.mPreservationImg = None
-        self.mLdLogo = None
         self.mNoxLogo = None
         self.mMemuLogo = None
 
@@ -305,7 +302,6 @@ class Config(metaclass=SingletonMeta):
         self.mPreservationImg = cv2.imread(self.mPreservationImgPath, cv2.IMREAD_GRAYSCALE)
         self.mOKCaptchaImg = cv2.imread(self.mOKCaptchaImgPath, cv2.IMREAD_GRAYSCALE)
         self.mNoxLogo = cv2.imread('data/noxlogo.png', cv2.IMREAD_GRAYSCALE)
-        self.mLdLogo = cv2.imread('data/ldlogo.png', cv2.IMREAD_GRAYSCALE)
         self.mMemuLogo = cv2.imread('data/memulogo.png', cv2.IMREAD_GRAYSCALE)
 
         if self.mWindowRatio > 1:

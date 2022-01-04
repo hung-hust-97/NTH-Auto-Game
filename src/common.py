@@ -1,6 +1,5 @@
 from enum import Enum
 
-LD = 'LD PLAYER'
 NOX = 'NOX PLAYER'
 MEMU = 'MEMU PLAYER'
 OTHER = 'Other'

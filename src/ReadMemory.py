@@ -5,23 +5,29 @@ import psutil
 from ctypes import *
 from threading import Lock
 import logging as log
+
 # co the su dung thu vien pymem ho tro doc ram rat tot
 
 # offset from control_base_addr
 # +0x10
-ROD_OFFSET = int('0x1C', 16)
-# -0x28
-BACKPACK_OFFSET = int('0x28', 16)
-# -0x24
-ROD_ON_HAND_OFFSET = int('0x24', 16)
+ROD_OFFSET = int('0x48', 16)
+# -0x00
+BACKPACK_OFFSET = int('0x00', 16)
+# +0x04
+ROD_ON_HAND_OFFSET = int('0x04', 16)
 
-# offset from filter_base_addr +10
-FISH_TYPE_OFFSET = int('0x10', 16)
+# offset from filter_base_addr +00
+FISH_TYPE_OFFSET = int('0x00', 16)
 
 MEMU_MARK_SCANNER_PATH = "cheat_engine\\memu\\MarkScanner.exe"
 MEMU_FISH_SCANNER_PATH = "cheat_engine\\memu\\FishScanner.exe"
+
 NOX_MARK_SCANNER_PATH = "cheat_engine\\nox\\MarkScanner.exe"
 NOX_FISH_SCANNER_PATH = "cheat_engine\\nox\\FishScanner.exe"
+
+MARK_ADDR_PATH = "C:\\AutoFishing\\cheat_engine\\mark.txt"
+FISH_ADDR_PATH = "C:\\AutoFishing\\cheat_engine\\fish.txt"
+
 MEMU_PROCESS_NAME = "MEmuHeadless.exe"
 NOX_PROCESS_NAME = "NoxVMHandle.exe"
 
@@ -56,11 +62,20 @@ class ReadMemory(metaclass=SingletonMeta):
         self.mListPID = []
         self.mMarkScannerPath = MEMU_MARK_SCANNER_PATH
         self.mFishScannerPath = MEMU_FISH_SCANNER_PATH
-        self.mMarkAddressPath = 'C:\\AutoFishing\\config\\mark.txt'
-        self.mFishAddressPath = 'C:\\AutoFishing\\config\\fish.txt'
+        self.mMarkAddressPath = MARK_ADDR_PATH
+        self.mFishAddressPath = FISH_ADDR_PATH
+        self.CheckCheatEngineFolder()
 
     def __del__(self):
         pass
+
+    @staticmethod
+    def CheckCheatEngineFolder():
+        if os.path.isdir('C:\\AutoFishing') is False:
+            os.mkdir('C:\\AutoFishing')
+
+        if os.path.isdir('C:\\AutoFishing\\cheat_engine') is False:
+            os.mkdir('C:\\AutoFishing\\cheat_engine')
 
     def GetPID(self):
         self.mListPID.clear()
@@ -155,7 +170,7 @@ class ReadMemory(metaclass=SingletonMeta):
         # < close backpack, 300 = open backpack
         self.mBackpackAddress = self.mControlBaseAddress - BACKPACK_OFFSET
         # 1 = ko cam gi ca, 103 = dang cam can cau, > 103 = dang cam linh tinh
-        self.mRodOnHandAddress = self.mControlBaseAddress - ROD_ON_HAND_OFFSET
+        self.mRodOnHandAddress = self.mControlBaseAddress + ROD_ON_HAND_OFFSET
 
     def FishScanner(self):
         self.DeleteFile(self.mFishAddressPath)
