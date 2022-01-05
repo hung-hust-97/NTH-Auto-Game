@@ -582,6 +582,8 @@ class AutoFishing(QObject):
                     self.mTimeErrorFishValue += 1
                     if self.mTimeErrorFishValue > 5:
                         self.mAutoFishRunning = False
+                        self.mTimeErrorFishValue = 0
+                        self.MsgEmit("Địa chỉ bóng cá bị lỗi. Hãy quét lại địa chỉ bóng cá")
                     return
                 else:
                     self.mTimeErrorFishValue = 0
